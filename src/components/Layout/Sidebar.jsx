@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   BarChart3, 
@@ -19,8 +20,10 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapseChange }) {
+export function Sidebar({ activeTab, isOpen, setIsOpen, onCollapseChange }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -61,38 +64,38 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
     switch (user?.role) {
       case 'admin':
         return [
-          { id: 'dashboard', label: 'Dashboard', icon: Home },
-          { id: 'orders', label: 'Orders', icon: ShoppingCart },
-          { id: 'menu', label: 'Menu', icon: MenuIcon },
-          { id: 'reservations', label: 'Reservations', icon: Calendar },
-          { id: 'inventory', label: 'Inventory', icon: Package },
-          { id: 'waste', label: 'Waste Log', icon: Trash2 },
-          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-          { id: 'users', label: 'Users', icon: Users },
-          { id: 'reports', label: 'Reports', icon: FileText },
-          { id: 'settings', label: 'Settings', icon: Settings }
+          { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
+          { id: 'orders', label: 'Orders', icon: ShoppingCart, path: '/orders' },
+          { id: 'menu', label: 'Menu', icon: MenuIcon, path: '/menu' },
+          { id: 'reservations', label: 'Reservations', icon: Calendar, path: '/reservations' },
+          { id: 'inventory', label: 'Inventory', icon: Package, path: '/inventory' },
+          { id: 'waste', label: 'Waste Log', icon: Trash2, path: '/waste' },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3, path: '/analytics' },
+          { id: 'users', label: 'Users', icon: Users, path: '/users' },
+          { id: 'reports', label: 'Reports', icon: FileText, path: '/reports' },
+          { id: 'settings', label: 'Settings', icon: Settings, path: '/settings' }
         ];
       case 'chef':
         return [
-          { id: 'dashboard', label: 'Dashboard', icon: Home },
-          { id: 'orders', label: 'Orders', icon: ShoppingCart },
-          { id: 'waste', label: 'Waste Log', icon: Trash2 },
-          { id: 'inventory', label: 'Inventory', icon: Package }
+          { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
+          { id: 'orders', label: 'Orders', icon: ShoppingCart, path: '/orders' },
+          { id: 'waste', label: 'Waste Log', icon: Trash2, path: '/waste' },
+          { id: 'inventory', label: 'Inventory', icon: Package, path: '/inventory' }
         ];
       case 'waiter':
         return [
-          { id: 'dashboard', label: 'Dashboard', icon: Home },
-          { id: 'orders', label: 'Orders', icon: ShoppingCart },
-          { id: 'reservations', label: 'Reservations', icon: Calendar },
-          { id: 'menu', label: 'Menu', icon: MenuIcon }
+          { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
+          { id: 'orders', label: 'Orders', icon: ShoppingCart, path: '/orders' },
+          { id: 'reservations', label: 'Reservations', icon: Calendar, path: '/reservations' },
+          { id: 'menu', label: 'Menu', icon: MenuIcon, path: '/menu' }
         ];
       case 'customer':
         return [
-          { id: 'dashboard', label: 'Dashboard', icon: Home },
-          { id: 'menu', label: 'Menu', icon: UtensilsCrossed },
-          { id: 'orders', label: 'My Orders', icon: Clock },
-          { id: 'reservations', label: 'Reservations', icon: Calendar },
-          { id: 'loyalty', label: 'Loyalty', icon: Star }
+          { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/dashboard' },
+          { id: 'menu', label: 'Menu', icon: UtensilsCrossed, path: '/menu' },
+          { id: 'orders', label: 'My Orders', icon: Clock, path: '/orders' },
+          { id: 'reservations', label: 'Reservations', icon: Calendar, path: '/reservations' },
+          { id: 'loyalty', label: 'Loyalty', icon: Star, path: '/loyalty' }
         ];
       default:
         return [];
@@ -101,11 +104,16 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
 
   const menuItems = getMenuItems();
 
-  const handleMenuItemClick = (itemId) => {
-    setActiveTab(itemId);
+  const handleMenuItemClick = () => {
     if (isMobile) {
       setIsOpen(false); // Close sidebar on mobile after selection
     }
+  };
+
+  // Get current active path for highlighting
+  const getCurrentActiveItem = () => {
+    const currentPath = location.pathname;
+    return menuItems.find(item => item.path === currentPath)?.id || 'dashboard';
   };
 
   const sidebarWidth = isCollapsed && !isMobile ? 'w-16' : 'w-64';
@@ -159,12 +167,14 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
           <div className={`space-y-1 ${isCollapsed && !isMobile ? 'px-2' : 'px-4'}`}>
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeTab === item.id;
+              const currentActive = getCurrentActiveItem();
+              const isActive = currentActive === item.id;
               
               return (
-                <button
+                <Link
                   key={item.id}
-                  onClick={() => handleMenuItemClick(item.id)}
+                  to={item.path}
+                  onClick={handleMenuItemClick}
                   className={`
                     w-full flex items-center space-x-3 px-3 py-3 rounded-lg text-left 
                     transition-all duration-200 group relative
@@ -197,7 +207,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
                   {isActive && (
                     <div className="absolute right-0 top-0 bottom-0 w-1 bg-black rounded-l" />
                   )}
-                </button>
+                </Link>
               );
             })}
           </div>

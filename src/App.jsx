@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppProvider } from './contexts/AppContext';
 import { LoginForm } from './components/Auth/LoginForm';
@@ -18,9 +19,26 @@ import { UserManagement } from './components/Users/UserManagement';
 import { ReportsManagement } from './components/Reports/ReportsManagement';
 import { SettingsManagement } from './components/Settings/SettingsManagement';
 
-function MainApp() {
+// Main App Content with Authentication Check
+function AppContent() {
   const { user, isAuthenticated } = useAuth();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  
+  if (!isAuthenticated) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginForm />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  return <Layout />;
+}
+
+// Main Layout Component for Authenticated Users
+function Layout() {
+  const { user } = useAuth();
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -36,10 +54,6 @@ function MainApp() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  if (!isAuthenticated) {
-    return <LoginForm />;
-  }
-
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
@@ -54,52 +68,47 @@ function MainApp() {
     return `flex-1 min-h-[calc(100vh-4rem)] ${marginLeft} transition-all duration-300 ease-in-out`;
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        if (user?.role === 'customer') return <CustomerDashboard />;
-        if (user?.role === 'chef') return <ChefDashboard />;
-        return <AdminDashboard />;
-      case 'menu':
-        return user && user.role === 'customer' ? <CustomerMenu /> : <MenuManagement />;
-      case 'orders':
-        return <OrderManagement />;
-      case 'analytics':
-        return <AnalyticsDashboard />;
-      case 'waste':
-        return <WasteManagement />;
-      case 'inventory':
-        return <InventoryManagement />;
-      case 'reservations':
-        return <ReservationManagement />;
-      case 'loyalty':
-        return <CustomerDashboard />; // Placeholder for loyalty component
-      case 'users':
-        return <UserManagement />;
-      case 'reports':
-        return <ReportsManagement />;
-      case 'settings':
-        return <SettingsManagement />;
-      default:
-        if (user?.role === 'chef') return <ChefDashboard />;
-        return <AdminDashboard />;
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
       <Header toggleSidebar={toggleSidebar} />
       <div className="relative">
         <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab}
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
           onCollapseChange={setSidebarCollapsed}
         />
         <main className={getMainContentClass()}>
           <div className="h-full overflow-auto p-6">
-            {renderContent()}
+            <Routes>
+              {/* Dashboard Routes */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={
+                user?.role === 'customer' ? <CustomerDashboard /> :
+                user?.role === 'chef' ? <ChefDashboard /> :
+                <AdminDashboard />
+              } />
+              
+              {/* Menu Routes */}
+              <Route path="/menu" element={
+                user?.role === 'customer' ? <CustomerMenu /> : <MenuManagement />
+              } />
+              
+              {/* Admin/Staff Routes */}
+              <Route path="/orders" element={<OrderManagement />} />
+              <Route path="/analytics" element={<AnalyticsDashboard />} />
+              <Route path="/waste" element={<WasteManagement />} />
+              <Route path="/inventory" element={<InventoryManagement />} />
+              <Route path="/reservations" element={<ReservationManagement />} />
+              <Route path="/users" element={<UserManagement />} />
+              <Route path="/reports" element={<ReportsManagement />} />
+              <Route path="/settings" element={<SettingsManagement />} />
+              
+              {/* Loyalty placeholder - using customer dashboard for now */}
+              <Route path="/loyalty" element={<CustomerDashboard />} />
+              
+              {/* Catch all route - redirect to dashboard */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
           </div>
         </main>
       </div>
@@ -109,11 +118,13 @@ function MainApp() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppProvider>
-        <MainApp />
-      </AppProvider>
-    </AuthProvider>
+    <Router>
+      <AuthProvider>
+        <AppProvider>
+          <AppContent />
+        </AppProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 
