@@ -82,7 +82,7 @@ export function OrderManagement() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredOrders.map((order) => (
-          <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div key={order.id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 flex flex-col h-full">
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Order #{order.id}</h3>
@@ -121,7 +121,7 @@ export function OrderManagement() {
               )}
             </div>
 
-            <div className="border-t border-gray-200 pt-4 mb-4">
+            <div className="border-t border-gray-200 pt-4 mb-4 flex-grow">
               <h4 className="font-medium text-gray-900 mb-2">Items:</h4>
               <div className="space-y-2">
                 {order.items.map((item, idx) => (
@@ -141,13 +141,13 @@ export function OrderManagement() {
               </div>
             )}
 
-            {canUpdateOrders && (
-              <div className="flex space-x-2">
+            {canUpdateOrders && getAvailableActions(order.status).length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-auto">
                 {getAvailableActions(order.status).map((action) => (
                   <button
                     key={action}
                     onClick={() => updateOrderStatus(order.id, action)}
-                    className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+                    className={`flex-1 min-w-0 py-2 px-3 rounded-md text-sm font-medium transition-colors text-center ${
                       action === 'cancelled' 
                         ? 'bg-red-600 text-white hover:bg-red-700' 
                         : 'bg-orange-600 text-white hover:bg-orange-700'

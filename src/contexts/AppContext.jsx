@@ -29,10 +29,141 @@ const mockOrders = [
     totalAmount: 18.99,
     status: 'preparing',
     tableNumber: 5,
-    createdAt: new Date(),
+    createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
     estimatedTime: 15
   },
-  // ...other orders...
+  // Pending Orders
+  {
+    id: '2',
+    customerId: '5',
+    customerName: 'Mike Johnson',
+    items: [
+      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 },
+      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 2, price: 8.99 }
+    ],
+    totalAmount: 34.97,
+    status: 'pending',
+    tableNumber: 3,
+    createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
+    estimatedTime: 20,
+    specialInstructions: 'Extra dressing on the side, please'
+  },
+  {
+    id: '3',
+    customerId: '6',
+    customerName: 'Sarah Wilson',
+    items: [
+      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 2, price: 22.99 },
+      { menuItemId: '7', menuItemName: 'French Fries', quantity: 2, price: 9.99 }
+    ],
+    totalAmount: 65.96,
+    status: 'pending',
+    tableNumber: 8,
+    createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
+    estimatedTime: 25,
+    specialInstructions: 'Medium well burgers, extra crispy fries'
+  },
+  {
+    id: '4',
+    customerId: '7',
+    customerName: 'David Chen',
+    items: [
+      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 1, price: 19.99 }
+    ],
+    totalAmount: 19.99,
+    status: 'pending',
+    tableNumber: 12,
+    createdAt: new Date(Date.now() - 1 * 60 * 1000), // 1 minute ago
+    estimatedTime: 18
+  },
+  // Served Orders
+  {
+    id: '5',
+    customerId: '8',
+    customerName: 'Emma Brown',
+    items: [
+      { menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 1, price: 18.99 },
+      { menuItemId: '9', menuItemName: 'Chocolate Cake', quantity: 1, price: 12.99 }
+    ],
+    totalAmount: 31.98,
+    status: 'served',
+    tableNumber: 6,
+    createdAt: new Date(Date.now() - 90 * 60 * 1000), // 1.5 hours ago
+    estimatedTime: 15
+  },
+  {
+    id: '6',
+    customerId: '9',
+    customerName: 'Robert Taylor',
+    items: [
+      { menuItemId: '5', menuItemName: 'Fish & Chips', quantity: 1, price: 21.99 },
+      { menuItemId: '10', menuItemName: 'Iced Tea', quantity: 2, price: 4.99 }
+    ],
+    totalAmount: 31.97,
+    status: 'served',
+    tableNumber: 15,
+    createdAt: new Date(Date.now() - 120 * 60 * 1000), // 2 hours ago
+    estimatedTime: 22
+  },
+  {
+    id: '7',
+    customerId: '10',
+    customerName: 'Lisa Anderson',
+    items: [
+      { menuItemId: '6', menuItemName: 'Vegetable Stir Fry', quantity: 1, price: 17.99 },
+      { menuItemId: '11', menuItemName: 'Fresh Juice', quantity: 1, price: 6.99 }
+    ],
+    totalAmount: 24.98,
+    status: 'served',
+    tableNumber: 4,
+    createdAt: new Date(Date.now() - 150 * 60 * 1000), // 2.5 hours ago
+    estimatedTime: 16
+  },
+  // Cancelled Orders
+  {
+    id: '8',
+    customerId: '11',
+    customerName: 'Tom Wilson',
+    items: [
+      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 3, price: 22.99 },
+      { menuItemId: '7', menuItemName: 'French Fries', quantity: 3, price: 9.99 }
+    ],
+    totalAmount: 98.94,
+    status: 'cancelled',
+    tableNumber: 2,
+    createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
+    estimatedTime: 25,
+    specialInstructions: 'Customer left due to long wait time'
+  },
+  {
+    id: '9',
+    customerId: '12',
+    customerName: 'Anna Garcia',
+    items: [
+      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 }
+    ],
+    totalAmount: 16.99,
+    status: 'cancelled',
+    tableNumber: 9,
+    createdAt: new Date(Date.now() - 75 * 60 * 1000), // 1.25 hours ago
+    estimatedTime: 20,
+    specialInstructions: 'Customer allergic to croutons - cancelled after ordering'
+  },
+  // Ready Orders
+  {
+    id: '10',
+    customerId: '13',
+    customerName: 'Chris Martinez',
+    items: [
+      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 2, price: 19.99 },
+      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 1, price: 8.99 }
+    ],
+    totalAmount: 48.97,
+    status: 'ready',
+    tableNumber: 7,
+    createdAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
+    estimatedTime: 18
+  }
 ];
 
 const mockReservations = [
