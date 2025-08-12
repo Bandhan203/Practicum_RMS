@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useApp } from '../../contexts/AppContext';
 import { 
   Users, 
   Plus, 
@@ -16,102 +17,71 @@ import {
   Calendar,
   MoreVertical,
   Ban,
-  CheckCircle
+  CheckCircle,
+  Star,
+  Award,
+  MapPin,
+  Activity,
+  Eye,
+  X,
+  Save,
+  AlertTriangle,
+  Download,
+  UserPlus,
+  Clock
 } from 'lucide-react';
-import { format } from 'date-fns';
-
-const mockUsers = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@restaurant.com',
-    phone: '+1234567890',
-    role: 'admin',
-    status: 'active',
-    joinedDate: new Date('2023-01-15'),
-    lastLogin: new Date(),
-    totalOrders: 0
-  },
-  {
-    id: '2',
-    name: 'Chef Mario',
-    email: 'chef@restaurant.com',
-    phone: '+1234567891',
-    role: 'chef',
-    status: 'active',
-    joinedDate: new Date('2023-02-01'),
-    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    totalOrders: 0
-  },
-  {
-    id: '3',
-    name: 'Waiter John',
-    email: 'waiter@restaurant.com',
-    phone: '+1234567892',
-    role: 'waiter',
-    status: 'active',
-    joinedDate: new Date('2023-03-10'),
-    lastLogin: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    totalOrders: 0
-  },
-  {
-    id: '4',
-    name: 'Customer Jane',
-    email: 'customer@restaurant.com',
-    phone: '+1234567893',
-    role: 'customer',
-    status: 'active',
-    joinedDate: new Date('2023-04-05'),
-    lastLogin: new Date(Date.now() - 1 * 60 * 60 * 1000),
-    points: 250,
-    totalOrders: 15
-  },
-  {
-    id: '5',
-    name: 'Sarah Wilson',
-    email: 'sarah@email.com',
-    phone: '+1234567894',
-    role: 'customer',
-    status: 'active',
-    joinedDate: new Date('2023-05-20'),
-    lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    points: 180,
-    totalOrders: 8
-  },
-  {
-    id: '6',
-    name: 'Mike Johnson',
-    email: 'mike@email.com',
-    phone: '+1234567895',
-    role: 'customer',
-    status: 'suspended',
-    joinedDate: new Date('2023-06-15'),
-    lastLogin: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    points: 50,
-    totalOrders: 3
-  }
-];
+import { format, formatDistanceToNow } from 'date-fns';
 
 export function UserManagement() {
   const { user: currentUser } = useAuth();
-  const [users, setUsers] = useState(mockUsers);
+  const { 
+    appUsers, 
+    addUser, 
+    updateUser, 
+    deleteUser, 
+    updateUserStatus,
+    updateUserPoints,
+    orders
+  } = useApp();
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [showUserDetails, setShowUserDetails] = useState(null);
+  const [viewMode, setViewMode] = useState('table'); // table or cards
 
   const roles = ['all', 'admin', 'chef', 'waiter', 'customer'];
   const statuses = ['all', 'active', 'suspended', 'banned'];
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = selectedRole === 'all' || user.role === selectedRole;
-    const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+  // Filter users
+  const filteredUsers = useMemo(() => {
+    return appUsers.filter(user => {
+      const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          user.phone?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesRole = selectedRole === 'all' || user.role === selectedRole;
+      const matchesStatus = selectedStatus === 'all' || user.status === selectedStatus;
+      return matchesSearch && matchesRole && matchesStatus;
+    });
+  }, [appUsers, searchTerm, selectedRole, selectedStatus]);
+
+  // Calculate user statistics
+  const userStats = useMemo(() => {
+    const totalUsers = appUsers.length;
+    const activeUsers = appUsers.filter(u => u.status === 'active').length;
+    const customers = appUsers.filter(u => u.role === 'customer').length;
+    const staff = appUsers.filter(u => ['admin', 'chef', 'waiter'].includes(u.role)).length;
+    const newThisMonth = appUsers.filter(u => {
+      const joinDate = new Date(u.joinedDate);
+      const thisMonth = new Date();
+      thisMonth.setDate(1);
+      return joinDate >= thisMonth;
+    }).length;
+
+    return { totalUsers, activeUsers, customers, staff, newThisMonth };
+  }, [appUsers]);
 
   const getRoleIcon = (role) => {
     switch (role) {
@@ -125,44 +95,66 @@ export function UserManagement() {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800';
-      case 'banned': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'active': return 'bg-green-100 text-green-800 border-green-200';
+      case 'suspended': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'banned': return 'bg-red-100 text-red-800 border-red-200';
+      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const getLoyaltyColor = (tier) => {
+    switch (tier) {
+      case 'Platinum': return 'text-gray-800 bg-gray-100';
+      case 'Gold': return 'text-yellow-800 bg-yellow-100';
+      case 'Silver': return 'text-gray-600 bg-gray-50';
+      case 'Bronze': return 'text-orange-800 bg-orange-100';
+      default: return 'text-gray-600 bg-gray-50';
     }
   };
 
   const handleAddUser = (formData) => {
-    const newUser = {
-      ...formData,
-      id: Date.now().toString(),
-      status: 'active',
-      joinedDate: new Date(),
-      totalOrders: 0,
-      points: formData.role === 'customer' ? 0 : undefined
-    };
-    setUsers(prev => [newUser, ...prev]);
+    addUser(formData);
     setShowAddForm(false);
   };
 
   const handleUpdateUser = (formData) => {
     if (!editingUser) return;
-    setUsers(prev => prev.map(user => 
-      user.id === editingUser.id ? { ...user, ...formData } : user
-    ));
+    updateUser(editingUser.id, formData);
     setEditingUser(null);
   };
 
   const handleDeleteUser = (userId) => {
-    if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(prev => prev.filter(user => user.id !== userId));
+    if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      deleteUser(userId);
+      setShowUserDetails(null);
     }
   };
 
-  const handleStatusChange = (userId, newStatus) => {
-    setUsers(prev => prev.map(user => 
-      user.id === userId ? { ...user, status: newStatus } : user
-    ));
+  const handleStatusChange = (userId, newStatus, reason = '') => {
+    updateUserStatus(userId, newStatus, reason);
+  };
+
+  const handlePointsUpdate = (userId, pointsChange) => {
+    updateUserPoints(userId, pointsChange);
+  };
+
+  const exportUsers = () => {
+    const exportData = {
+      exportDate: new Date().toISOString(),
+      filters: { searchTerm, selectedRole, selectedStatus },
+      users: filteredUsers,
+      statistics: userStats
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    
+    const exportFileDefaultName = `users-export-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
   };
 
   const UserForm = ({ user, onSubmit, onCancel }) => {
@@ -170,76 +162,159 @@ export function UserManagement() {
       name: user?.name || '',
       email: user?.email || '',
       phone: user?.phone || '',
-      role: user?.role || 'customer'
+      role: user?.role || 'customer',
+      address: user?.address || '',
+      emergencyContact: user?.emergencyContact || '',
+      notes: user?.notes || '',
+      preferences: user?.preferences?.join(', ') || '',
+      permissions: user?.permissions?.join(', ') || ''
     });
 
     const handleSubmit = (e) => {
       e.preventDefault();
-      onSubmit(formData);
+      const userData = {
+        ...formData,
+        preferences: formData.preferences ? formData.preferences.split(',').map(p => p.trim()) : [],
+        permissions: formData.permissions ? formData.permissions.split(',').map(p => p.trim()) : []
+      };
+      onSubmit(userData);
     };
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
-          <h3 className="text-lg font-semibold mb-4">
+        <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-4 text-gray-900">
             {user ? 'Edit User' : 'Add New User'}
           </h3>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-              <input
-                type="text"
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                <input
+                  type="text"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  placeholder="Full name"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                <input
+                  type="email"
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  placeholder="email@example.com"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                <input
+                  type="tel"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  placeholder="+1234567890"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+                <select
+                  required
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={formData.role}
+                  onChange={(e) => setFormData({...formData, role: e.target.value})}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="waiter">Waiter</option>
+                  <option value="chef">Chef</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={formData.address}
+                  onChange={(e) => setFormData({...formData, address: e.target.value})}
+                  placeholder="Street address, City, State"
+                />
+              </div>
+              
+              {formData.role !== 'customer' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+                  <input
+                    type="tel"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    value={formData.emergencyContact}
+                    onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
+                    placeholder="+1234567890"
+                  />
+                </div>
+              )}
+              
+              {formData.role === 'customer' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Preferences</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    value={formData.preferences}
+                    onChange={(e) => setFormData({...formData, preferences: e.target.value})}
+                    placeholder="vegetarian, no-spicy, gluten-free (comma separated)"
+                  />
+                </div>
+              )}
+              
+              {formData.role !== 'customer' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Permissions</label>
+                  <input
+                    type="text"
+                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    value={formData.permissions}
+                    onChange={(e) => setFormData({...formData, permissions: e.target.value})}
+                    placeholder="kitchen, menu, orders (comma separated)"
+                  />
+                </div>
+              )}
+              
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  rows="3"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                  placeholder="Additional notes about the user..."
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-              <input
-                type="email"
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-              <input
-                type="tel"
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
-              <select
-                required
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                value={formData.role}
-                onChange={(e) => setFormData({...formData, role: e.target.value})}
-              >
-                <option value="customer">Customer</option>
-                <option value="waiter">Waiter</option>
-                <option value="chef">Chef</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-            <div className="flex space-x-3 pt-4">
+            
+            <div className="flex space-x-3 pt-4 border-t border-gray-200">
               <button
                 type="submit"
-                className="flex-1 bg-orange-600 text-white py-2 px-4 rounded-md hover:bg-orange-700 focus:ring-2 focus:ring-orange-500"
+                className="flex-1 bg-red-600 text-white py-3 px-4 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center justify-center"
               >
+                <Save className="w-4 h-4 mr-2" />
                 {user ? 'Update' : 'Add'} User
               </button>
               <button
                 type="button"
                 onClick={onCancel}
-                className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+                className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-md hover:bg-gray-400 flex items-center justify-center"
               >
+                <X className="w-4 h-4 mr-2" />
                 Cancel
               </button>
             </div>
@@ -249,103 +324,221 @@ export function UserManagement() {
     );
   };
 
-  const UserDetailsModal = ({ user, onClose }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start mb-6">
-          <h3 className="text-xl font-semibold text-gray-900">User Details</h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
-          >
-            ×
-          </button>
-        </div>
-        
-        <div className="space-y-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
-              {getRoleIcon(user.role)}
-            </div>
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900">{user.name}</h4>
-              <p className="text-gray-600 capitalize">{user.role}</p>
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                {user.status}
-              </span>
-            </div>
-          </div>
+  const UserDetailsModal = ({ user, onClose }) => {
+    const [showPointsModal, setShowPointsModal] = useState(false);
+    const [pointsChange, setPointsChange] = useState('');
+    
+    const userOrders = orders.filter(order => order.customerId === user.id);
+    
+    const handlePointsUpdate = () => {
+      const points = parseInt(pointsChange);
+      if (!isNaN(points) && points !== 0) {
+        handlePointsUpdate(user.id, points);
+        setShowPointsModal(false);
+        setPointsChange('');
+      }
+    };
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Mail className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-900">{user.email}</span>
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+          <div className="flex justify-between items-start mb-6">
+            <h3 className="text-xl font-semibold text-gray-900">User Profile</h3>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* User Info */}
+            <div className="lg:col-span-2 space-y-6">
+              <div className="flex items-start space-x-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center text-2xl">
+                  {getRoleIcon(user.role)}
                 </div>
-              </div>
-              
-              {user.phone && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Phone</label>
-                  <div className="flex items-center space-x-2 mt-1">
-                    <Phone className="w-4 h-4 text-gray-400" />
-                    <span className="text-gray-900">{user.phone}</span>
+                <div className="flex-1">
+                  <h4 className="text-2xl font-bold text-gray-900">{user.name}</h4>
+                  <p className="text-gray-600 capitalize flex items-center">
+                    {getRoleIcon(user.role)}
+                    <span className="ml-2">{user.role}</span>
+                  </p>
+                  <div className="flex items-center space-x-3 mt-2">
+                    <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full border ${getStatusColor(user.status)}`}>
+                      {user.status}
+                    </span>
+                    {user.loyaltyTier && (
+                      <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${getLoyaltyColor(user.loyaltyTier)}`}>
+                        <Award className="w-3 h-3 mr-1" />
+                        {user.loyaltyTier}
+                      </span>
+                    )}
                   </div>
                 </div>
-              )}
+              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Joined Date</label>
-                <div className="flex items-center space-x-2 mt-1">
-                  <Calendar className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-900">{format(user.joinedDate, 'PPP')}</span>
+              {/* Contact Information */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h5 className="font-semibold text-gray-900 mb-3">Contact Information</h5>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Mail className="w-4 h-4 text-gray-400" />
+                    <span className="text-gray-900">{user.email}</span>
+                  </div>
+                  {user.phone && (
+                    <div className="flex items-center space-x-2">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-900">{user.phone}</span>
+                    </div>
+                  )}
+                  {user.address && (
+                    <div className="flex items-center space-x-2 md:col-span-2">
+                      <MapPin className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-900">{user.address}</span>
+                    </div>
+                  )}
+                  {user.emergencyContact && (
+                    <div className="flex items-center space-x-2 md:col-span-2">
+                      <AlertTriangle className="w-4 h-4 text-red-400" />
+                      <span className="text-gray-900">Emergency: {user.emergencyContact}</span>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-4">
-              {user.lastLogin && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Last Login</label>
-                  <span className="text-gray-900">{format(user.lastLogin, 'PPp')}</span>
+              {/* User Activity */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <h5 className="font-semibold text-gray-900 mb-3">Activity</h5>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Joined Date</label>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      <span className="text-gray-900">{format(new Date(user.joinedDate), 'PPP')}</span>
+                    </div>
+                  </div>
+                  {user.lastLogin && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Last Login</label>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <Clock className="w-4 h-4 text-gray-400" />
+                        <span className="text-gray-900">{formatDistanceToNow(new Date(user.lastLogin), { addSuffix: true })}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Preferences & Notes */}
+              {(user.preferences?.length > 0 || user.notes) && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h5 className="font-semibold text-gray-900 mb-3">Additional Information</h5>
+                  {user.preferences?.length > 0 && (
+                    <div className="mb-3">
+                      <label className="block text-sm font-medium text-gray-700">Preferences</label>
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {user.preferences.map((pref, index) => (
+                          <span key={index} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                            {pref}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {user.notes && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Notes</label>
+                      <p className="text-gray-900 mt-1">{user.notes}</p>
+                    </div>
+                  )}
+                  {user.suspensionReason && (
+                    <div>
+                      <label className="block text-sm font-medium text-red-700">Suspension Reason</label>
+                      <p className="text-red-900 mt-1">{user.suspensionReason}</p>
+                    </div>
+                  )}
                 </div>
               )}
+            </div>
 
+            {/* Statistics Sidebar */}
+            <div className="space-y-4">
               {user.role === 'customer' && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Loyalty Points</label>
-                    <span className="text-gray-900">{user.points || 0} points</span>
+                  <div className="bg-purple-50 p-4 rounded-lg text-center">
+                    <Star className="w-8 h-8 text-purple-500 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-purple-700">Loyalty Points</p>
+                    <p className="text-2xl font-bold text-purple-900">{user.points || 0}</p>
+                    <button
+                      onClick={() => setShowPointsModal(true)}
+                      className="mt-2 text-xs text-purple-600 hover:text-purple-800"
+                    >
+                      Adjust Points
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Total Orders</label>
-                    <span className="text-gray-900">{user.totalOrders || 0} orders</span>
+
+                  <div className="bg-blue-50 p-4 rounded-lg text-center">
+                    <Activity className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                    <p className="text-sm font-medium text-blue-700">Total Orders</p>
+                    <p className="text-2xl font-bold text-blue-900">{userOrders.length}</p>
                   </div>
+
+                  {user.favoriteItems?.length > 0 && (
+                    <div className="bg-orange-50 p-4 rounded-lg">
+                      <h6 className="font-semibold text-orange-900 mb-2">Favorite Items</h6>
+                      <div className="space-y-1">
+                        {user.favoriteItems.map((item, index) => (
+                          <div key={index} className="text-sm text-orange-800">{item}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </>
+              )}
+
+              {user.permissions?.length > 0 && (
+                <div className="bg-green-50 p-4 rounded-lg">
+                  <h6 className="font-semibold text-green-900 mb-2">Permissions</h6>
+                  <div className="space-y-1">
+                    {user.permissions.map((permission, index) => (
+                      <div key={index} className="text-sm text-green-800 flex items-center">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        {permission}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           </div>
 
-          <div className="flex space-x-3 pt-4 border-t border-gray-200">
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-200">
             <button
               onClick={() => {
                 setEditingUser(user);
                 onClose();
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
+              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 flex items-center"
             >
+              <Edit className="w-4 h-4 mr-2" />
               Edit User
             </button>
+            
             {user.status === 'active' ? (
               <button
                 onClick={() => {
-                  handleStatusChange(user.id, 'suspended');
-                  onClose();
+                  const reason = prompt('Reason for suspension:');
+                  if (reason) {
+                    handleStatusChange(user.id, 'suspended', reason);
+                    onClose();
+                  }
                 }}
-                className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500"
+                className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 flex items-center"
               >
+                <Ban className="w-4 h-4 mr-2" />
                 Suspend User
               </button>
             ) : (
@@ -354,16 +547,67 @@ export function UserManagement() {
                   handleStatusChange(user.id, 'active');
                   onClose();
                 }}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"
+                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 flex items-center"
               >
+                <CheckCircle className="w-4 h-4 mr-2" />
                 Activate User
               </button>
             )}
+            
+            {user.id !== currentUser?.id && (
+              <button
+                onClick={() => handleDeleteUser(user.id)}
+                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete User
+              </button>
+            )}
           </div>
+
+          {/* Points Adjustment Modal */}
+          {showPointsModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60">
+              <div className="bg-white rounded-lg p-6 w-full max-w-md">
+                <h4 className="text-lg font-semibold mb-4">Adjust Loyalty Points</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Points Change (+ to add, - to subtract)
+                    </label>
+                    <input
+                      type="number"
+                      value={pointsChange}
+                      onChange={(e) => setPointsChange(e.target.value)}
+                      className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500"
+                      placeholder="e.g., +50 or -25"
+                    />
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handlePointsUpdate}
+                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700"
+                    >
+                      Update Points
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowPointsModal(false);
+                        setPointsChange('');
+                      }}
+                      className="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (currentUser?.role !== 'admin') {
     return (
@@ -379,119 +623,158 @@ export function UserManagement() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-        <button
-          onClick={() => setShowAddForm(true)}
-          className="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 flex items-center space-x-2"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add User</span>
-        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+          <p className="text-gray-600">Manage system users and customer accounts</p>
+        </div>
+        <div className="flex space-x-3">
+          <button
+            onClick={exportUsers}
+            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 flex items-center"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </button>
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center"
+          >
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add User
+          </button>
+        </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="bg-white rounded-lg shadow-sm p-4 border">
+          <div className="flex items-center">
+            <div className="p-3 bg-blue-100 rounded-full">
+              <Users className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Total Users</p>
-              <p className="text-2xl font-semibold text-gray-900">{users.length}</p>
+              <p className="text-2xl font-bold text-gray-900">{userStats.totalUsers}</p>
             </div>
-            <Users className="w-8 h-8 text-blue-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
+        
+        <div className="bg-white rounded-lg shadow-sm p-4 border">
+          <div className="flex items-center">
+            <div className="p-3 bg-green-100 rounded-full">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+            </div>
+            <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Active Users</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {users.filter(u => u.status === 'active').length}
-              </p>
+              <p className="text-2xl font-bold text-green-600">{userStats.activeUsers}</p>
             </div>
-            <CheckCircle className="w-8 h-8 text-green-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
+        
+        <div className="bg-white rounded-lg shadow-sm p-4 border">
+          <div className="flex items-center">
+            <div className="p-3 bg-purple-100 rounded-full">
+              <Crown className="w-6 h-6 text-purple-600" />
+            </div>
+            <div className="ml-3">
               <p className="text-sm font-medium text-gray-600">Customers</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {users.filter(u => u.role === 'customer').length}
-              </p>
+              <p className="text-2xl font-bold text-purple-600">{userStats.customers}</p>
             </div>
-            <Crown className="w-8 h-8 text-purple-500" />
           </div>
         </div>
-        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Staff</p>
-              <p className="text-2xl font-semibold text-gray-900">
-                {users.filter(u => ['admin', 'chef', 'waiter'].includes(u.role)).length}
-              </p>
+        
+        <div className="bg-white rounded-lg shadow-sm p-4 border">
+          <div className="flex items-center">
+            <div className="p-3 bg-red-100 rounded-full">
+              <Shield className="w-6 h-6 text-red-600" />
             </div>
-            <Shield className="w-8 h-8 text-red-500" />
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">Staff</p>
+              <p className="text-2xl font-bold text-red-600">{userStats.staff}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow-sm p-4 border">
+          <div className="flex items-center">
+            <div className="p-3 bg-orange-100 rounded-full">
+              <UserPlus className="w-6 h-6 text-orange-600" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-gray-600">New This Month</p>
+              <p className="text-2xl font-bold text-orange-600">{userStats.newThisMonth}</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1 relative">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search users..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      <div className="bg-white p-4 rounded-lg shadow-sm border">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search users by name, email, or phone..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <select
+            value={selectedRole}
+            onChange={(e) => setSelectedRole(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          >
+            {roles.map(role => (
+              <option key={role} value={role}>
+                {role === 'all' ? 'All Roles' : role.charAt(0).toUpperCase() + role.slice(1)}
+              </option>
+            ))}
+          </select>
+          
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+          >
+            {statuses.map(status => (
+              <option key={status} value={status}>
+                {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
+              </option>
+            ))}
+          </select>
+          
+          <div className="flex items-center text-sm text-gray-500">
+            <Filter className="w-4 h-4 mr-1" />
+            {filteredUsers.length} of {appUsers.length} users
+          </div>
         </div>
-        <select
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-        >
-          {roles.map(role => (
-            <option key={role} value={role}>
-              {role === 'all' ? 'All Roles' : role.charAt(0).toUpperCase() + role.slice(1)}
-            </option>
-          ))}
-        </select>
-        <select
-          value={selectedStatus}
-          onChange={(e) => setSelectedStatus(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-        >
-          {statuses.map(status => (
-            <option key={status} value={status}>
-              {status === 'all' ? 'All Status' : status.charAt(0).toUpperCase() + status.slice(1)}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="bg-white rounded-lg shadow-sm border">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   User
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Role
+                  Role & Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Status
+                  Contact
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Joined
+                  Activity
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Last Login
+                  Stats
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
@@ -503,7 +786,7 @@ export function UserManagement() {
                 <tr key={user.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                      <div className="w-12 h-12 bg-gradient-to-br from-red-100 to-red-200 rounded-full flex items-center justify-center mr-4">
                         {getRoleIcon(user.role)}
                       </div>
                       <div>
@@ -512,35 +795,79 @@ export function UserManagement() {
                       </div>
                     </div>
                   </td>
+                  
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center space-x-2">
-                      {getRoleIcon(user.role)}
-                      <span className="text-sm text-gray-900 capitalize">{user.role}</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center space-x-2">
+                        {getRoleIcon(user.role)}
+                        <span className="text-sm text-gray-900 capitalize">{user.role}</span>
+                      </div>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${getStatusColor(user.status)}`}>
+                        {user.status}
+                      </span>
                     </div>
                   </td>
+                  
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                      {user.status}
-                    </span>
+                    <div className="space-y-1">
+                      {user.phone && (
+                        <div className="text-sm text-gray-900">{user.phone}</div>
+                      )}
+                      {user.address && (
+                        <div className="text-xs text-gray-500 truncate max-w-32" title={user.address}>
+                          {user.address}
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {format(user.joinedDate, 'MMM dd, yyyy')}
+                  
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="space-y-1">
+                      <div className="text-sm text-gray-900">
+                        Joined {format(new Date(user.joinedDate), 'MMM dd, yyyy')}
+                      </div>
+                      {user.lastLogin && (
+                        <div className="text-xs text-gray-500">
+                          Last login {formatDistanceToNow(new Date(user.lastLogin), { addSuffix: true })}
+                        </div>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    {user.lastLogin ? format(user.lastLogin, 'MMM dd, HH:mm') : 'Never'}
+                  
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    {user.role === 'customer' ? (
+                      <div className="space-y-1">
+                        <div className="text-sm text-gray-900">
+                          {user.points || 0} points
+                        </div>
+                        {user.loyaltyTier && (
+                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLoyaltyColor(user.loyaltyTier)}`}>
+                            {user.loyaltyTier}
+                          </span>
+                        )}
+                        <div className="text-xs text-gray-500">
+                          {user.totalOrders || 0} orders
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">
+                        Staff member
+                      </div>
+                    )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  
+                  <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => setShowUserDetails(user)}
-                        className="text-blue-600 hover:text-blue-900"
+                        className="text-blue-600 hover:text-blue-900 p-1"
                         title="View Details"
                       >
-                        <Users className="w-4 h-4" />
+                        <Eye className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => setEditingUser(user)}
-                        className="text-orange-600 hover:text-orange-900"
+                        className="text-green-600 hover:text-green-900 p-1"
                         title="Edit User"
                       >
                         <Edit className="w-4 h-4" />
@@ -548,7 +875,7 @@ export function UserManagement() {
                       {user.id !== currentUser?.id && (
                         <button
                           onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="text-red-600 hover:text-red-900 p-1"
                           title="Delete User"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -561,6 +888,19 @@ export function UserManagement() {
             </tbody>
           </table>
         </div>
+        
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-12">
+            <Users className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No users found</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm || selectedRole !== 'all' || selectedStatus !== 'all'
+                ? 'Try adjusting your search or filter criteria.'
+                : 'Get started by adding your first user.'
+              }
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Forms and Modals */}

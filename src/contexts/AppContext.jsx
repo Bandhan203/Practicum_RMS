@@ -989,6 +989,107 @@ const mockAnalytics = {
   ]
 };
 
+// Enhanced user data with more detailed information
+const mockAppUsers = [
+  {
+    id: '1',
+    name: 'Admin User',
+    email: 'admin@restaurant.com',
+    phone: '+1234567890',
+    role: 'admin',
+    status: 'active',
+    joinedDate: new Date('2023-01-15'),
+    lastLogin: new Date(),
+    totalOrders: 0,
+    permissions: ['all'],
+    profileImage: null,
+    address: '123 Admin Street, City',
+    emergencyContact: '+1234567800',
+    notes: 'System administrator with full access'
+  },
+  {
+    id: '2',
+    name: 'Chef Mario',
+    email: 'chef@restaurant.com',
+    phone: '+1234567891',
+    role: 'chef',
+    status: 'active',
+    joinedDate: new Date('2023-02-01'),
+    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    totalOrders: 0,
+    permissions: ['kitchen', 'menu', 'inventory'],
+    profileImage: null,
+    address: '456 Chef Avenue, City',
+    emergencyContact: '+1234567801',
+    notes: 'Head chef responsible for kitchen operations'
+  },
+  {
+    id: '3',
+    name: 'Waiter John',
+    email: 'waiter@restaurant.com',
+    phone: '+1234567892',
+    role: 'waiter',
+    status: 'active',
+    joinedDate: new Date('2023-03-10'),
+    lastLogin: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    totalOrders: 0,
+    permissions: ['orders', 'reservations'],
+    profileImage: null,
+    address: '789 Service Road, City',
+    emergencyContact: '+1234567802',
+    notes: 'Senior waiter with excellent customer service skills'
+  },
+  {
+    id: '4',
+    name: 'Customer Jane',
+    email: 'customer@restaurant.com',
+    phone: '+1234567893',
+    role: 'customer',
+    status: 'active',
+    joinedDate: new Date('2023-04-05'),
+    lastLogin: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    points: 250,
+    totalOrders: 15,
+    preferences: ['vegetarian', 'no-spicy'],
+    favoriteItems: ['Margherita Pizza', 'Caesar Salad'],
+    address: '321 Customer Lane, City',
+    loyaltyTier: 'Gold'
+  },
+  {
+    id: '5',
+    name: 'Sarah Wilson',
+    email: 'sarah@email.com',
+    phone: '+1234567894',
+    role: 'customer',
+    status: 'active',
+    joinedDate: new Date('2023-05-20'),
+    lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000),
+    points: 180,
+    totalOrders: 8,
+    preferences: ['gluten-free'],
+    favoriteItems: ['Grilled Salmon'],
+    address: '654 Wilson Street, City',
+    loyaltyTier: 'Silver'
+  },
+  {
+    id: '6',
+    name: 'Mike Johnson',
+    email: 'mike@email.com',
+    phone: '+1234567895',
+    role: 'customer',
+    status: 'suspended',
+    joinedDate: new Date('2023-06-15'),
+    lastLogin: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+    points: 50,
+    totalOrders: 3,
+    preferences: [],
+    favoriteItems: [],
+    address: '987 Johnson Ave, City',
+    loyaltyTier: 'Bronze',
+    suspensionReason: 'Multiple no-shows for reservations'
+  }
+];
+
 export function AppProvider({ children }) {
   const [orders, setOrders] = useState(mockOrders);
   const [menuItems, setMenuItems] = useState(mockMenuItems);
@@ -996,6 +1097,7 @@ export function AppProvider({ children }) {
   const [wasteLogs, setWasteLogs] = useState(mockWasteLogs);
   const [inventory, setInventory] = useState(mockInventory);
   const [analytics, setAnalytics] = useState(mockAnalytics);
+  const [appUsers, setAppUsers] = useState(mockAppUsers);
   const [cart, setCart] = useState([]);
 
   // Dynamic calculations for real-time analytics
@@ -1275,6 +1377,69 @@ export function AppProvider({ children }) {
     );
   };
 
+  // User Management Functions
+  const addUser = (userData) => {
+    const newUser = {
+      ...userData,
+      id: Date.now().toString(),
+      status: 'active',
+      joinedDate: new Date(),
+      lastLogin: null,
+      totalOrders: 0,
+      points: userData.role === 'customer' ? 0 : undefined,
+      loyaltyTier: userData.role === 'customer' ? 'Bronze' : undefined
+    };
+    setAppUsers(prev => [newUser, ...prev]);
+    return newUser;
+  };
+
+  const updateUser = (userId, updates) => {
+    setAppUsers(prev =>
+      prev.map(user =>
+        user.id === userId ? { ...user, ...updates } : user
+      )
+    );
+  };
+
+  const deleteUser = (userId) => {
+    setAppUsers(prev => prev.filter(user => user.id !== userId));
+  };
+
+  const updateUserStatus = (userId, status, reason = '') => {
+    setAppUsers(prev =>
+      prev.map(user =>
+        user.id === userId 
+          ? { 
+              ...user, 
+              status, 
+              suspensionReason: status === 'suspended' ? reason : undefined 
+            } 
+          : user
+      )
+    );
+  };
+
+  const updateUserPoints = (userId, pointsChange) => {
+    setAppUsers(prev =>
+      prev.map(user => {
+        if (user.id === userId && user.role === 'customer') {
+          const newPoints = Math.max(0, (user.points || 0) + pointsChange);
+          let loyaltyTier = 'Bronze';
+          if (newPoints >= 500) loyaltyTier = 'Platinum';
+          else if (newPoints >= 300) loyaltyTier = 'Gold';
+          else if (newPoints >= 150) loyaltyTier = 'Silver';
+          
+          return {
+            ...user,
+            points: newPoints,
+            loyaltyTier
+          };
+        }
+        return user;
+      })
+    );
+  };
+
   const addMenuItem = (item) => {
     const newItem = {
       ...item,
@@ -1302,6 +1467,7 @@ export function AppProvider({ children }) {
       reservations,
       wasteLogs,
       inventory,
+      appUsers,
       analytics,
       cart,
       addToCart,
@@ -1320,6 +1486,11 @@ export function AppProvider({ children }) {
       updateInventoryItem,
       deleteInventoryItem,
       adjustInventoryStock,
+      addUser,
+      updateUser,
+      deleteUser,
+      updateUserStatus,
+      updateUserPoints,
       addMenuItem,
       updateMenuItem,
       deleteMenuItem,
