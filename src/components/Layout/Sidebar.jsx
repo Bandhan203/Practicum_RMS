@@ -127,7 +127,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
       )}
 
       {/* Sidebar */}
-      <div className={sidebarClasses}>
+      <div className={sidebarClasses} style={{ overflowX: 'hidden' }}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
           {!isCollapsed && (
@@ -155,7 +155,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
         </div>
 
         {/* Navigation Menu */}
-        <nav className="flex-1 overflow-y-auto py-4 h-[calc(100vh-12rem)]">
+        <nav className="flex-1 overflow-y-auto py-4 h-[calc(100vh-12rem)] scrollbar-hide">
           <div className={`space-y-1 ${isCollapsed && !isMobile ? 'px-2' : 'px-4'}`}>
             {menuItems.map((item) => {
               const Icon = item.icon;
@@ -212,7 +212,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
               </span>
             </div>
             {(!isCollapsed || isMobile) && (
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 overflow-hidden">
                 <p className="text-sm font-medium text-gray-800 truncate">
                   {user?.name || 'User'}
                 </p>

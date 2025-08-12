@@ -72,6 +72,7 @@
   z-index: 50;
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;
+  overflow-x: hidden;
 }
 
 .sidebar-mobile.open {
@@ -82,6 +83,17 @@
   position: relative;
   height: 100vh;
   transition: width 0.3s ease-in-out;
+  overflow-x: hidden;
+}
+
+/* Sidebar component specific styles */
+.sidebar {
+  overflow-x: hidden !important;
+  max-width: 100vw;
+}
+
+.sidebar * {
+  overflow-x: hidden;
 }
 
 /* Content area responsive adjustments */
@@ -141,6 +153,16 @@
 .scrollable {
   -webkit-overflow-scrolling: touch;
   overflow-y: auto;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* Internet Explorer 10+ */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Safari and Chrome */
 }
 
 /* Prevent horizontal scrolling */
