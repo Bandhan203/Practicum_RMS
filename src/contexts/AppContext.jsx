@@ -58,24 +58,221 @@ const mockWasteLogs = [
     reason: 'Overripe',
     cost: 8.50,
     loggedBy: 'Chef Mario',
-    date: new Date(),
+    date: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
     category: 'Vegetables'
   },
-  // ...other logs...
+  {
+    id: '2',
+    itemName: 'Lettuce',
+    quantity: 1.5,
+    unit: 'kg',
+    reason: 'Wilted',
+    cost: 4.50,
+    loggedBy: 'Chef Mario',
+    date: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
+    category: 'Vegetables'
+  },
+  {
+    id: '3',
+    itemName: 'Chicken Breast',
+    quantity: 0.8,
+    unit: 'kg',
+    reason: 'Past expiry',
+    cost: 12.00,
+    loggedBy: 'Chef Antonio',
+    date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    category: 'Meat'
+  },
+  {
+    id: '4',
+    itemName: 'Mozzarella',
+    quantity: 0.5,
+    unit: 'kg',
+    reason: 'Moldy',
+    cost: 8.75,
+    loggedBy: 'Chef Mario',
+    date: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    category: 'Dairy'
+  },
+  {
+    id: '5',
+    itemName: 'Basil',
+    quantity: 0.2,
+    unit: 'kg',
+    reason: 'Dried out',
+    cost: 6.20,
+    loggedBy: 'Chef Antonio',
+    date: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
+    category: 'Herbs'
+  },
+  {
+    id: '6',
+    itemName: 'Bread',
+    quantity: 2,
+    unit: 'loaves',
+    reason: 'Stale',
+    cost: 5.50,
+    loggedBy: 'Chef Mario',
+    date: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
+    category: 'Bakery'
+  },
+  {
+    id: '7',
+    itemName: 'Salmon',
+    quantity: 1.2,
+    unit: 'kg',
+    reason: 'Overcooked',
+    cost: 28.50,
+    loggedBy: 'Chef Antonio',
+    date: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+    category: 'Fish'
+  },
+  {
+    id: '8',
+    itemName: 'Bell Peppers',
+    quantity: 0.6,
+    unit: 'kg',
+    reason: 'Soft spots',
+    cost: 3.60,
+    loggedBy: 'Chef Mario',
+    date: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
+    category: 'Vegetables'
+  }
 ];
 
 const mockInventory = [
   {
     id: '1',
     name: 'Tomatoes',
-    quantity: 25,
+    quantity: 8,
     unit: 'kg',
     category: 'Vegetables',
     threshold: 10,
     cost: 4.25,
-    lastUpdated: new Date()
+    lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    criticalLevel: 5
   },
-  // ...other inventory...
+  {
+    id: '2',
+    name: 'Lettuce',
+    quantity: 4,
+    unit: 'kg',
+    category: 'Vegetables',
+    threshold: 8,
+    cost: 3.00,
+    lastUpdated: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    criticalLevel: 3
+  },
+  {
+    id: '3',
+    name: 'Chicken Breast',
+    quantity: 12,
+    unit: 'kg',
+    category: 'Meat',
+    threshold: 15,
+    cost: 15.00,
+    lastUpdated: new Date(Date.now() - 3 * 60 * 60 * 1000),
+    criticalLevel: 8
+  },
+  {
+    id: '4',
+    name: 'Mozzarella',
+    quantity: 6,
+    unit: 'kg',
+    category: 'Dairy',
+    threshold: 12,
+    cost: 17.50,
+    lastUpdated: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    criticalLevel: 4
+  },
+  {
+    id: '5',
+    name: 'Salmon',
+    quantity: 3,
+    unit: 'kg',
+    category: 'Fish',
+    threshold: 6,
+    cost: 23.75,
+    lastUpdated: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    criticalLevel: 2
+  },
+  {
+    id: '6',
+    name: 'Basil',
+    quantity: 0.8,
+    unit: 'kg',
+    category: 'Herbs',
+    threshold: 2,
+    cost: 31.00,
+    lastUpdated: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    criticalLevel: 0.5
+  },
+  {
+    id: '7',
+    name: 'Olive Oil',
+    quantity: 15,
+    unit: 'liters',
+    category: 'Oils',
+    threshold: 20,
+    cost: 8.50,
+    lastUpdated: new Date(Date.now() - 5 * 60 * 60 * 1000),
+    criticalLevel: 10
+  },
+  {
+    id: '8',
+    name: 'Bell Peppers',
+    quantity: 2,
+    unit: 'kg',
+    category: 'Vegetables',
+    threshold: 5,
+    cost: 6.00,
+    lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    criticalLevel: 1
+  },
+  {
+    id: '9',
+    name: 'Flour',
+    quantity: 25,
+    unit: 'kg',
+    category: 'Bakery',
+    threshold: 30,
+    cost: 2.20,
+    lastUpdated: new Date(Date.now() - 8 * 60 * 60 * 1000),
+    criticalLevel: 15
+  },
+  {
+    id: '10',
+    name: 'Onions',
+    quantity: 18,
+    unit: 'kg',
+    category: 'Vegetables',
+    threshold: 25,
+    cost: 2.80,
+    lastUpdated: new Date(Date.now() - 4 * 60 * 60 * 1000),
+    criticalLevel: 12
+  },
+  {
+    id: '11',
+    name: 'Rice',
+    quantity: 40,
+    unit: 'kg',
+    category: 'Grains',
+    threshold: 50,
+    cost: 3.50,
+    lastUpdated: new Date(Date.now() - 12 * 60 * 60 * 1000),
+    criticalLevel: 25
+  },
+  {
+    id: '12',
+    name: 'Parmesan',
+    quantity: 1.2,
+    unit: 'kg',
+    category: 'Dairy',
+    threshold: 3,
+    cost: 25.00,
+    lastUpdated: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    criticalLevel: 1
+  }
 ];
 
 const mockAnalytics = {
@@ -109,6 +306,155 @@ export function AppProvider({ children }) {
   const [inventory, setInventory] = useState(mockInventory);
   const [analytics, setAnalytics] = useState(mockAnalytics);
   const [cart, setCart] = useState([]);
+
+  // Dynamic calculations for real-time analytics
+  const calculateLiveWasteAnalytics = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    // Calculate waste by time periods
+    const todayWaste = wasteLogs.filter(log => new Date(log.date) >= today);
+    const weekWaste = wasteLogs.filter(log => new Date(log.date) >= last7Days);
+    const monthWaste = wasteLogs.filter(log => new Date(log.date) >= last30Days);
+
+    // Calculate top wasted items with more detailed analysis
+    const wasteByItem = {};
+    monthWaste.forEach(log => {
+      if (!wasteByItem[log.itemName]) {
+        wasteByItem[log.itemName] = {
+          item: log.itemName,
+          quantity: 0,
+          cost: 0,
+          occurrences: 0,
+          category: log.category,
+          avgQuantityPerWaste: 0,
+          lastWasteDate: new Date(log.date),
+          reasons: {}
+        };
+      }
+      wasteByItem[log.itemName].quantity += log.quantity;
+      wasteByItem[log.itemName].cost += log.cost;
+      wasteByItem[log.itemName].occurrences += 1;
+      
+      // Track waste reasons
+      if (!wasteByItem[log.itemName].reasons[log.reason]) {
+        wasteByItem[log.itemName].reasons[log.reason] = 0;
+      }
+      wasteByItem[log.itemName].reasons[log.reason] += 1;
+
+      // Update last waste date if more recent
+      if (new Date(log.date) > wasteByItem[log.itemName].lastWasteDate) {
+        wasteByItem[log.itemName].lastWasteDate = new Date(log.date);
+      }
+    });
+
+    // Calculate averages and sort by cost impact
+    const topWastedItems = Object.values(wasteByItem)
+      .map(item => ({
+        ...item,
+        avgQuantityPerWaste: item.quantity / item.occurrences,
+        costImpactScore: item.cost + (item.occurrences * 2), // Factor in frequency
+        primaryReason: Object.keys(item.reasons).reduce((a, b) => 
+          item.reasons[a] > item.reasons[b] ? a : b
+        )
+      }))
+      .sort((a, b) => b.costImpactScore - a.costImpactScore)
+      .slice(0, 8);
+
+    return {
+      todayWaste: todayWaste.reduce((sum, log) => sum + log.cost, 0),
+      weekWaste: weekWaste.reduce((sum, log) => sum + log.cost, 0),
+      monthWaste: monthWaste.reduce((sum, log) => sum + log.cost, 0),
+      topWastedItems,
+      todayWasteCount: todayWaste.length,
+      wasteFrequency: weekWaste.length / 7, // daily average
+      mostWastedCategory: Object.values(wasteByItem)
+        .reduce((acc, item) => {
+          acc[item.category] = (acc[item.category] || 0) + item.cost;
+          return acc;
+        }, {})
+    };
+  };
+
+  const calculateLiveStockAnalytics = () => {
+    const now = Date.now();
+    
+    // Categorize inventory by stock levels
+    const stockAnalysis = inventory.map(item => {
+      const stockPercentage = (item.quantity / item.threshold) * 100;
+      const timeSinceUpdate = Math.floor((now - new Date(item.lastUpdated).getTime()) / (1000 * 60 * 60)); // hours
+      
+      let priority = 'normal';
+      let urgency = 1;
+      
+      if (item.quantity <= item.criticalLevel) {
+        priority = 'critical';
+        urgency = 5;
+      } else if (item.quantity <= item.threshold * 0.5) {
+        priority = 'high';
+        urgency = 4;
+      } else if (item.quantity <= item.threshold) {
+        priority = 'medium';
+        urgency = 3;
+      } else if (item.quantity <= item.threshold * 1.2) {
+        priority = 'low';
+        urgency = 2;
+      }
+
+      return {
+        ...item,
+        stockPercentage,
+        priority,
+        urgency,
+        timeSinceUpdate,
+        estimatedDaysLeft: item.quantity > 0 ? Math.floor(item.quantity / 2) : 0, // Assuming 2 units consumed per day
+        totalValue: item.quantity * item.cost,
+        shouldReorder: item.quantity <= item.threshold
+      };
+    });
+
+    // Sort by urgency and then by cost impact
+    const lowStockItems = stockAnalysis
+      .filter(item => item.shouldReorder)
+      .sort((a, b) => {
+        if (a.urgency !== b.urgency) return b.urgency - a.urgency;
+        return b.totalValue - a.totalValue;
+      });
+
+    const criticalItems = stockAnalysis.filter(item => item.priority === 'critical');
+    const totalInventoryValue = stockAnalysis.reduce((sum, item) => sum + item.totalValue, 0);
+    
+    return {
+      lowStockItems,
+      criticalItems,
+      totalInventoryValue,
+      stockAlerts: {
+        critical: criticalItems.length,
+        high: stockAnalysis.filter(item => item.priority === 'high').length,
+        medium: stockAnalysis.filter(item => item.priority === 'medium').length,
+        total: lowStockItems.length
+      },
+      averageStockLevel: stockAnalysis.reduce((sum, item) => sum + item.stockPercentage, 0) / stockAnalysis.length
+    };
+  };
+
+  // Live analytics that update based on current data
+  const getLiveAnalytics = () => {
+    const wasteAnalytics = calculateLiveWasteAnalytics();
+    const stockAnalytics = calculateLiveStockAnalytics();
+    
+    return {
+      ...analytics,
+      live: {
+        waste: wasteAnalytics,
+        stock: stockAnalytics,
+        lastUpdated: new Date()
+      }
+    };
+  };
 
   const addToCart = (menuItemId) => {
     setCart(prev => {
@@ -216,7 +562,10 @@ export function AppProvider({ children }) {
       updateInventory,
       addMenuItem,
       updateMenuItem,
-      deleteMenuItem
+      deleteMenuItem,
+      getLiveAnalytics,
+      calculateLiveWasteAnalytics,
+      calculateLiveStockAnalytics
     }}>
       {children}
     </AppContext.Provider>

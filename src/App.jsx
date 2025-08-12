@@ -5,6 +5,7 @@ import { LoginForm } from './components/Auth/LoginForm';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AdminDashboard } from './components/Dashboard/AdminDashboard';
+import { ChefDashboard } from './components/Dashboard/ChefDashboard';
 import { CustomerDashboard } from './components/Dashboard/CustomerDashboard';
 import { MenuManagement } from './components/Menu/MenuManagement';
 import { CustomerMenu } from './components/Menu/CustomerMenu';
@@ -28,7 +29,9 @@ function MainApp() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return user && user.role === 'customer' ? <CustomerDashboard /> : <AdminDashboard />;
+        if (user?.role === 'customer') return <CustomerDashboard />;
+        if (user?.role === 'chef') return <ChefDashboard />;
+        return <AdminDashboard />;
       case 'menu':
         return user && user.role === 'customer' ? <CustomerMenu /> : <MenuManagement />;
       case 'orders':
@@ -50,6 +53,7 @@ function MainApp() {
       case 'settings':
         return <SettingsManagement />;
       default:
+        if (user?.role === 'chef') return <ChefDashboard />;
         return <AdminDashboard />;
     }
   };

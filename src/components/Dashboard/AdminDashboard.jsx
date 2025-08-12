@@ -1,10 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { DollarSign, ShoppingCart, Trash2, Users, TrendingUp, TrendingDown, AlertTriangle, Star } from 'lucide-react';
+import { DollarSign, ShoppingCart, Trash2, Users, TrendingUp, TrendingDown, AlertTriangle, Star, RefreshCw } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { formatDistanceToNow } from 'date-fns';
 
 export function AdminDashboard() {
-	const { orders, analytics, inventory, wasteLogs } = useApp();
+	const { 
+		orders, 
+		analytics, 
+		inventory, 
+		wasteLogs, 
+		calculateLiveWasteAnalytics,
+		calculateLiveStockAnalytics 
+	} = useApp();
+
+	const [liveData, setLiveData] = useState(null);
+	const [lastUpdate, setLastUpdate] = useState(new Date());
+
+	// Update live data every 60 seconds for admin dashboard
+	useEffect(() => {
+		const updateLiveData = () => {
+			const wasteAnalytics = calculateLiveWasteAnalytics();
+			const stockAnalytics = calculateLiveStockAnalytics();
+			setLiveData({ waste: wasteAnalytics, stock: stockAnalytics });
+			setLastUpdate(new Date());
+		};
+
+		updateLiveData();
+		const interval = setInterval(updateLiveData, 60000); // Update every minute for admin
+
+		return () => clearInterval(interval);
+	}, [calculateLiveWasteAnalytics, calculateLiveStockAnalytics]);
 
 	const todayOrders = orders.filter(order => 
 		new Date(order.createdAt).toDateString() === new Date().toDateString()
@@ -35,7 +61,7 @@ export function AdminDashboard() {
 		},
 		{
 			title: 'Food Waste',
-			value: `$${analytics.totalWaste.toLocaleString()}`,
+			value: liveData ? `$${liveData.waste.todayWaste.toFixed(2)}` : `$${analytics.totalWaste.toLocaleString()}`,
 			icon: Trash2,
 			color: 'bg-red-500',
 			change: '-5%',
@@ -53,8 +79,9 @@ export function AdminDashboard() {
 
 	return (
 		<div className="p-6 space-y-6">
-			<div className="flex justify-between items-center">
-				<h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+		<div className="flex justify-between items-center">
+			<h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+			<div className="flex items-center space-x-4">
 				<div className="text-sm text-gray-500">
 					{new Date().toLocaleDateString('en-US', { 
 						weekday: 'long', 
@@ -63,9 +90,14 @@ export function AdminDashboard() {
 						day: 'numeric' 
 					})}
 				</div>
+				{liveData && (
+					<div className="flex items-center space-x-2 text-xs text-gray-400">
+						<RefreshCw className="w-3 h-3" />
+						<span>Updated {formatDistanceToNow(lastUpdate)} ago</span>
+					</div>
+				)}
 			</div>
-
-			{/* Stats Cards */}
+		</div>			{/* Stats Cards */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 				{stats.map((stat, index) => {
 					const Icon = stat.icon;
@@ -127,51 +159,85 @@ export function AdminDashboard() {
 
 			{/* Additional Info */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-					<h3 className="text-lg font-semibold text-gray-900 mb-4">Top Wasted Items</h3>
+			<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+				<h3 className="text-lg font-semibold text-gray-900 mb-4">Top Wasted Items</h3>
+				<div className="space-y-3">
+					{(liveData ? liveData.waste.topWastedItems : analytics.topWastedItems).map((item, index) => (
+						<div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
+							<div>
+								<p className="font-medium text-gray-900">{item.item}</p>
+								<p className="text-sm text-gray-500">
+									{item.quantity} {liveData ? 'units' : item.unit || 'units'}
+									{liveData && item.occurrences && (
+										<span className="ml-2 text-xs text-gray-400">• {item.occurrences} incidents</span>
+									)}
+								</p>
+								{liveData && item.primaryReason && (
+									<p className="text-xs text-orange-600">Main cause: {item.primaryReason}</p>
+								)}
+							</div>
+							<div className="text-right">
+								<p className="font-semibold text-red-600">${item.cost.toFixed(2)}</p>
+								{liveData && item.costImpactScore && (
+									<p className="text-xs text-gray-500">Impact: {item.costImpactScore.toFixed(0)}</p>
+								)}
+							</div>
+						</div>
+					))}
+				</div>
+			</div>
+
+			<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+				<div className="flex items-center justify-between mb-4">
+					<h3 className="text-lg font-semibold text-gray-900">Low Stock Alert</h3>
+					{liveData && (
+						<div className="flex items-center space-x-2">
+							<span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+								{liveData.stock.stockAlerts.critical} Critical
+							</span>
+							<span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+								{liveData.stock.stockAlerts.total} Total
+							</span>
+						</div>
+					)}
+				</div>
+				{(liveData ? liveData.stock.lowStockItems : lowStockItems).length > 0 ? (
 					<div className="space-y-3">
-						{analytics.topWastedItems.map((item, index) => (
-							<div key={index} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-								<div>
-									<p className="font-medium text-gray-900">{item.item}</p>
-									<p className="text-sm text-gray-500">{item.quantity} units</p>
+						{(liveData ? liveData.stock.lowStockItems : lowStockItems).map((item, index) => (
+							<div key={index} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
+								<div className="flex items-center">
+									<AlertTriangle className="w-5 h-5 text-yellow-500 mr-2" />
+									<div>
+										<p className="font-medium text-gray-900">{item.name}</p>
+										<p className="text-sm text-gray-500">
+											{item.quantity} {item.unit} remaining
+											{liveData && item.estimatedDaysLeft !== undefined && (
+												<span className="ml-2 text-xs text-orange-600">• ≈{item.estimatedDaysLeft} days left</span>
+											)}
+										</p>
+									</div>
 								</div>
 								<div className="text-right">
-									<p className="font-semibold text-red-600">${item.cost.toFixed(2)}</p>
+									<span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
+										{liveData && item.priority ? item.priority.charAt(0).toUpperCase() + item.priority.slice(1) : 'Low Stock'}
+									</span>
+									{liveData && item.totalValue && (
+										<p className="text-xs text-gray-500 mt-1">${item.totalValue.toFixed(2)} value</p>
+									)}
 								</div>
 							</div>
 						))}
 					</div>
-				</div>
-
-				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-					<h3 className="text-lg font-semibold text-gray-900 mb-4">Low Stock Alert</h3>
-					{lowStockItems.length > 0 ? (
-						<div className="space-y-3">
-							{lowStockItems.map((item, index) => (
-								<div key={index} className="flex items-center justify-between p-3 bg-yellow-50 rounded-lg">
-									<div className="flex items-center">
-										<AlertTriangle className="w-5 h-5 text-yellow-500 mr-2" />
-										<div>
-											<p className="font-medium text-gray-900">{item.name}</p>
-											<p className="text-sm text-gray-500">{item.quantity} {item.unit} remaining</p>
-										</div>
-									</div>
-									<div className="text-right">
-										<span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">
-											Low Stock
-										</span>
-									</div>
-								</div>
-							))}
-						</div>
-					) : (
-						<div className="text-center py-8 text-gray-500">
-							<Star className="w-12 h-12 mx-auto mb-2" />
-							<p>All items are well stocked!</p>
-						</div>
-					)}
-				</div>
+				) : (
+					<div className="text-center py-8 text-gray-500">
+						<Star className="w-12 h-12 mx-auto mb-2" />
+						<p>All items are well stocked!</p>
+						{liveData && (
+							<p className="text-sm">Average stock level: {liveData.stock.averageStockLevel.toFixed(1)}%</p>
+						)}
+					</div>
+				)}
+			</div>
 			</div>
 		</div>
 	);
