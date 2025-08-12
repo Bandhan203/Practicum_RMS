@@ -1377,6 +1377,156 @@ export function AppProvider({ children }) {
     );
   };
 
+  // Settings data
+  const mockAppSettings = {
+    // General Settings
+    general: {
+      restaurantName: 'Spice & Dine Restaurant',
+      restaurantAddress: '123 Main Street, Dhaka, Bangladesh',
+      restaurantPhone: '+880-1234-567890',
+      restaurantEmail: 'info@spiceanddine.com',
+      currency: 'BDT',
+      timezone: 'Asia/Dhaka',
+      language: 'en',
+      dateFormat: 'dd/MM/yyyy',
+      timeFormat: '24h'
+    },
+    
+    // Business Settings
+    business: {
+      openingHours: {
+        monday: { open: '10:00', close: '22:00', closed: false },
+        tuesday: { open: '10:00', close: '22:00', closed: false },
+        wednesday: { open: '10:00', close: '22:00', closed: false },
+        thursday: { open: '10:00', close: '22:00', closed: false },
+        friday: { open: '10:00', close: '23:00', closed: false },
+        saturday: { open: '10:00', close: '23:00', closed: false },
+        sunday: { open: '11:00', close: '21:00', closed: false }
+      },
+      maxTableCapacity: 8,
+      reservationAdvanceDays: 30,
+      cancellationPolicy: '24 hours',
+      serviceCharge: 10,
+      vatRate: 15,
+      loyaltyPointsRate: 1, // 1 point per 100 BDT
+      minimumOrderAmount: 200
+    },
+    
+    // Notification Settings
+    notifications: {
+      emailNotifications: true,
+      smsNotifications: true,
+      pushNotifications: true,
+      orderNotifications: true,
+      reservationNotifications: true,
+      inventoryAlerts: true,
+      lowStockAlerts: true,
+      wasteAlerts: true,
+      dailyReports: true,
+      weeklyReports: true,
+      monthlyReports: false
+    },
+    
+    // Security Settings
+    security: {
+      passwordMinLength: 8,
+      passwordRequireSpecialChars: true,
+      passwordRequireNumbers: true,
+      sessionTimeout: 60, // minutes
+      maxLoginAttempts: 5,
+      twoFactorAuth: false,
+      autoLogout: true,
+      dataBackupFrequency: 'daily',
+      auditLogging: true
+    },
+    
+    // Display Settings
+    display: {
+      theme: 'light',
+      brandColor: '#DC2626',
+      secondaryColor: '#6B0000',
+      showImages: true,
+      compactMode: false,
+      animationsEnabled: true,
+      soundEnabled: true,
+      highContrast: false,
+      fontSize: 'medium'
+    },
+    
+    // Payment Settings
+    payment: {
+      acceptCash: true,
+      acceptCard: true,
+      acceptMobile: true,
+      acceptOnline: true,
+      minimumCardAmount: 100,
+      tipSuggestions: [10, 15, 20],
+      autoCalculateTip: true,
+      splitBillEnabled: true,
+      refundPolicy: '7 days'
+    },
+    
+    // Inventory Settings
+    inventory: {
+      lowStockThreshold: 10,
+      criticalStockThreshold: 5,
+      autoReorderEnabled: false,
+      wasteTrackingEnabled: true,
+      expirationAlerts: true,
+      costTrackingEnabled: true,
+      supplierNotifications: true
+    }
+  };
+
+  const [appSettings, setAppSettings] = useState(mockAppSettings);
+
+  // Settings Management Functions
+  const updateSettings = (category, settings) => {
+    setAppSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        ...settings
+      }
+    }));
+  };
+
+  const resetSettings = (category) => {
+    if (category) {
+      setAppSettings(prev => ({
+        ...prev,
+        [category]: mockAppSettings[category]
+      }));
+    } else {
+      setAppSettings(mockAppSettings);
+    }
+  };
+
+  const exportSettings = () => {
+    const dataStr = JSON.stringify(appSettings, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `restaurant-settings-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const importSettings = (settingsData) => {
+    try {
+      const parsedSettings = typeof settingsData === 'string' 
+        ? JSON.parse(settingsData) 
+        : settingsData;
+      setAppSettings(parsedSettings);
+      return { success: true, message: 'Settings imported successfully' };
+    } catch (error) {
+      return { success: false, message: 'Invalid settings file format' };
+    }
+  };
+
   // User Management Functions
   const addUser = (userData) => {
     const newUser = {
@@ -1496,7 +1646,14 @@ export function AppProvider({ children }) {
       deleteMenuItem,
       getLiveAnalytics,
       calculateLiveWasteAnalytics,
-      calculateLiveStockAnalytics
+      calculateLiveStockAnalytics,
+      
+      // Settings
+      appSettings,
+      updateSettings,
+      resetSettings,
+      exportSettings,
+      importSettings
     }}>
       {children}
     </AppContext.Provider>
