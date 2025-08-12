@@ -5,11 +5,12 @@ const AppContext = createContext(undefined);
 
 // Mock data
 const mockMenuItems = [
+  // Pizzas
   {
     id: '1',
     name: 'Margherita Pizza',
     description: 'Classic pizza with tomato sauce, mozzarella, and fresh basil',
-    price: 18.99,
+    price: 450.00,
     category: 'Pizza',
     image: 'https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=500',
     available: true,
@@ -17,7 +18,492 @@ const mockMenuItems = [
     ingredients: ['Tomato sauce', 'Mozzarella', 'Basil'],
     preparationTime: 15
   },
-  // ...other items...
+  {
+    id: '2',
+    name: 'Pepperoni Pizza',
+    description: 'Spicy pepperoni with mozzarella cheese and tomato sauce',
+    price: 520.00,
+    category: 'Pizza',
+    image: 'https://images.pexels.com/photos/708587/pexels-photo-708587.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Tomato sauce', 'Mozzarella', 'Pepperoni'],
+    preparationTime: 18
+  },
+  {
+    id: '3',
+    name: 'BBQ Chicken Pizza',
+    description: 'Grilled chicken with BBQ sauce, red onions, and cilantro',
+    price: 680.00,
+    category: 'Pizza',
+    image: 'https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['BBQ sauce', 'Grilled chicken', 'Red onions', 'Cilantro', 'Mozzarella'],
+    preparationTime: 20
+  },
+  {
+    id: '4',
+    name: 'Vegetarian Supreme',
+    description: 'Bell peppers, mushrooms, onions, olives, and tomatoes',
+    price: 580.00,
+    category: 'Pizza',
+    image: 'https://images.pexels.com/photos/1653877/pexels-photo-1653877.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Bell peppers', 'Mushrooms', 'Onions', 'Olives', 'Tomatoes', 'Mozzarella'],
+    preparationTime: 17
+  },
+
+  // Burgers
+  {
+    id: '5',
+    name: 'Classic Beef Burger',
+    description: 'Juicy beef patty with lettuce, tomato, onion, and special sauce',
+    price: 420.00,
+    category: 'Burgers',
+    image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Beef patty', 'Lettuce', 'Tomato', 'Onion', 'Special sauce', 'Sesame bun'],
+    preparationTime: 12
+  },
+  {
+    id: '6',
+    name: 'Chicken Burger',
+    description: 'Grilled chicken breast with avocado and honey mustard',
+    price: 380.00,
+    category: 'Burgers',
+    image: 'https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Chicken breast', 'Avocado', 'Honey mustard', 'Lettuce', 'Brioche bun'],
+    preparationTime: 14
+  },
+  {
+    id: '7',
+    name: 'Mushroom Swiss Burger',
+    description: 'Beef patty with sautéed mushrooms and Swiss cheese',
+    price: 480.00,
+    category: 'Burgers',
+    image: 'https://images.pexels.com/photos/2762942/pexels-photo-2762942.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Beef patty', 'Sautéed mushrooms', 'Swiss cheese', 'Caramelized onions'],
+    preparationTime: 15
+  },
+  {
+    id: '8',
+    name: 'Fish Burger',
+    description: 'Crispy fish fillet with tartar sauce and coleslaw',
+    price: 450.00,
+    category: 'Burgers',
+    image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Fish fillet', 'Tartar sauce', 'Coleslaw', 'Lettuce', 'Potato bun'],
+    preparationTime: 16
+  },
+
+  // Pasta
+  {
+    id: '9',
+    name: 'Spaghetti Carbonara',
+    description: 'Creamy pasta with bacon, eggs, and parmesan cheese',
+    price: 520.00,
+    category: 'Pasta',
+    image: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Spaghetti', 'Bacon', 'Eggs', 'Parmesan', 'Black pepper'],
+    preparationTime: 18
+  },
+  {
+    id: '10',
+    name: 'Chicken Alfredo',
+    description: 'Fettuccine pasta with grilled chicken in creamy alfredo sauce',
+    price: 580.00,
+    category: 'Pasta',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Fettuccine', 'Grilled chicken', 'Alfredo sauce', 'Parmesan', 'Garlic'],
+    preparationTime: 20
+  },
+  {
+    id: '11',
+    name: 'Penne Arrabbiata',
+    description: 'Spicy tomato sauce with garlic, chili, and fresh herbs',
+    price: 420.00,
+    category: 'Pasta',
+    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Penne pasta', 'Spicy tomato sauce', 'Garlic', 'Chili', 'Basil'],
+    preparationTime: 15
+  },
+  {
+    id: '12',
+    name: 'Seafood Linguine',
+    description: 'Linguine with mixed seafood in white wine sauce',
+    price: 750.00,
+    category: 'Pasta',
+    image: 'https://images.pexels.com/photos/1438672/pexels-photo-1438672.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Linguine', 'Shrimp', 'Mussels', 'Calamari', 'White wine sauce'],
+    preparationTime: 25
+  },
+
+  // Salads
+  {
+    id: '13',
+    name: 'Caesar Salad',
+    description: 'Crisp romaine lettuce with caesar dressing and croutons',
+    price: 320.00,
+    category: 'Salads',
+    image: 'https://images.pexels.com/photos/2116094/pexels-photo-2116094.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Romaine lettuce', 'Caesar dressing', 'Croutons', 'Parmesan', 'Anchovies'],
+    preparationTime: 8
+  },
+  {
+    id: '14',
+    name: 'Greek Salad',
+    description: 'Fresh vegetables with feta cheese and olive oil dressing',
+    price: 380.00,
+    category: 'Salads',
+    image: 'https://images.pexels.com/photos/1213710/pexels-photo-1213710.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Tomatoes', 'Cucumber', 'Feta cheese', 'Olives', 'Red onion', 'Olive oil'],
+    preparationTime: 10
+  },
+  {
+    id: '15',
+    name: 'Grilled Chicken Salad',
+    description: 'Mixed greens with grilled chicken and balsamic vinaigrette',
+    price: 450.00,
+    category: 'Salads',
+    image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Mixed greens', 'Grilled chicken', 'Cherry tomatoes', 'Balsamic vinaigrette'],
+    preparationTime: 12
+  },
+
+  // Asian Dishes
+  {
+    id: '16',
+    name: 'Chicken Fried Rice',
+    description: 'Wok-fried rice with chicken, vegetables, and soy sauce',
+    price: 380.00,
+    category: 'Asian',
+    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Jasmine rice', 'Chicken', 'Mixed vegetables', 'Soy sauce', 'Eggs'],
+    preparationTime: 15
+  },
+  {
+    id: '17',
+    name: 'Beef Stir Fry',
+    description: 'Tender beef strips with vegetables in savory sauce',
+    price: 520.00,
+    category: 'Asian',
+    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Beef strips', 'Bell peppers', 'Broccoli', 'Oyster sauce', 'Garlic'],
+    preparationTime: 18
+  },
+  {
+    id: '18',
+    name: 'Pad Thai',
+    description: 'Traditional Thai noodles with shrimp, tofu, and peanuts',
+    price: 480.00,
+    category: 'Asian',
+    image: 'https://images.pexels.com/photos/1410236/pexels-photo-1410236.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Rice noodles', 'Shrimp', 'Tofu', 'Bean sprouts', 'Peanuts', 'Lime'],
+    preparationTime: 16
+  },
+  {
+    id: '19',
+    name: 'Sweet and Sour Chicken',
+    description: 'Crispy chicken with pineapple and bell peppers',
+    price: 420.00,
+    category: 'Asian',
+    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Chicken', 'Pineapple', 'Bell peppers', 'Sweet and sour sauce'],
+    preparationTime: 20
+  },
+
+  // Seafood
+  {
+    id: '20',
+    name: 'Grilled Salmon',
+    description: 'Fresh salmon fillet with lemon herb seasoning',
+    price: 850.00,
+    category: 'Seafood',
+    image: 'https://images.pexels.com/photos/3655957/pexels-photo-3655957.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Salmon fillet', 'Lemon', 'Herbs', 'Olive oil', 'Asparagus'],
+    preparationTime: 22
+  },
+  {
+    id: '21',
+    name: 'Fish and Chips',
+    description: 'Beer-battered fish with crispy fries and mushy peas',
+    price: 650.00,
+    category: 'Seafood',
+    image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['White fish', 'Beer batter', 'Potatoes', 'Mushy peas', 'Tartar sauce'],
+    preparationTime: 25
+  },
+  {
+    id: '22',
+    name: 'Shrimp Scampi',
+    description: 'Garlic butter shrimp served over pasta',
+    price: 720.00,
+    category: 'Seafood',
+    image: 'https://images.pexels.com/photos/3655957/pexels-photo-3655957.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Shrimp', 'Garlic', 'Butter', 'White wine', 'Parsley', 'Linguine'],
+    preparationTime: 18
+  },
+
+  // Indian Dishes
+  {
+    id: '23',
+    name: 'Chicken Biryani',
+    description: 'Aromatic basmati rice with spiced chicken and herbs',
+    price: 480.00,
+    category: 'Indian',
+    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Basmati rice', 'Chicken', 'Saffron', 'Yogurt', 'Spices', 'Mint'],
+    preparationTime: 35
+  },
+  {
+    id: '24',
+    name: 'Butter Chicken',
+    description: 'Creamy tomato curry with tender chicken pieces',
+    price: 520.00,
+    category: 'Indian',
+    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Chicken', 'Tomato sauce', 'Cream', 'Butter', 'Garam masala'],
+    preparationTime: 28
+  },
+  {
+    id: '25',
+    name: 'Vegetable Curry',
+    description: 'Mixed vegetables in aromatic curry sauce',
+    price: 380.00,
+    category: 'Indian',
+    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Mixed vegetables', 'Curry sauce', 'Coconut milk', 'Turmeric', 'Coriander'],
+    preparationTime: 25
+  },
+  {
+    id: '26',
+    name: 'Lamb Korma',
+    description: 'Tender lamb in mild creamy curry with almonds',
+    price: 680.00,
+    category: 'Indian',
+    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Lamb', 'Yogurt', 'Almonds', 'Cream', 'Cardamom', 'Cinnamon'],
+    preparationTime: 40
+  },
+
+  // Appetizers
+  {
+    id: '27',
+    name: 'Mozzarella Sticks',
+    description: 'Crispy breaded mozzarella with marinara sauce',
+    price: 280.00,
+    category: 'Appetizers',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Mozzarella', 'Breadcrumbs', 'Marinara sauce'],
+    preparationTime: 8
+  },
+  {
+    id: '28',
+    name: 'Buffalo Wings',
+    description: 'Spicy chicken wings with blue cheese dip',
+    price: 420.00,
+    category: 'Appetizers',
+    image: 'https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Chicken wings', 'Buffalo sauce', 'Blue cheese dip', 'Celery'],
+    preparationTime: 15
+  },
+  {
+    id: '29',
+    name: 'Garlic Bread',
+    description: 'Toasted bread with garlic butter and herbs',
+    price: 180.00,
+    category: 'Appetizers',
+    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Bread', 'Garlic', 'Butter', 'Parsley'],
+    preparationTime: 6
+  },
+  {
+    id: '30',
+    name: 'Nachos Supreme',
+    description: 'Tortilla chips with cheese, jalapeños, and toppings',
+    price: 380.00,
+    category: 'Appetizers',
+    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Tortilla chips', 'Cheese sauce', 'Jalapeños', 'Sour cream', 'Guacamole'],
+    preparationTime: 10
+  },
+
+  // Desserts
+  {
+    id: '31',
+    name: 'Chocolate Lava Cake',
+    description: 'Warm chocolate cake with molten chocolate center',
+    price: 320.00,
+    category: 'Desserts',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Dark chocolate', 'Butter', 'Eggs', 'Flour', 'Vanilla ice cream'],
+    preparationTime: 12
+  },
+  {
+    id: '32',
+    name: 'Tiramisu',
+    description: 'Classic Italian dessert with coffee and mascarpone',
+    price: 280.00,
+    category: 'Desserts',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Ladyfingers', 'Mascarpone', 'Coffee', 'Cocoa powder', 'Rum'],
+    preparationTime: 5
+  },
+  {
+    id: '33',
+    name: 'Cheesecake',
+    description: 'New York style cheesecake with berry compote',
+    price: 350.00,
+    category: 'Desserts',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Cream cheese', 'Graham crackers', 'Mixed berries', 'Sugar'],
+    preparationTime: 8
+  },
+  {
+    id: '34',
+    name: 'Ice Cream Sundae',
+    description: 'Three scoops with chocolate sauce and whipped cream',
+    price: 220.00,
+    category: 'Desserts',
+    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Vanilla ice cream', 'Chocolate sauce', 'Whipped cream', 'Cherry'],
+    preparationTime: 3
+  },
+
+  // Beverages
+  {
+    id: '35',
+    name: 'Fresh Orange Juice',
+    description: 'Freshly squeezed orange juice',
+    price: 120.00,
+    category: 'Beverages',
+    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Fresh oranges'],
+    preparationTime: 2
+  },
+  {
+    id: '36',
+    name: 'Iced Coffee',
+    description: 'Cold brew coffee with ice and cream',
+    price: 150.00,
+    category: 'Beverages',
+    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: true,
+    ingredients: ['Coffee beans', 'Ice', 'Cream', 'Sugar'],
+    preparationTime: 3
+  },
+  {
+    id: '37',
+    name: 'Mango Lassi',
+    description: 'Traditional Indian yogurt drink with mango',
+    price: 180.00,
+    category: 'Beverages',
+    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Mango', 'Yogurt', 'Sugar', 'Cardamom'],
+    preparationTime: 4
+  },
+  {
+    id: '38',
+    name: 'Green Tea',
+    description: 'Traditional green tea with honey',
+    price: 80.00,
+    category: 'Beverages',
+    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Green tea leaves', 'Honey'],
+    preparationTime: 5
+  },
+  {
+    id: '39',
+    name: 'Coca Cola',
+    description: 'Chilled soft drink',
+    price: 60.00,
+    category: 'Beverages',
+    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Coca Cola'],
+    preparationTime: 1
+  },
+  {
+    id: '40',
+    name: 'Sparkling Water',
+    description: 'Refreshing sparkling water with lemon',
+    price: 80.00,
+    category: 'Beverages',
+    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
+    available: true,
+    featured: false,
+    ingredients: ['Sparkling water', 'Lemon'],
+    preparationTime: 1
+  }
 ];
 
 const mockOrders = [
