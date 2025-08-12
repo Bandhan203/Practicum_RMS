@@ -18,7 +18,12 @@ export function AuthProvider({ children }) {
     // Check for stored user
     const storedUser = localStorage.getItem('restaurant_user');
     if (storedUser) {
-      setUser(JSON.parse(storedUser));
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('restaurant_user');
+      }
     }
   }, []);
 

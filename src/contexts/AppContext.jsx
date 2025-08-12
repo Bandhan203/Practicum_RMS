@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { format } from 'date-fns';
 // Remove type imports
 
 const AppContext = createContext(undefined);
@@ -656,13 +657,86 @@ const mockReservations = [
   {
     id: '1',
     customerName: 'John Doe',
-    customerEmail: 'john@email.com',
-    customerPhone: '+1234567890',
-    date: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    email: 'john@email.com',
+    phone: '+880-1234567890',
+    date: format(new Date(Date.now() + 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
     time: '19:00',
     guests: 4,
-    tableNumber: 12,
-    status: 'confirmed'
+    table: 'T12',
+    status: 'confirmed',
+    specialRequests: 'Window table if possible',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: '2',
+    customerName: 'Sarah Wilson',
+    email: 'sarah.wilson@email.com',
+    phone: '+880-9876543210',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    time: '20:30',
+    guests: 2,
+    table: 'VIP1',
+    status: 'seated',
+    specialRequests: 'Anniversary dinner - need quiet table',
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+  },
+  {
+    id: '3',
+    customerName: 'Mike Johnson',
+    email: 'mike.j@email.com',
+    phone: '+880-5556667777',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    time: '18:00',
+    guests: 6,
+    table: 'T8',
+    status: 'pending',
+    specialRequests: 'Family dinner with children',
+    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: '4',
+    customerName: 'Emma Brown',
+    email: 'emma.brown@email.com',
+    phone: '+880-1112223333',
+    date: format(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    time: '19:30',
+    guests: 8,
+    table: 'P1',
+    status: 'confirmed',
+    specialRequests: 'Business dinner - need private area',
+    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: '5',
+    customerName: 'David Chen',
+    email: 'david.chen@email.com',
+    phone: '+880-4445556666',
+    date: format(new Date(Date.now() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
+    time: '20:00',
+    guests: 3,
+    table: 'T5',
+    status: 'completed',
+    specialRequests: 'Vegetarian options required',
+    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: '6',
+    customerName: 'Lisa Anderson',
+    email: 'lisa.anderson@email.com',
+    phone: '+880-7778889999',
+    date: format(new Date(), 'yyyy-MM-dd'),
+    time: '21:00',
+    guests: 2,
+    table: 'VIP2',
+    status: 'cancelled',
+    specialRequests: 'Cancelled due to emergency',
+    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
   }
 ];
 
@@ -1121,6 +1195,16 @@ export function AppProvider({ children }) {
     setReservations(prev => [newReservation, ...prev]);
   };
 
+  const updateReservation = (reservation) => {
+    setReservations(prev =>
+      prev.map(r => r.id === reservation.id ? reservation : r)
+    );
+  };
+
+  const deleteReservation = (reservationId) => {
+    setReservations(prev => prev.filter(r => r.id !== reservationId));
+  };
+
   const logWaste = (waste) => {
     const newWaste = {
       ...waste,
@@ -1175,6 +1259,8 @@ export function AppProvider({ children }) {
       placeOrder,
       updateOrderStatus,
       addReservation,
+      updateReservation,
+      deleteReservation,
       logWaste,
       updateInventory,
       addMenuItem,
