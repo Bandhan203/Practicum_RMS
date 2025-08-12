@@ -10,11 +10,12 @@ import {
   ChefHat,
   Shield,
   Users,
-  Crown
+  Crown,
+  Menu
 } from 'lucide-react';
 import { RestaurantLogo } from '../common/RestaurantLogo';
 
-export function Header() {
+export function Header({ toggleSidebar }) {
   const { user, logout, switchRole } = useAuth();
   const { cart } = useApp();
 
@@ -33,17 +34,26 @@ export function Header() {
   if (!user) return null;
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-white shadow-sm border-b border-gray-200 fixed top-0 left-0 right-0 z-30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
+            {/* Mobile Menu Button */}
+            <button
+              onClick={toggleSidebar}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 md:hidden mr-2"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+
             <RestaurantLogo className="w-8 h-8 mr-3" fillColor="#6B0000" />
-            <h1 className="text-xl font-bold text-gray-900">Restaurant Pro</h1>
+            <h1 className="text-xl font-bold text-gray-900 hidden sm:block">Restaurant Pro</h1>
+            <h1 className="text-lg font-bold text-gray-900 sm:hidden">RMS</h1>
           </div>
 
-          <div className="flex items-center space-x-4">
-            {/* Role Switcher (Demo) */}
-            <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Role Switcher (Demo) - Hidden on small screens */}
+            <div className="hidden lg:flex items-center space-x-2">
               <label className="text-sm font-medium text-gray-700">Role:</label>
               <select
                 value={user.role}
@@ -61,9 +71,9 @@ export function Header() {
             {user.role === 'customer' && (
               <div className="relative">
                 <button className="p-2 text-gray-400 hover:text-gray-500">
-                  <ShoppingCart className="w-6 h-6" />
+                  <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
                   {cartItemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">
                       {cartItemCount}
                     </span>
                   )}
@@ -73,21 +83,28 @@ export function Header() {
 
             {/* Notifications */}
             <button className="p-2 text-gray-400 hover:text-gray-500">
-              <Bell className="w-6 h-6" />
+              <Bell className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
 
             {/* User Menu */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 sm:space-x-3">
+              <div className="hidden sm:flex items-center space-x-2">
                 {getRoleIcon(user.role)}
                 <span className="text-sm font-medium text-gray-700">{user.name}</span>
+              </div>
+              
+              {/* Mobile User Avatar */}
+              <div className="sm:hidden w-8 h-8 bg-[#6B0000] rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  {user?.name?.charAt(0) || 'U'}
+                </span>
               </div>
               
               <button
                 onClick={logout}
                 className="p-2 text-gray-400 hover:text-gray-500"
               >
-                <LogOut className="w-5 h-5" />
+                <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>

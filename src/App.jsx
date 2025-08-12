@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { AppProvider } from './contexts/AppContext';
 import { LoginForm } from './components/Auth/LoginForm';
@@ -21,10 +21,38 @@ import { SettingsManagement } from './components/Settings/SettingsManagement';
 function MainApp() {
   const { user, isAuthenticated } = useAuth();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check screen size
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   if (!isAuthenticated) {
     return <LoginForm />;
   }
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  // Calculate main content margin based on sidebar state
+  const getMainContentClass = () => {
+    if (isMobile) {
+      return "flex-1 min-h-[calc(100vh-4rem)] ml-0 transition-all duration-300 ease-in-out";
+    }
+    
+    const marginLeft = sidebarCollapsed ? 'ml-16' : 'ml-64';
+    return `flex-1 min-h-[calc(100vh-4rem)] ${marginLeft} transition-all duration-300 ease-in-out`;
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -59,12 +87,20 @@ function MainApp() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      <div className="flex">
-        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-        <main className="flex-1 min-h-screen">
-          {renderContent()}
+    <div className="min-h-screen bg-gray-50 pt-16">
+      <Header toggleSidebar={toggleSidebar} />
+      <div className="relative">
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+          isOpen={sidebarOpen}
+          setIsOpen={setSidebarOpen}
+          onCollapseChange={setSidebarCollapsed}
+        />
+        <main className={getMainContentClass()}>
+          <div className="h-full overflow-auto p-6">
+            {renderContent()}
+          </div>
         </main>
       </div>
     </div>
