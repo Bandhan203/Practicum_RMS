@@ -1214,6 +1214,18 @@ export function AppProvider({ children }) {
     setWasteLogs(prev => [newWaste, ...prev]);
   };
 
+  const updateWasteLog = (wasteId, updates) => {
+    setWasteLogs(prev =>
+      prev.map(waste =>
+        waste.id === wasteId ? { ...waste, ...updates } : waste
+      )
+    );
+  };
+
+  const deleteWasteLog = (wasteId) => {
+    setWasteLogs(prev => prev.filter(waste => waste.id !== wasteId));
+  };
+
   const updateInventory = (itemId, quantity) => {
     setInventory(prev =>
       prev.map(item =>
@@ -1301,6 +1313,8 @@ export function AppProvider({ children }) {
       updateReservation,
       deleteReservation,
       logWaste,
+      updateWasteLog,
+      deleteWasteLog,
       updateInventory,
       addInventoryItem,
       updateInventoryItem,
