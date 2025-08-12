@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   BarChart3, 
   ShoppingCart, 
@@ -19,10 +20,15 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapseChange }) {
+export function Sidebar({ isOpen, setIsOpen, onCollapseChange }) {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  // Get current active tab from URL
+  const activeTab = location.pathname.replace('/', '') || 'dashboard';
 
   // Check if screen is mobile
   useEffect(() => {
@@ -102,7 +108,7 @@ export function Sidebar({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapse
   const menuItems = getMenuItems();
 
   const handleMenuItemClick = (itemId) => {
-    setActiveTab(itemId);
+    navigate(`/${itemId}`);
     if (isMobile) {
       setIsOpen(false); // Close sidebar on mobile after selection
     }
