@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { ChefHat, Mail, Lock, LogIn } from 'lucide-react';
+import { RestaurantLogo } from '../common/RestaurantLogo';
 
 export function LoginForm() {
   const [email, setEmail] = useState('admin@restaurant.com');
@@ -38,7 +39,7 @@ export function LoginForm() {
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
           <div className="flex justify-center">
-            <ChefHat className="w-16 h-16 text-orange-500" />
+            <RestaurantLogo className="w-16 h-16" fillColor="#ea580c" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
             Restaurant Pro

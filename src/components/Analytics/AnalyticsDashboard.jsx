@@ -6,7 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 export function AnalyticsDashboard() {
 	const { analytics } = useApp();
 
-	const COLORS = ['#f97316', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#f59e0b'];
+	const COLORS = ['#6B0000', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#f59e0b'];
 
 	const wasteByCategory = analytics.topWastedItems.map((item, index) => ({
 		name: item.item,

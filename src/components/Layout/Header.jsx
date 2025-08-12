@@ -12,6 +12,7 @@ import {
   Users,
   Crown
 } from 'lucide-react';
+import { RestaurantLogo } from '../common/RestaurantLogo';
 
 export function Header() {
   const { user, logout, switchRole } = useAuth();
@@ -36,7 +37,7 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <ChefHat className="w-8 h-8 text-orange-500 mr-3" />
+            <RestaurantLogo className="w-8 h-8 mr-3" fillColor="#ea580c" />
             <h1 className="text-xl font-bold text-gray-900">Restaurant Pro</h1>
           </div>
 

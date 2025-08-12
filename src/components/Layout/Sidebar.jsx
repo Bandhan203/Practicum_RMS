@@ -25,7 +25,7 @@ export function Sidebar({ activeTab, setActiveTab }) {
         return [
           { id: 'dashboard', label: 'Dashboard', icon: Home },
           { id: 'orders', label: 'Orders', icon: ShoppingCart },
-          { id: 'menu', label: 'Menu Management', icon: MenuIcon },
+          { id: 'menu', label: 'Menu', icon: MenuIcon },
           { id: 'reservations', label: 'Reservations', icon: Calendar },
           { id: 'inventory', label: 'Inventory', icon: Package },
           { id: 'waste', label: 'Waste Log', icon: Trash2 },
@@ -82,8 +82,8 @@ export function Sidebar({ activeTab, setActiveTab }) {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
                   activeTab === item.id
-                    ? 'bg-orange-50 text-orange-700 border-r-4 border-orange-500'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    ? 'bg-[#6B0000] text-white border-r-4 border-white shadow-md'
+                    : 'text-gray-600 hover:text-white hover:bg-[#6B0000]'
                 }`}
               >
                 <Icon className="w-5 h-5" />

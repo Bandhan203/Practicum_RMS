@@ -138,7 +138,7 @@ export function AdminDashboard() {
 							<XAxis dataKey="date" />
 							<YAxis />
 							<Tooltip />
-							<Line type="monotone" dataKey="amount" stroke="#f97316" strokeWidth={2} />
+							<Line type="monotone" dataKey="amount" stroke="#6B0000" strokeWidth={2} />
 						</LineChart>
 					</ResponsiveContainer>
 				</div>
@@ -151,7 +151,7 @@ export function AdminDashboard() {
 							<XAxis dataKey="date" />
 							<YAxis />
 							<Tooltip />
-							<Line type="monotone" dataKey="amount" stroke="#ef4444" strokeWidth={2} />
+							<Line type="monotone" dataKey="amount" stroke="#6B0000" strokeWidth={2} />
 						</LineChart>
 					</ResponsiveContainer>
 				</div>
