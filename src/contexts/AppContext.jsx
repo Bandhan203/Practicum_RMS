@@ -1224,6 +1224,45 @@ export function AppProvider({ children }) {
     );
   };
 
+  const addInventoryItem = (item) => {
+    const newItem = {
+      ...item,
+      id: Date.now().toString(),
+      lastUpdated: new Date()
+    };
+    setInventory(prev => [newItem, ...prev]);
+  };
+
+  const updateInventoryItem = (itemId, updates) => {
+    setInventory(prev =>
+      prev.map(item =>
+        item.id === itemId
+          ? { ...item, ...updates, lastUpdated: new Date() }
+          : item
+      )
+    );
+  };
+
+  const deleteInventoryItem = (itemId) => {
+    setInventory(prev => prev.filter(item => item.id !== itemId));
+  };
+
+  const adjustInventoryStock = (itemId, adjustment, reason = 'Manual adjustment') => {
+    setInventory(prev =>
+      prev.map(item => {
+        if (item.id === itemId) {
+          const newQuantity = Math.max(0, item.quantity + adjustment);
+          return {
+            ...item,
+            quantity: newQuantity,
+            lastUpdated: new Date()
+          };
+        }
+        return item;
+      })
+    );
+  };
+
   const addMenuItem = (item) => {
     const newItem = {
       ...item,
@@ -1263,6 +1302,10 @@ export function AppProvider({ children }) {
       deleteReservation,
       logWaste,
       updateInventory,
+      addInventoryItem,
+      updateInventoryItem,
+      deleteInventoryItem,
+      adjustInventoryStock,
       addMenuItem,
       updateMenuItem,
       deleteMenuItem,
