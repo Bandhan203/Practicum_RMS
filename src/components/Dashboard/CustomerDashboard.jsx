@@ -24,7 +24,7 @@ export function CustomerDashboard() {
 		},
 		{
 			title: 'Total Spent',
-			value: `$${totalSpent.toFixed(2)}`,
+			   value: `৳ ${totalSpent.toFixed(2)}`,
 			icon: TrendingUp,
 			color: 'bg-green-500'
 		},
@@ -121,7 +121,7 @@ export function CustomerDashboard() {
 									</div>
 								</div>
 								<div className="text-right">
-									<p className="font-semibold text-gray-900">${order.totalAmount.toFixed(2)}</p>
+									   <p className="font-semibold text-gray-900">৳ {order.totalAmount.toFixed(2)}</p>
 									<p className="text-sm text-gray-500 capitalize">{order.status}</p>
 								</div>
 							</div>

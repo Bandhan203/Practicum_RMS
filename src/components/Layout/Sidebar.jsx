@@ -82,7 +82,7 @@ export function Sidebar({ activeTab, setActiveTab }) {
                 onClick={() => setActiveTab(item.id)}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-colors ${
                   activeTab === item.id
-                    ? 'bg-[#6B0000] text-white border-r-4 border-white shadow-md'
+                    ? 'bg-[#6B0000] text-white border-r-4 border-[#6B0000]'
                     : 'text-gray-600 hover:text-white hover:bg-[#6B0000]'
                 }`}
               >

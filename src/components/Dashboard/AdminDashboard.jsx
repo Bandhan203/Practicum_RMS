@@ -45,7 +45,7 @@ export function AdminDashboard() {
 	const stats = [
 		{
 			title: 'Total Sales',
-			value: `$${analytics.totalSales.toLocaleString()}`,
+			   value: `৳ ${analytics.totalSales.toLocaleString()}`,
 			icon: DollarSign,
 			color: 'bg-green-500',
 			change: '+12%',
@@ -61,7 +61,7 @@ export function AdminDashboard() {
 		},
 		{
 			title: 'Food Waste',
-			value: liveData ? `$${liveData.waste.todayWaste.toFixed(2)}` : `$${analytics.totalWaste.toLocaleString()}`,
+			   value: liveData ? `৳ ${liveData.waste.todayWaste.toFixed(2)}` : `৳ ${analytics.totalWaste.toLocaleString()}`,
 			icon: Trash2,
 			color: 'bg-red-500',
 			change: '-5%',
@@ -69,7 +69,7 @@ export function AdminDashboard() {
 		},
 		{
 			title: 'Avg Order Value',
-			value: `$${analytics.avgOrderValue.toFixed(2)}`,
+			   value: `৳ ${analytics.avgOrderValue.toFixed(2)}`,
 			icon: Users,
 			color: 'bg-purple-500',
 			change: '+3%',
@@ -138,7 +138,7 @@ export function AdminDashboard() {
 							<XAxis dataKey="date" />
 							<YAxis />
 							<Tooltip />
-							<Line type="monotone" dataKey="amount" stroke="#6B0000" strokeWidth={2} />
+							<Line type="monotone" dataKey="amount" stroke="#f97316" strokeWidth={2} />
 						</LineChart>
 					</ResponsiveContainer>
 				</div>
@@ -151,7 +151,7 @@ export function AdminDashboard() {
 							<XAxis dataKey="date" />
 							<YAxis />
 							<Tooltip />
-							<Line type="monotone" dataKey="amount" stroke="#6B0000" strokeWidth={2} />
+							<Line type="monotone" dataKey="amount" stroke="#ef4444" strokeWidth={2} />
 						</LineChart>
 					</ResponsiveContainer>
 				</div>
@@ -177,7 +177,7 @@ export function AdminDashboard() {
 								)}
 							</div>
 							<div className="text-right">
-								<p className="font-semibold text-red-600">${item.cost.toFixed(2)}</p>
+								   <p className="font-semibold text-red-600">৳ {item.cost.toFixed(2)}</p>
 								{liveData && item.costImpactScore && (
 									<p className="text-xs text-gray-500">Impact: {item.costImpactScore.toFixed(0)}</p>
 								)}
@@ -222,7 +222,7 @@ export function AdminDashboard() {
 										{liveData && item.priority ? item.priority.charAt(0).toUpperCase() + item.priority.slice(1) : 'Low Stock'}
 									</span>
 									{liveData && item.totalValue && (
-										<p className="text-xs text-gray-500 mt-1">${item.totalValue.toFixed(2)} value</p>
+										   <p className="text-xs text-gray-500 mt-1">৳ {item.totalValue.toFixed(2)} value</p>
 									)}
 								</div>
 							</div>

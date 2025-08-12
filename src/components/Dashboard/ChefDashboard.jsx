@@ -125,7 +125,7 @@ export function ChefDashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Today's Waste</p>
-              <p className="text-2xl font-semibold text-gray-900">${liveData.waste.todayWaste.toFixed(2)}</p>
+              <p className="text-2xl font-semibold text-gray-900">৳ {liveData.waste.todayWaste.toFixed(2)}</p>
             </div>
             <Trash2 className="w-8 h-8 text-red-500" />
           </div>
@@ -198,7 +198,7 @@ export function ChefDashboard() {
                           {alertLevel.text}
                         </span>
                         <p className="text-xs text-gray-500 mt-1">
-                          ${item.totalValue.toFixed(2)} value
+                          ৳ {item.totalValue.toFixed(2)} value
                         </p>
                         <p className="text-xs text-orange-600 font-medium">
                           ≈{item.estimatedDaysLeft} days left
@@ -228,7 +228,7 @@ export function ChefDashboard() {
               </div>
               <div className="flex items-center space-x-2">
                 <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
-                  ${liveData.waste.weekWaste.toFixed(0)} This Week
+                  ৳ {liveData.waste.weekWaste.toFixed(0)} This Week
                 </span>
                 <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
                   {liveData.waste.wasteFrequency.toFixed(1)}/day avg
@@ -267,7 +267,7 @@ export function ChefDashboard() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold text-red-600">${item.cost.toFixed(2)}</p>
+                        <p className="font-semibold text-red-600">৳ {item.cost.toFixed(2)}</p>
                         <p className="text-xs text-gray-500">
                           Avg: {item.avgQuantityPerWaste.toFixed(1)} per incident
                         </p>
@@ -323,7 +323,7 @@ export function ChefDashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Value</p>
-                  <p className="font-semibold">${selectedStockItem.totalValue.toFixed(2)}</p>
+                  <p className="font-semibold">৳ {selectedStockItem.totalValue.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Last Updated</p>
@@ -355,7 +355,7 @@ export function ChefDashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Total Cost</p>
-                  <p className="font-semibold text-red-600">${selectedWasteItem.cost.toFixed(2)}</p>
+                  <p className="font-semibold text-red-600">৳ {selectedWasteItem.cost.toFixed(2)}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Waste Incidents</p>

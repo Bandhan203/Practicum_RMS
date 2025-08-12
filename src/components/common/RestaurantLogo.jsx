@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function RestaurantLogo({ className = "w-8 h-8", fillColor = "#800000" }) {
+export function RestaurantLogo({ className = "w-8 h-8", fillColor = "#6B0000" }) {
   return (
     <svg 
       width="16" 

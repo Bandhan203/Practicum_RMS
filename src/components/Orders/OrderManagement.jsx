@@ -111,7 +111,7 @@ export function OrderManagement() {
               )}
               <div className="flex items-center space-x-2">
                 <DollarSign className="w-4 h-4 text-gray-400" />
-                <span className="text-sm text-gray-600">${order.totalAmount.toFixed(2)}</span>
+                <span className="text-sm text-gray-600">৳ {order.totalAmount.toFixed(2)}</span>
               </div>
               {order.estimatedTime && (
                 <div className="flex items-center space-x-2">
@@ -127,7 +127,7 @@ export function OrderManagement() {
                 {order.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between items-center">
                     <span className="text-sm text-gray-600">{item.quantity}x {item.menuItemName}</span>
-                    <span className="text-sm font-medium text-gray-900">${(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="text-sm font-medium text-gray-900">৳ {(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
