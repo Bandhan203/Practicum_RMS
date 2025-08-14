@@ -1099,6 +1099,10 @@ export function AppProvider({ children }) {
   const [analytics, setAnalytics] = useState(mockAnalytics);
   const [appUsers, setAppUsers] = useState(mockAppUsers);
   const [cart, setCart] = useState([]);
+  
+  // Sidebar state
+  const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Dynamic calculations for real-time analytics
   const calculateLiveWasteAnalytics = () => {
@@ -1620,6 +1624,13 @@ export function AppProvider({ children }) {
       appUsers,
       analytics,
       cart,
+      
+      // Sidebar state
+      isOpen,
+      setIsOpen,
+      activeTab,
+      setActiveTab,
+      
       addToCart,
       removeFromCart,
       clearCart,

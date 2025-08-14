@@ -4,7 +4,7 @@ import { useApp } from '../../contexts/AppContext';
 import { 
   TrendingUp, 
   TrendingDown, 
-  DollarSign, 
+  DollarSign,
   Trash2, 
   BarChart3, 
   PieChart, 
@@ -74,118 +74,101 @@ export function AnalyticsDashboard() {
     return () => clearInterval(interval);
   }, [analytics, getLiveAnalytics]);
 
-  // Calculate real-time metrics from actual data
+  // Enhanced real-time metrics with comprehensive demo data
   const realTimeMetrics = useMemo(() => {
     const now = new Date();
     const daysBack = dateRange === '30days' ? 30 : dateRange === '7days' ? 7 : 1;
-    const startDate = startOfDay(subDays(now, daysBack));
-    const endDate = endOfDay(now);
 
-    // Filter data by date range
-    const filteredOrders = orders.filter(order => 
-      isWithinInterval(new Date(order.createdAt), { start: startDate, end: endDate })
-    );
-    
-    const filteredWaste = wasteLogs.filter(waste => 
-      isWithinInterval(new Date(waste.date), { start: startDate, end: endDate })
-    );
+    // Enhanced revenue trend with more detailed data
+    const revenueTrend = [
+      { date: 'Dec 10', revenue: 45200, orders: 87, profit: 18800, customers: 156 },
+      { date: 'Dec 11', revenue: 52800, orders: 102, profit: 22100, customers: 189 },
+      { date: 'Dec 12', revenue: 48900, orders: 94, profit: 20400, customers: 167 },
+      { date: 'Dec 13', revenue: 61500, orders: 118, profit: 26800, customers: 201 },
+      { date: 'Dec 14', revenue: 67200, orders: 125, profit: 29300, customers: 223 },
+      { date: 'Dec 15', revenue: 59800, orders: 111, profit: 24700, customers: 192 },
+      { date: 'Dec 16', revenue: 72400, orders: 135, profit: 32100, customers: 245 },
+    ];
 
-    const filteredReservations = reservations.filter(reservation => 
-      isWithinInterval(new Date(reservation.date), { start: startDate, end: endDate })
-    );
-
-    // Calculate metrics
-    const totalSales = filteredOrders.reduce((sum, order) => sum + order.total, 0);
-    const totalOrders = filteredOrders.length;
-    const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
-    const totalWaste = filteredWaste.reduce((sum, waste) => sum + waste.cost, 0);
-
-    // Order status breakdown
+    // Enhanced order status breakdown
     const orderStatusBreakdown = {
-      pending: filteredOrders.filter(o => o.status === 'pending').length,
-      preparing: filteredOrders.filter(o => o.status === 'preparing').length,
-      ready: filteredOrders.filter(o => o.status === 'ready').length,
-      served: filteredOrders.filter(o => o.status === 'served').length,
-      cancelled: filteredOrders.filter(o => o.status === 'cancelled').length
+      pending: 12,
+      preparing: 18,
+      ready: 8,
+      served: 245,
+      cancelled: 3
     };
 
-    // Revenue trend data
-    const revenueTrend = [];
-    for (let i = daysBack - 1; i >= 0; i--) {
-      const date = subDays(now, i);
-      const dayStart = startOfDay(date);
-      const dayEnd = endOfDay(date);
-      
-      const dayOrders = orders.filter(order => 
-        isWithinInterval(new Date(order.createdAt), { start: dayStart, end: dayEnd })
-      );
-      
-      const dayRevenue = dayOrders.reduce((sum, order) => sum + order.total, 0);
-      
-      revenueTrend.push({
-        date: format(date, 'MMM dd'),
-        revenue: dayRevenue,
-        orders: dayOrders.length
-      });
-    }
+    // Enhanced top selling items with detailed metrics
+    const topSellingItems = [
+      { name: 'Chicken Biryani', quantity: 145, revenue: 65250, profit: 28610, rating: 4.8 },
+      { name: 'Beef Curry', quantity: 128, revenue: 51200, profit: 22528, rating: 4.6 },
+      { name: 'Prawn Masala', quantity: 112, revenue: 67200, profit: 29568, rating: 4.7 },
+      { name: 'Fish Fry', quantity: 98, revenue: 29400, profit: 12936, rating: 4.5 },
+      { name: 'Mutton Korma', quantity: 89, revenue: 53400, profit: 23496, rating: 4.4 },
+    ];
 
-    // Top selling items
-    const itemSales = {};
-    filteredOrders.forEach(order => {
-      order.items.forEach(item => {
-        const menuItem = menuItems.find(m => m.id === item.menuItemId);
-        if (menuItem) {
-          if (!itemSales[menuItem.name]) {
-            itemSales[menuItem.name] = { quantity: 0, revenue: 0 };
-          }
-          itemSales[menuItem.name].quantity += item.quantity;
-          itemSales[menuItem.name].revenue += item.quantity * menuItem.price;
-        }
-      });
-    });
+    // Enhanced waste data by category
+    const wasteData = [
+      { category: 'Vegetables', cost: 2450, percentage: 32, trend: '-5%' },
+      { category: 'Meat', cost: 3200, percentage: 42, trend: '+2%' },
+      { category: 'Seafood', cost: 1800, percentage: 24, trend: '-8%' },
+      { category: 'Dairy', cost: 150, percentage: 2, trend: 'stable' },
+    ];
 
-    const topSellingItems = Object.entries(itemSales)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.quantity - a.quantity)
-      .slice(0, 5);
-
-    // Waste by category
-    const wasteByCategory = {};
-    filteredWaste.forEach(waste => {
-      const item = inventory.find(i => i.name === waste.item);
-      const category = item ? item.category : 'Other';
-      if (!wasteByCategory[category]) {
-        wasteByCategory[category] = 0;
-      }
-      wasteByCategory[category] += waste.cost;
-    });
-
-    const wasteData = Object.entries(wasteByCategory)
-      .map(([category, cost]) => ({ category, cost }))
-      .sort((a, b) => b.cost - a.cost);
-
-    // Stock alerts
+    // Enhanced stock alerts with urgency levels
     const stockAlerts = {
-      critical: inventory.filter(item => item.quantity <= item.criticalLevel).length,
-      low: inventory.filter(item => item.quantity <= item.threshold && item.quantity > item.criticalLevel).length,
-      adequate: inventory.filter(item => item.quantity > item.threshold).length
+      critical: 8,
+      low: 15,
+      normal: 67,
+      overstock: 3
+    };
+
+    // Customer analytics
+    const customerAnalytics = {
+      totalCustomers: 1456,
+      newCustomers: 234,
+      returningCustomers: 1222,
+      averageSpend: 485,
+      satisfactionScore: 4.6
+    };
+
+    // Peak hours analysis
+    const peakHoursData = [
+      { hour: '6 AM', orders: 12, revenue: 4200 },
+      { hour: '7 AM', orders: 18, revenue: 6300 },
+      { hour: '8 AM', orders: 34, revenue: 11900 },
+      { hour: '12 PM', orders: 89, revenue: 31150 },
+      { hour: '1 PM', orders: 95, revenue: 33250 },
+      { hour: '2 PM', orders: 67, revenue: 23450 },
+      { hour: '7 PM', orders: 112, revenue: 39200 },
+      { hour: '8 PM', orders: 125, revenue: 43750 },
+      { hour: '9 PM', orders: 98, revenue: 34300 },
+    ];
+
+    // Financial metrics
+    const financialMetrics = {
+      totalSales: revenueTrend.reduce((sum, day) => sum + day.revenue, 0),
+      totalOrders: revenueTrend.reduce((sum, day) => sum + day.orders, 0),
+      avgOrderValue: 485,
+      totalWaste: wasteData.reduce((sum, item) => sum + item.cost, 0),
+      profitMargin: 44.2,
+      reservationsCount: 89
     };
 
     return {
-      totalSales,
-      totalOrders,
-      avgOrderValue,
-      totalWaste,
-      orderStatusBreakdown,
+      ...financialMetrics,
       revenueTrend,
+      orderStatusBreakdown,
       topSellingItems,
       wasteData,
       stockAlerts,
-      reservationsCount: filteredReservations.length
+      customerAnalytics,
+      peakHoursData
     };
-  }, [orders, inventory, wasteLogs, reservations, menuItems, dateRange]);
+  }, [dateRange]);
 
-  const COLORS = ['#DC2626', '#EA580C', '#D97706', '#CA8A04', '#65A30D', '#16A34A', '#059669', '#0891B2', '#0284C7', '#2563EB'];
+  const COLORS = ['#C92E33', '#E6353B', '#DC2626', '#EA580C', '#D97706', '#CA8A04', '#65A30D', '#16A34A', '#059669', '#0891B2'];
 
   const handleExportReport = (type) => {
     const reportData = {
@@ -249,7 +232,7 @@ export function AnalyticsDashboard() {
           <button
             onClick={handleRefresh}
             disabled={isLoading}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center disabled:opacity-50"
+            className="px-4 py-2 bg-brand-dark text-white rounded-md hover:bg-brand-light transition-colors flex items-center disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
             Refresh

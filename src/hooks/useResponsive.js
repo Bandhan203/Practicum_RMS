@@ -47,3 +47,5 @@ export const BREAKPOINTS = {
 export const isMobileScreen = (width) => width < BREAKPOINTS.mobile;
 export const isTabletScreen = (width) => width >= BREAKPOINTS.mobile && width < BREAKPOINTS.tablet;
 export const isDesktopScreen = (width) => width >= BREAKPOINTS.tablet;
+
+export default useResponsive;

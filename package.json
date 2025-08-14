@@ -1,9 +1,9 @@
 {
-  "name": "restaurant-management-system",
+  "name": "smart-dine",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Complete Restaurant Management System with React.js",
+  "description": "Smart Dine - Complete Restaurant Management System with React.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -20,10 +20,13 @@
     "recharts": "^3.0.2"
   },
   "devDependencies": {
+    "@babel/eslint-parser": "^7.28.0",
+    "@babel/preset-react": "^7.27.1",
     "@eslint/js": "^9.9.1",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.18",
     "eslint": "^9.9.1",
+    "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.11",
     "globals": "^15.9.0",

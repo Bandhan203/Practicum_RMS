@@ -8,7 +8,7 @@ export function LoadingSpinner({ message = "Loading..." }) {
         <div className="relative mb-6">
           <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-[#6B0000] mx-auto"></div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <RestaurantLogo className="w-6 h-6" fillColor="#6B0000" />
+            <RestaurantLogo className="w-6 h-6" fillColor="#C92E33" />
           </div>
         </div>
         <p className="text-gray-600 text-lg font-medium">{message}</p>

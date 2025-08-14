@@ -926,7 +926,7 @@ export function SettingsManagement() {
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 flex items-center"
+            className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center"
           >
             <Upload className="w-4 h-4 mr-2" />
             Import
@@ -934,7 +934,7 @@ export function SettingsManagement() {
           <button
             onClick={handleSaveSettings}
             disabled={isLoading}
-            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center disabled:opacity-50"
+            className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center disabled:opacity-50"
           >
             {isLoading ? (
               <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
@@ -1010,7 +1010,7 @@ export function SettingsManagement() {
               <button
                 onClick={handleSaveSettings}
                 disabled={isLoading}
-                className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center disabled:opacity-50"
+                className="bg-brand-dark text-white px-6 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center disabled:opacity-50"
               >
                 {isLoading ? (
                   <RefreshCw className="w-4 h-4 mr-2 animate-spin" />

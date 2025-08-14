@@ -532,7 +532,7 @@ export function MenuManagement() {
                     <h3 className="font-semibold text-gray-900">{item.name}</h3>
                     <div className="flex items-center space-x-1">
                       {item.featured && <Star className="w-4 h-4 text-yellow-500" />}
-                      <span className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : 'bg-red-500'}`}></span>
+                      <span className={`w-2 h-2 rounded-full ${item.available ? 'bg-brand-light' : 'bg-brand-dark'}`}></span>
                     </div>
                   </div>
                   <p className="text-sm text-gray-600 mb-3">{item.description}</p>
@@ -559,14 +559,14 @@ export function MenuManagement() {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => setEditingItem(item)}
-                        className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 flex items-center justify-center space-x-1"
+                        className="flex-1 bg-brand-dark text-white py-2 px-3 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center justify-center space-x-1"
                       >
                         <Edit className="w-4 h-4" />
                         <span>Edit</span>
                       </button>
                       <button
                         onClick={() => deleteMenuItem(item.id)}
-                        className="flex-1 bg-red-600 text-white py-2 px-3 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center justify-center space-x-1"
+                        className="flex-1 bg-brand-dark text-white py-2 px-3 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center justify-center space-x-1"
                       >
                         <Trash2 className="w-4 h-4" />
                         <span>Delete</span>

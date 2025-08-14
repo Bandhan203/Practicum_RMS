@@ -521,7 +521,7 @@ export function UserManagement() {
                 setEditingUser(user);
                 onClose();
               }}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 flex items-center"
+              className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center"
             >
               <Edit className="w-4 h-4 mr-2" />
               Edit User
@@ -536,7 +536,7 @@ export function UserManagement() {
                     onClose();
                   }
                 }}
-                className="bg-yellow-600 text-white px-4 py-2 rounded-md hover:bg-yellow-700 focus:ring-2 focus:ring-yellow-500 flex items-center"
+                className="bg-brand-light text-white px-4 py-2 rounded-md hover:bg-brand-dark focus:ring-2 focus:ring-brand-dark flex items-center"
               >
                 <Ban className="w-4 h-4 mr-2" />
                 Suspend User
@@ -547,7 +547,7 @@ export function UserManagement() {
                   handleStatusChange(user.id, 'active');
                   onClose();
                 }}
-                className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500 flex items-center"
+                className="bg-brand-light text-white px-4 py-2 rounded-md hover:bg-brand-dark focus:ring-2 focus:ring-brand-dark flex items-center"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
                 Activate User
@@ -557,7 +557,7 @@ export function UserManagement() {
             {user.id !== currentUser?.id && (
               <button
                 onClick={() => handleDeleteUser(user.id)}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center"
+                className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete User
@@ -586,7 +586,7 @@ export function UserManagement() {
                   <div className="flex space-x-3">
                     <button
                       onClick={handlePointsUpdate}
-                      className="flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700"
+                      className="flex-1 bg-brand-dark text-white py-2 px-4 rounded-md hover:bg-brand-light"
                     >
                       Update Points
                     </button>
@@ -632,14 +632,14 @@ export function UserManagement() {
         <div className="flex space-x-3">
           <button
             onClick={exportUsers}
-            className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 flex items-center"
+            className="bg-brand-light text-white px-4 py-2 rounded-md hover:bg-brand-dark focus:ring-2 focus:ring-brand-light flex items-center"
           >
             <Download className="w-4 h-4 mr-2" />
             Export
           </button>
           <button
             onClick={() => setShowAddForm(true)}
-            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center"
+            className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center"
           >
             <UserPlus className="w-4 h-4 mr-2" />
             Add User

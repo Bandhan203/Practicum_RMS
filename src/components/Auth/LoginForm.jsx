@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { ChefHat, Mail, Lock, LogIn } from 'lucide-react';
+import { ChefHat, Mail, Lock, LogIn, ArrowLeft } from 'lucide-react';
 import { RestaurantLogo } from '../common/RestaurantLogo';
 
 export function LoginForm() {
@@ -37,15 +38,26 @@ export function LoginForm() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-orange-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full space-y-8">
+        {/* Back to Landing Page Button */}
+        <div className="flex justify-start">
+          <Link 
+            to="/"
+            className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-600 bg-white rounded-lg shadow-sm hover:bg-gray-50 hover:text-gray-900 transition-colors border border-gray-300"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Home
+          </Link>
+        </div>
+
         <div className="text-center">
           <div className="flex justify-center">
-            <RestaurantLogo className="w-16 h-16" fillColor="#6B0000" />
+            <RestaurantLogo className="w-16 h-16" fillColor="#C92E33" />
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-            Restaurant Pro
+            Smart Dine
           </h2>
           <p className="mt-2 text-sm text-gray-600">
-            Sign in to your account
+            Sign in to your restaurant management account
           </p>
         </div>
 
@@ -127,6 +139,18 @@ export function LoginForm() {
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="text-center">
+          <p className="text-sm text-gray-600">
+            Don't have an account?{' '}
+            <Link 
+              to="/signup" 
+              className="font-medium text-orange-600 hover:text-orange-500 transition-colors"
+            >
+              Sign up here
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -256,7 +256,7 @@ export function ReportsManagement() {
           
           <button
             onClick={exportReport}
-            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 focus:ring-2 focus:ring-red-500 flex items-center"
+            className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center"
           >
             <Download className="w-4 h-4 mr-2" />
             Export Report

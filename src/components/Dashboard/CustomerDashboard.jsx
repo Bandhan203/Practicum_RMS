@@ -20,25 +20,25 @@ export function CustomerDashboard() {
 			title: 'Total Orders',
 			value: customerOrders.length.toString(),
 			icon: ShoppingCart,
-			color: 'bg-blue-500'
+			color: 'bg-brand-dark'
 		},
 		{
 			title: 'Total Spent',
 			   value: `৳ ${totalSpent.toFixed(2)}`,
 			icon: TrendingUp,
-			color: 'bg-green-500'
+			color: 'bg-brand-light'
 		},
 		{
 			title: 'Loyalty Points',
 			value: (user?.points || 0).toString(),
 			icon: Star,
-			color: 'bg-purple-500'
+			color: 'bg-brand-light'
 		},
 		{
 			title: 'Cart Items',
 			value: cartTotal.toString(),
 			icon: Gift,
-			color: 'bg-orange-500'
+			color: 'bg-brand-dark'
 		}
 	];
 
@@ -64,13 +64,13 @@ export function CustomerDashboard() {
 				{stats.map((stat, index) => {
 					const Icon = stat.icon;
 					return (
-						<div key={index} className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
-							<div className="flex items-center justify-between">
-								<div>
-									<p className="text-sm font-medium text-gray-600">{stat.title}</p>
-									<p className="text-2xl font-semibold text-gray-900">{stat.value}</p>
+						<div key={index} className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 flex flex-col h-full">
+							<div className="flex items-center justify-between flex-1">
+								<div className="flex-1 min-w-0">
+									<p className="text-sm font-medium text-gray-600 mb-1 truncate">{stat.title}</p>
+									<p className="text-2xl font-semibold text-gray-900 truncate">{stat.value}</p>
 								</div>
-								<div className={`${stat.color} p-3 rounded-full`}>
+								<div className={`${stat.color} p-3 rounded-full flex-shrink-0 ml-4`}>
 									<Icon className="w-6 h-6 text-white" />
 								</div>
 							</div>
@@ -108,8 +108,8 @@ export function CustomerDashboard() {
 							<div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
 								<div className="flex items-center space-x-3">
 									<div className={`w-3 h-3 rounded-full ${
-										order.status === 'served' ? 'bg-green-500' :
-										order.status === 'ready' ? 'bg-blue-500' :
+										order.status === 'served' ? 'bg-brand-light' :
+										order.status === 'ready' ? 'bg-brand-dark' :
 										order.status === 'preparing' ? 'bg-yellow-500' :
 										'bg-gray-500'
 									}`}></div>
@@ -137,33 +137,33 @@ export function CustomerDashboard() {
 
 			{/* Quick Actions */}
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
-					<div className="flex items-center justify-between">
-						<div>
-							<h4 className="font-semibold text-gray-900">Browse Menu</h4>
-							<p className="text-sm text-gray-500">Discover new dishes</p>
+				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full">
+					<div className="flex items-center justify-between flex-1">
+						<div className="flex-1 min-w-0">
+							<h4 className="font-semibold text-gray-900 mb-1 truncate">Browse Menu</h4>
+							<p className="text-sm text-gray-500 truncate">Discover new dishes</p>
 						</div>
-						<Heart className="w-8 h-8 text-red-500" />
+						<Heart className="w-8 h-8 text-red-500 flex-shrink-0 ml-4" />
 					</div>
 				</div>
 
-				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
-					<div className="flex items-center justify-between">
-						<div>
-							<h4 className="font-semibold text-gray-900">Make Reservation</h4>
-							<p className="text-sm text-gray-500">Book a table</p>
+				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full">
+					<div className="flex items-center justify-between flex-1">
+						<div className="flex-1 min-w-0">
+							<h4 className="font-semibold text-gray-900 mb-1 truncate">Make Reservation</h4>
+							<p className="text-sm text-gray-500 truncate">Book a table</p>
 						</div>
-						<Calendar className="w-8 h-8 text-blue-500" />
+						<Calendar className="w-8 h-8 text-blue-500 flex-shrink-0 ml-4" />
 					</div>
 				</div>
 
-				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
-					<div className="flex items-center justify-between">
-						<div>
-							<h4 className="font-semibold text-gray-900">Track Orders</h4>
-							<p className="text-sm text-gray-500">Real-time updates</p>
+				<div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 hover:shadow-md transition-shadow cursor-pointer flex flex-col h-full">
+					<div className="flex items-center justify-between flex-1">
+						<div className="flex-1 min-w-0">
+							<h4 className="font-semibold text-gray-900 mb-1 truncate">Track Orders</h4>
+							<p className="text-sm text-gray-500 truncate">Real-time updates</p>
 						</div>
-						<Clock className="w-8 h-8 text-green-500" />
+						<Clock className="w-8 h-8 text-green-500 flex-shrink-0 ml-4" />
 					</div>
 				</div>
 			</div>
