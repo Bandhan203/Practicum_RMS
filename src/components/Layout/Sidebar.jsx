@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useResponsive } from '../../hooks/useResponsive';
 import {
   Home,
@@ -10,11 +11,22 @@ import {
   BarChart3,
   Users,
   FileText,
-  Settings
+  Settings,
+  LogOut
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
+const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
   const { isMobile } = useResponsive();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Handle logout
+  const handleLogout = useCallback(() => {
+    // Clear any stored user data (if you add localStorage later)
+    // localStorage.removeItem('user');
+    // Navigate to landing page
+    navigate('/');
+  }, [navigate]);
 
   // Get current panel name based on active tab
   const getCurrentPanelName = useCallback(() => {
@@ -78,11 +90,11 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
 
   // Optimized menu item click handler
   const handleMenuItemClick = useCallback((itemId) => {
-    setActiveTab(itemId);
+    navigate(`/admin/${itemId}`);
     if (isMobile) {
       setIsOpen(false);
     }
-  }, [setActiveTab, isMobile, setIsOpen]);
+  }, [navigate, isMobile, setIsOpen]);
 
   // Memoized sidebar classes for better performance
   const sidebarClasses = useMemo(() => {
@@ -118,7 +130,9 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden">
           <div className="space-y-1 px-3 py-4">
             {menuItems.map((item) => {
-              const isActive = activeTab === item.id;
+              const isActive = location.pathname === `/admin/${item.id}` || 
+                              (location.pathname === '/admin' && item.id === 'dashboard') ||
+                              (location.pathname === '/admin/dashboard' && item.id === 'dashboard');
               
               return (
                 <button
@@ -148,20 +162,31 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
 
         {/* Footer - User Info */}
         <div className="border-t border-gray-100 p-4 bg-gray-50 flex-shrink-0">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-sm font-medium">
-                A
-              </span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-medium">
+                  A
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  Admin User
+                </p>
+                <p className="text-xs text-gray-500 capitalize truncate">
+                  Administrator
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                Admin User
-              </p>
-              <p className="text-xs text-gray-500 capitalize truncate">
-                Administrator
-              </p>
-            </div>
+            
+            {/* Logout Button */}
+            <button
+              onClick={handleLogout}
+              className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
           </div>
         </div>
       </div>

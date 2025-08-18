@@ -1,18 +1,28 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../../contexts/AppContext';
 import { 
   ShoppingCart, 
   Settings, 
   Bell,
   Shield,
-  Menu
+  Menu,
+  LogOut
 } from 'lucide-react';
 import { RestaurantLogo } from '../common/RestaurantLogo';
 
 export function Header({ toggleSidebar }) {
   const { cart } = useApp();
+  const navigate = useNavigate();
 
   const cartItemCount = cart ? cart.reduce((sum, item) => sum + item.quantity, 0) : 0;
+
+  const handleLogout = () => {
+    // Clear any stored user data (if you add localStorage later)
+    // localStorage.removeItem('user');
+    // Navigate to landing page
+    navigate('/');
+  };
 
   return (
     <header className="bg-white shadow-md border-b border-gray-100 fixed top-0 left-0 right-0 z-30 backdrop-blur-sm">
@@ -75,7 +85,7 @@ export function Header({ toggleSidebar }) {
                 </button>
               </div>
 
-              {/* Settings */}
+              {/* Settings and Logout */}
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="hidden sm:flex items-center space-x-2">
                   <Shield className="w-4 h-4" />
@@ -89,6 +99,15 @@ export function Header({ toggleSidebar }) {
                 
                 <button className="p-2 text-gray-400 hover:text-gray-500">
                   <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                </button>
+
+                {/* Logout Button */}
+                <button 
+                  onClick={handleLogout}
+                  className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>

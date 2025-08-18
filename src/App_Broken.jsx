@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
 import { Header } from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
@@ -21,7 +21,7 @@ function SimpleLogin() {
   
   const handleLogin = () => {
     // Simple redirect to dashboard
-    navigate('/admin/dashboard');
+    navigate('/dashboard');
   };
 
   return (
@@ -103,7 +103,7 @@ function SimpleSignup() {
   
   const handleSignup = () => {
     // Simple redirect to dashboard
-    navigate('/admin/dashboard');
+    navigate('/dashboard');
   };
 
   return (
@@ -202,7 +202,20 @@ function AdminLayout() {
 
   // Get active tab from current route
   const getActiveTab = () => {
-    const path = location.pathname.replace('/admin', '');
+    const path = location.pathname;
+    if (path === '/' || path === '/dashboard') return 'dashboard';
+    return path.substring(1); // Remove leading slash
+  };
+
+// Admin Dashboard Layout Component
+function AdminLayout() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const location = useLocation();
+
+  // Get active tab from current route
+  const getActiveTab = () => {
+    const path = location.pathname;
     if (path === '/' || path === '/dashboard') return 'dashboard';
     return path.substring(1); // Remove leading slash
   };
@@ -246,7 +259,6 @@ function AdminLayout() {
         <main className={getMainContentClass()}>
           <div className="h-full overflow-auto p-6">
             <Routes>
-              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/dashboard" element={<AdminDashboard />} />
               <Route path="/menu" element={<MenuManagement />} />
               <Route path="/orders" element={<OrderManagement />} />
@@ -276,6 +288,18 @@ function App() {
         
         {/* Admin Routes */}
         <Route path="/admin/*" element={<AdminLayout />} />
+        
+        {/* Redirect old admin routes to new structure */}
+        <Route path="/dashboard" element={<Navigate to="/admin/dashboard" replace />} />
+        <Route path="/menu" element={<Navigate to="/admin/menu" replace />} />
+        <Route path="/orders" element={<Navigate to="/admin/orders" replace />} />
+        <Route path="/analytics" element={<Navigate to="/admin/analytics" replace />} />
+        <Route path="/waste" element={<Navigate to="/admin/waste" replace />} />
+        <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />
+        <Route path="/reservations" element={<Navigate to="/admin/reservations" replace />} />
+        <Route path="/users" element={<Navigate to="/admin/users" replace />} />
+        <Route path="/reports" element={<Navigate to="/admin/reports" replace />} />
+        <Route path="/settings" element={<Navigate to="/admin/settings" replace />} />
       </Routes>
     </AppProvider>
   );
