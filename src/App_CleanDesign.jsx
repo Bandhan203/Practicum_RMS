@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
 import { Header } from './components/Layout/Header';
 import { Sidebar } from './components/Layout/Sidebar';
 import { AdminDashboard } from './components/Dashboard/AdminDashboard';
+import { ChefDashboard } from './components/Dashboard/ChefDashboard';
+import { CustomerDashboard } from './components/Dashboard/CustomerDashboard';
 import { MenuManagement } from './components/Menu/MenuManagement';
+import { CustomerMenu } from './components/Menu/CustomerMenu';
 import { OrderManagement } from './components/Orders/OrderManagement';
 import { AnalyticsDashboard } from './components/Analytics/AnalyticsDashboard';
 import { WasteManagement } from './components/Waste/WasteManagement';
@@ -13,8 +17,19 @@ import { UserManagement } from './components/Users/UserManagement';
 import { ReportsManagement } from './components/Reports/ReportsManagement';
 import { SettingsManagement } from './components/Settings/SettingsManagement';
 
-function MainApp() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+// Dashboard Route Component - Default to Admin Dashboard
+function DashboardRoute() {
+  return <AdminDashboard />;
+}
+
+// Menu Route Component - Default to Menu Management
+function MenuRoute() {
+  return <MenuManagement />;
+}
+
+// Main Layout Component
+function MainLayout() {
+  const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -24,7 +39,7 @@ function MainApp() {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
@@ -39,54 +54,49 @@ function MainApp() {
     if (isMobile) {
       return "flex-1 min-h-[calc(100vh-4rem)] ml-0 transition-all duration-300 ease-in-out";
     }
-    
+
     const marginLeft = sidebarCollapsed ? 'ml-16' : 'ml-64';
     return `flex-1 min-h-[calc(100vh-4rem)] ${marginLeft} transition-all duration-300 ease-in-out`;
   };
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'dashboard':
-        return <AdminDashboard />;
-      case 'menu':
-        return <MenuManagement />;
-      case 'orders':
-        return <OrderManagement />;
-      case 'analytics':
-        return <AnalyticsDashboard />;
-      case 'waste':
-        return <WasteManagement />;
-      case 'inventory':
-        return <InventoryManagement />;
-      case 'reservations':
-        return <ReservationManagement />;
-      case 'users':
-        return <UserManagement />;
-      case 'reports':
-        return <ReportsManagement />;
-      case 'settings':
-        return <SettingsManagement />;
-      default:
-        return <AdminDashboard />;
-    }
-  };
-
   return (
-    <div className="min-h-screen bg-gray-50 pt-16">
+    <>
       <Header toggleSidebar={toggleSidebar} />
       <div className="relative">
-        <Sidebar 
-          activeTab={activeTab} 
-          setActiveTab={setActiveTab}
+        <Sidebar
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
           onCollapseChange={setSidebarCollapsed}
         />
         <main className={getMainContentClass()}>
           <div className="h-full overflow-auto p-6">
-            {renderContent()}
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardRoute />} />
+              <Route path="/menu" element={<MenuRoute />} />
+              <Route path="/orders" element={<OrderManagement />} />
+              <Route path="/analytics" element={<AnalyticsDashboard />} />
+              <Route path="/waste" element={<WasteManagement />} />
+              <Route path="/inventory" element={<InventoryManagement />} />
+              <Route path="/reservations" element={<ReservationManagement />} />
+              <Route path="/users" element={<UserManagement />} />
+              <Route path="/reports" element={<ReportsManagement />} />
+              <Route path="/settings" element={<SettingsManagement />} />
+              <Route path="/loyalty" element={<CustomerDashboard />} />
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
           </div>
         </main>
+      </div>
+    </>
+  );
+}
+
+function MainApp() {
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="pt-16">
+        <MainLayout />
       </div>
     </div>
   );
@@ -94,9 +104,11 @@ function MainApp() {
 
 function App() {
   return (
-    <AppProvider>
-      <MainApp />
-    </AppProvider>
+    <Router>
+      <AppProvider>
+        <MainApp />
+      </AppProvider>
+    </Router>
   );
 }
 

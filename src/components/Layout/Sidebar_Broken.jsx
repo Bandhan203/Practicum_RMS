@@ -10,15 +10,18 @@ import {
   BarChart3,
   Users,
   FileText,
-  Settings
+  Settings,
+  UtensilsCrossed,
+  Clock,
+  Star
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
+const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapseChange }) => {
   const { isMobile } = useResponsive();
 
-  // Get current panel name based on active tab
+  // Get current panel name for admin role (simplified)
   const getCurrentPanelName = useCallback(() => {
-    // Always show Admin Panel for dashboard
+    // Always show Admin Panel for simplified version
     if (activeTab === 'dashboard') {
       return 'Admin Panel';
     }
@@ -29,15 +32,18 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
       case 'menu': return 'Menu Management';
       case 'analytics': return 'Analytics';
       case 'waste': return 'Waste Management';
-      case 'inventory': return 'Inventory';
-      case 'reservations': return 'Reservations';
-      case 'users': return 'User Management';
-      case 'reports': return 'Reports';
-      case 'settings': return 'Settings';
-      case 'loyalty': return 'Loyalty Program';
-      default: return 'Admin Panel';
+        case 'inventory': return 'Inventory';
+        case 'reservations': return 'Reservations';
+        case 'users': return 'User Management';
+        case 'reports': return 'Reports';
+        case 'settings': return 'Settings';
+        case 'loyalty': return 'Loyalty Program';
+        default: return getRolePanel();
+      }
     }
-  }, [activeTab]);
+
+    return getRolePanel();
+  }, [location.pathname, user?.role]);
 
   // Optimized outside click handler for mobile
   useEffect(() => {
@@ -60,29 +66,56 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
     };
   }, [isMobile, isOpen, setIsOpen]);
 
-  // Memoized menu items - Admin access to all features
+  // Memoized menu items to prevent recreation on every render
   const menuItems = useMemo(() => {
-    return [
-      { id: 'dashboard', label: 'Dashboard', icon: Home },
-      { id: 'orders', label: 'Orders', icon: ShoppingCart },
-      { id: 'menu', label: 'Menu', icon: MenuIcon },
-      { id: 'reservations', label: 'Reservations', icon: Calendar },
-      { id: 'inventory', label: 'Inventory', icon: Package },
-      { id: 'waste', label: 'Waste Log', icon: Trash2 },
-      { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-      { id: 'users', label: 'Users', icon: Users },
-      { id: 'reports', label: 'Reports', icon: FileText },
-      { id: 'settings', label: 'Settings', icon: Settings }
-    ];
-  }, []);
+    switch (user?.role) {
+      case 'admin':
+        return [
+          { id: 'dashboard', label: 'Dashboard', icon: Home },
+          { id: 'orders', label: 'Orders', icon: ShoppingCart },
+          { id: 'menu', label: 'Menu', icon: MenuIcon },
+          { id: 'reservations', label: 'Reservations', icon: Calendar },
+          { id: 'inventory', label: 'Inventory', icon: Package },
+          { id: 'waste', label: 'Waste Log', icon: Trash2 },
+          { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+          { id: 'users', label: 'Users', icon: Users },
+          { id: 'reports', label: 'Reports', icon: FileText },
+          { id: 'settings', label: 'Settings', icon: Settings }
+        ];
+      case 'chef':
+        return [
+          { id: 'dashboard', label: 'Dashboard', icon: Home },
+          { id: 'orders', label: 'Orders', icon: ShoppingCart },
+          { id: 'waste', label: 'Waste Log', icon: Trash2 },
+          { id: 'inventory', label: 'Inventory', icon: Package }
+        ];
+      case 'waiter':
+        return [
+          { id: 'dashboard', label: 'Dashboard', icon: Home },
+          { id: 'orders', label: 'Orders', icon: ShoppingCart },
+          { id: 'reservations', label: 'Reservations', icon: Calendar },
+          { id: 'menu', label: 'Menu', icon: MenuIcon }
+        ];
+      case 'customer':
+        return [
+          { id: 'dashboard', label: 'Dashboard', icon: Home },
+          { id: 'menu', label: 'Menu', icon: UtensilsCrossed },
+          { id: 'orders', label: 'My Orders', icon: Clock },
+          { id: 'reservations', label: 'Reservations', icon: Calendar },
+          { id: 'loyalty', label: 'Loyalty', icon: Star }
+        ];
+      default:
+        return [];
+    }
+  }, [user?.role]);
 
   // Optimized menu item click handler
   const handleMenuItemClick = useCallback((itemId) => {
-    setActiveTab(itemId);
+    navigate(`/${itemId}`);
     if (isMobile) {
       setIsOpen(false);
     }
-  }, [setActiveTab, isMobile, setIsOpen]);
+  }, [navigate, isMobile, setIsOpen]);
 
   // Memoized sidebar classes for better performance
   const sidebarClasses = useMemo(() => {
@@ -118,7 +151,8 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
         <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden">
           <div className="space-y-1 px-3 py-4">
             {menuItems.map((item) => {
-              const isActive = activeTab === item.id;
+              const isActive = location.pathname === `/${item.id}` || 
+                              (location.pathname === '/' && item.id === 'dashboard');
               
               return (
                 <button
@@ -151,15 +185,15 @@ const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
               <span className="text-white text-sm font-medium">
-                A
+                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
               </span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                Admin User
+                {user?.name || 'User'}
               </p>
               <p className="text-xs text-gray-500 capitalize truncate">
-                Administrator
+                {user?.role || 'Guest'}
               </p>
             </div>
           </div>

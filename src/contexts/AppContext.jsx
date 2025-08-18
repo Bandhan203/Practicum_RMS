@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { format } from 'date-fns';
-// Remove type imports
 
 const AppContext = createContext(undefined);
 
@@ -1096,13 +1095,9 @@ export function AppProvider({ children }) {
   const [reservations, setReservations] = useState(mockReservations);
   const [wasteLogs, setWasteLogs] = useState(mockWasteLogs);
   const [inventory, setInventory] = useState(mockInventory);
-  const [analytics, setAnalytics] = useState(mockAnalytics);
+  const [analytics] = useState(mockAnalytics);
   const [appUsers, setAppUsers] = useState(mockAppUsers);
   const [cart, setCart] = useState([]);
-  
-  // Sidebar state
-  const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
 
   // Dynamic calculations for real-time analytics
   const calculateLiveWasteAnalytics = () => {
@@ -1365,7 +1360,7 @@ export function AppProvider({ children }) {
     setInventory(prev => prev.filter(item => item.id !== itemId));
   };
 
-  const adjustInventoryStock = (itemId, adjustment, reason = 'Manual adjustment') => {
+  const adjustInventoryStock = (itemId, adjustment, _reason = 'Manual adjustment') => {
     setInventory(prev =>
       prev.map(item => {
         if (item.id === itemId) {
@@ -1526,7 +1521,7 @@ export function AppProvider({ children }) {
         : settingsData;
       setAppSettings(parsedSettings);
       return { success: true, message: 'Settings imported successfully' };
-    } catch (error) {
+    } catch {
       return { success: false, message: 'Invalid settings file format' };
     }
   };
@@ -1624,13 +1619,6 @@ export function AppProvider({ children }) {
       appUsers,
       analytics,
       cart,
-      
-      // Sidebar state
-      isOpen,
-      setIsOpen,
-      activeTab,
-      setActiveTab,
-      
       addToCart,
       removeFromCart,
       clearCart,

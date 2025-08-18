@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../contexts/AppContext';
 import { 
   Users, 
-  Plus, 
   Edit, 
   Trash2, 
   Search, 
@@ -33,7 +31,6 @@ import {
 import { format, formatDistanceToNow } from 'date-fns';
 
 export function UserManagement() {
-  const { user: currentUser } = useAuth();
   const { 
     appUsers, 
     addUser, 
@@ -554,15 +551,13 @@ export function UserManagement() {
               </button>
             )}
             
-            {user.id !== currentUser?.id && (
-              <button
-                onClick={() => handleDeleteUser(user.id)}
-                className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center"
+            <button
+              onClick={() => handleDeleteUser(user.id)}
+              className="bg-brand-dark text-white px-4 py-2 rounded-md hover:bg-brand-light focus:ring-2 focus:ring-brand-light flex items-center"
               >
                 <Trash2 className="w-4 h-4 mr-2" />
                 Delete User
               </button>
-            )}
           </div>
 
           {/* Points Adjustment Modal */}
@@ -609,17 +604,18 @@ export function UserManagement() {
     );
   };
 
-  if (currentUser?.role !== 'admin') {
-    return (
-      <div className="p-6">
-        <div className="text-center py-12">
-          <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Access Denied</h3>
-          <p className="text-gray-500">You don't have permission to access user management.</p>
-        </div>
-      </div>
-    );
-  }
+  // Allow all users to access user management in simplified version
+  // if (currentUser?.role !== 'admin') {
+  //   return (
+  //     <div className="p-6">
+  //       <div className="text-center py-12">
+  //         <Shield className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+  //         <h3 className="text-lg font-medium text-gray-900 mb-2">Access Denied</h3>
+  //         <p className="text-gray-500">You don&apos;t have permission to access user management.</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="p-6 space-y-6">
@@ -872,15 +868,13 @@ export function UserManagement() {
                       >
                         <Edit className="w-4 h-4" />
                       </button>
-                      {user.id !== currentUser?.id && (
-                        <button
-                          onClick={() => handleDeleteUser(user.id)}
-                          className="text-red-600 hover:text-red-900 p-1"
-                          title="Delete User"
+                      <button
+                        onClick={() => handleDeleteUser(user.id)}
+                        className="text-red-600 hover:text-red-900 p-1"
+                        title="Delete User"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
-                      )}
                     </div>
                   </td>
                 </tr>

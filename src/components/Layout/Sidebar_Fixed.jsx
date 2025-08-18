@@ -10,10 +10,13 @@ import {
   BarChart3,
   Users,
   FileText,
-  Settings
+  Settings,
+  UtensilsCrossed,
+  Clock,
+  Star
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen }) => {
+const Sidebar = ({ activeTab, setActiveTab, isOpen, setIsOpen, onCollapseChange }) => {
   const { isMobile } = useResponsive();
 
   // Get current panel name based on active tab

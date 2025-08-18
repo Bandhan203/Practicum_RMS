@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { 
   Plus, 
   Edit, 
@@ -9,6 +8,7 @@ import {
   Clock, 
   DollarSign,
   Search,
+  Users,
   Filter,
   BarChart3,
   PieChart,
@@ -34,8 +34,7 @@ import {
 } from 'recharts';
 
 export function MenuManagement() {
-  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem, orders } = useApp();
-  const { user } = useAuth();
+  const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -361,7 +360,7 @@ export function MenuManagement() {
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis type="number" />
               <YAxis dataKey="preference" type="category" />
-              <Tooltip formatter={(value, name) => [`${value}%`, 'Preference Rate']} />
+              <Tooltip formatter={(value) => [`${value}%`, 'Preference Rate']} />
               <Bar dataKey="percentage" fill="#10B981" />
             </BarChart>
           </ResponsiveContainer>
@@ -574,7 +573,7 @@ export function MenuManagement() {
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Menu Management</h1>
-          <p className="text-gray-600 mt-1">Manage your restaurant's menu items and track performance analytics.</p>
+          <p className="text-gray-600 mt-1">Manage your restaurant&apos;s menu items and track performance analytics.</p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex bg-white rounded-lg p-1 shadow-sm border border-gray-200">
@@ -599,7 +598,7 @@ export function MenuManagement() {
               Analytics
             </button>
           </div>
-          {user?.role === 'admin' && viewMode === 'grid' && (
+          {viewMode === 'grid' && (
             <button
               onClick={() => setShowAddForm(true)}
               className="bg-[#6B0000] text-white px-6 py-2 rounded-lg hover:bg-[#5A0000] focus:ring-2 focus:ring-[#6B0000] focus:ring-offset-2 flex items-center space-x-2 shadow-sm transition-all"
@@ -701,10 +700,9 @@ export function MenuManagement() {
                     )}
                   </div>
                   
-                  {user?.role === 'admin' && (
-                    <div className="flex space-x-2 mt-auto">
-                      <button
-                        onClick={() => setEditingItem(item)}
+                  <div className="flex space-x-2 mt-auto">
+                    <button
+                      onClick={() => setEditingItem(item)}
                         className="flex-1 bg-blue-600 text-white py-2 px-3 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex items-center justify-center space-x-1 transition-all"
                       >
                         <Edit className="w-4 h-4" />
@@ -718,7 +716,6 @@ export function MenuManagement() {
                         <span>Delete</span>
                       </button>
                     </div>
-                  )}
                 </div>
               </div>
             ))}

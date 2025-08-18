@@ -1,6 +1,5 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { 
   FileText, Download, Calendar, Filter, TrendingUp, DollarSign, 
   ShoppingCart, Trash2, Users, BarChart3, PieChart, LineChart, 
@@ -49,7 +48,6 @@ export function ReportsManagement() {
     calculateLiveWasteAnalytics,
     calculateLiveStockAnalytics
   } = useApp();
-  const { user: currentUser } = useAuth();
 
   const [selectedReport, setSelectedReport] = useState('overview');
   const [dateRange, setDateRange] = useState('last7days');

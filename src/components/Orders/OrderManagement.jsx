@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { 
   Clock, 
   CheckCircle, 
@@ -8,14 +7,12 @@ import {
   AlertCircle, 
   User,
   MapPin,
-  DollarSign,
-  Filter
+  DollarSign
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function OrderManagement() {
   const { orders, updateOrderStatus } = useApp();
-  const { user } = useAuth();
   const [filterStatus, setFilterStatus] = useState('all');
 
   const filteredOrders = orders.filter(order => {
@@ -58,7 +55,8 @@ export function OrderManagement() {
     }
   };
 
-  const canUpdateOrders = user?.role === 'admin' || user?.role === 'chef' || user?.role === 'waiter';
+  // Allow all users to update orders in the simplified version
+  const canUpdateOrders = true;
 
   return (
     <div className="p-6 space-y-6">

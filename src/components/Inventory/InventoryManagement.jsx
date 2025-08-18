@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { Package, AlertTriangle, Plus, Edit, TrendingDown, Search, Filter, Save, X, Check, DollarSign, Calendar, Truck } from 'lucide-react';
+import { Package, AlertTriangle, Plus, Edit, TrendingDown, Search, Filter, Save, X, Check, DollarSign, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function InventoryManagement() {
@@ -13,7 +12,6 @@ export function InventoryManagement() {
     deleteInventoryItem,
     adjustInventoryStock 
   } = useApp();
-  const { user } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');

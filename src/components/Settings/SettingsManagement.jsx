@@ -1,5 +1,4 @@
 import React, { useState, useRef } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
 import { useApp } from '../../contexts/AppContext';
 import { 
   Settings, 
@@ -40,7 +39,6 @@ import {
 } from 'lucide-react';
 
 export function SettingsManagement() {
-  const { user } = useAuth();
   const { appSettings, updateSettings, resetSettings, exportSettings, importSettings } = useApp();
   
   const [activeTab, setActiveTab] = useState('general');
@@ -914,7 +912,7 @@ export function SettingsManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-gray-600">Manage your restaurant's system settings and preferences</p>
+          <p className="text-gray-600">Manage your restaurant&apos;s system settings and preferences</p>
         </div>
         <div className="flex space-x-3">
           <button

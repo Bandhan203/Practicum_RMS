@@ -1,11 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const AuthContext = createContext(undefined);
 
 // Configure axios defaults
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 axios.defaults.withCredentials = true;
 
 // Mock users for demonstration (will be replaced with real API)
@@ -23,9 +23,9 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     initializeAuth();
-  }, []);
+  }, [initializeAuth]);
 
-  const initializeAuth = async () => {
+  const initializeAuth = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -56,9 +56,9 @@ export function AuthProvider({ children }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [clearAuthData, verifyToken]);
 
-  const verifyToken = async () => {
+  const verifyToken = useCallback(async () => {
     try {
       // Mock API call - replace with real API
       const storedUser = localStorage.getItem('restaurant_user');
@@ -69,10 +69,15 @@ export function AuthProvider({ children }) {
       return false;
     } catch (error) {
       console.error('Token verification failed:', error);
-      clearAuthData();
+      // Call clearAuthData directly since it's defined below
+      Cookies.remove('authToken');
+      delete axios.defaults.headers.common['Authorization'];
+      setUser(null);
+      setError(null);
+      localStorage.removeItem('restaurant_user');
       return false;
     }
-  };
+  }, []);
 
   const login = async (email, password) => {
     try {
@@ -175,7 +180,7 @@ export function AuthProvider({ children }) {
     clearAuthData();
   };
 
-  const clearAuthData = () => {
+  const clearAuthData = useCallback(() => {
     // Remove token from cookies
     Cookies.remove('authToken');
     
@@ -186,7 +191,7 @@ export function AuthProvider({ children }) {
     setUser(null);
     setError(null);
     localStorage.removeItem('restaurant_user');
-  };
+  }, []);
 
   const updateProfile = async (profileData) => {
     try {

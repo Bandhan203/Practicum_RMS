@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { DollarSign, ShoppingCart, Trash2, Users, TrendingUp, TrendingDown, AlertTriangle, Star, RefreshCw } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { DollarSign, ShoppingCart, Trash2, Users, AlertTriangle, Star, RefreshCw } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { StatCard } from '../common/StatCard';
 import { ChartCard } from '../common/ChartCard';
@@ -11,7 +10,6 @@ export function AdminDashboard() {
 		orders, 
 		analytics, 
 		inventory, 
-		wasteLogs, 
 		calculateLiveWasteAnalytics,
 		calculateLiveStockAnalytics 
 	} = useApp();
@@ -38,10 +36,6 @@ export function AdminDashboard() {
 		new Date(order.createdAt).toDateString() === new Date().toDateString()
 	).length;
 
-	const todayWaste = wasteLogs.filter(log => 
-		new Date(log.date).toDateString() === new Date().toDateString()
-	).reduce((sum, log) => sum + log.cost, 0);
-
 	const lowStockItems = inventory.filter(item => item.quantity <= item.threshold);
 
 	return (
@@ -50,7 +44,7 @@ export function AdminDashboard() {
 			<div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
 				<div>
 					<h1 className="text-3xl font-bold text-gray-900">Smart Dine Dashboard</h1>
-					<p className="text-gray-600 mt-1">Welcome back! Here's what's happening with your restaurant today.</p>
+					<p className="text-gray-600 mt-1">Welcome back! Here&apos;s what&apos;s happening with your restaurant today.</p>
 				</div>
 				<div className="flex items-center space-x-4">
 					<div className="flex items-center space-x-2">

@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { useAuth } from '../../contexts/AuthContext';
-import { Calendar, Plus, User, Phone, Mail, Clock, Users, Check, X, Edit2, Trash2, Search, Filter } from 'lucide-react';
-import { format, addDays, startOfToday } from 'date-fns';
+import { Calendar, Plus, Clock, Users, Check, X, Edit2, Trash2, Search } from 'lucide-react';
+import { format, startOfToday } from 'date-fns';
 
 export function ReservationManagement() {
   const { reservations, addReservation, updateReservation, deleteReservation } = useApp();
-  const { user } = useAuth();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingReservation, setEditingReservation] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -168,7 +166,7 @@ export function ReservationManagement() {
           <div className="flex items-center space-x-3">
             <Calendar className="w-8 h-8 text-[#6B0000]" />
             <div>
-              <p className="text-sm text-gray-600">Today's Total</p>
+              <p className="text-sm text-gray-600">Today&apos;s Total</p>
               <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
             </div>
           </div>

@@ -1,12 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { 
   Plus, 
   Trash2, 
-  AlertTriangle, 
   TrendingUp, 
-  TrendingDown,
   Calendar, 
   DollarSign, 
   Package,
@@ -26,11 +23,8 @@ export function WasteManagement() {
     wasteLogs, 
     logWaste, 
     updateWasteLog, 
-    deleteWasteLog, 
-    inventory,
-    calculateLiveWasteAnalytics 
+    deleteWasteLog
   } = useApp();
-  const { user } = useAuth();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -46,7 +40,7 @@ export function WasteManagement() {
     reason: '',
     cost: '',
     category: '',
-    loggedBy: user?.name || 'Current User'
+    loggedBy: 'Admin User'
   });
 
   // Get available categories and reasons from existing waste logs
@@ -159,7 +153,7 @@ export function WasteManagement() {
       reason: '',
       cost: '',
       category: '',
-      loggedBy: user?.name || 'Current User'
+      loggedBy: 'Admin User'
     });
     setShowAddForm(false);
   };
@@ -206,7 +200,7 @@ export function WasteManagement() {
       reason: '',
       cost: '',
       category: '',
-      loggedBy: user?.name || 'Current User'
+      loggedBy: 'Admin User'
     });
 
     const handleSubmit = (e) => {
@@ -388,7 +382,7 @@ export function WasteManagement() {
               <DollarSign className="w-6 h-6 text-red-600" />
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-600">Today's Waste</p>
+              <p className="text-sm font-medium text-gray-600">Today&apos;s Waste</p>
               <p className="text-2xl font-bold text-red-600">৳{stats.todayCost.toFixed(2)}</p>
               <p className="text-xs text-gray-500">{stats.todayCount} items</p>
             </div>

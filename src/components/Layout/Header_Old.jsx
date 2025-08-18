@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../../contexts/AppContext';
 import { 
+  User, 
   ShoppingCart, 
   Settings, 
   Bell,
@@ -30,15 +31,18 @@ export function Header({ toggleSidebar }) {
 
             {/* Logo and Brand Name */}
             <div className="flex items-center space-x-3">
-              <RestaurantLogo className="w-8 h-8" />
-              <h1 className="text-xl font-bold text-brand-dark hidden sm:block">RMS</h1>
+              <RestaurantLogo className="w-8 h-8" fillColor="#C92E33" />
+              <div className="flex flex-col">
+                <h1 className="text-xl font-bold text-gray-900 hidden sm:block">Smart Dine</h1>
+                <h1 className="text-lg font-bold text-gray-900 sm:hidden">Smart Dine</h1>
+              </div>
             </div>
           </div>
 
-          {/* Right side - Actions and User */}
-          <div className="flex-1 flex items-center justify-between px-6">
+          {/* Right side - Search and user actions */}
+          <div className="flex-1 flex justify-between items-center px-4 sm:px-6 lg:px-8">
             {/* Search Bar */}
-            <div className="flex-1 max-w-2xl mx-6">
+            <div className="hidden md:flex items-center">
               <div className="relative">
                 <input
                   type="text"
@@ -55,17 +59,33 @@ export function Header({ toggleSidebar }) {
 
             {/* User actions area */}
             <div className="flex items-center space-x-3">
-              {/* Cart */}
-              <div className="relative">
-                <button className="p-2 text-gray-500 hover:text-brand-light transition-colors rounded-xl hover:bg-gray-50">
-                  <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
-                  {cartItemCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-brand-light text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                      {cartItemCount}
-                    </span>
-                  )}
-                </button>
+              {/* Role Switcher */}
+              <div className="hidden lg:flex items-center space-x-2">
+                <select
+                  value={user.role}
+                  onChange={(e) => switchRole(e.target.value)}
+                  className="text-sm border border-gray-200 rounded-xl px-3 py-2 bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-light focus:border-transparent"
+                >
+                  <option value="customer">Customer</option>
+                  <option value="waiter">Waiter</option>
+                  <option value="chef">Chef</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
+
+              {/* Cart (Customer only) */}
+              {user.role === 'customer' && (
+                <div className="relative">
+                  <button className="p-2 text-gray-500 hover:text-brand-light transition-colors rounded-xl hover:bg-gray-50">
+                    <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6" />
+                    {cartItemCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-brand-light text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                        {cartItemCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
+              )}
 
               {/* Notifications */}
               <div className="relative">
@@ -75,20 +95,25 @@ export function Header({ toggleSidebar }) {
                 </button>
               </div>
 
-              {/* Settings */}
+              {/* User Menu */}
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="hidden sm:flex items-center space-x-2">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium text-gray-700">Admin</span>
+                  {getRoleIcon(user.role)}
+                  <span className="text-sm font-medium text-gray-700">{user.name}</span>
                 </div>
                 
                 {/* Mobile User Avatar */}
                 <div className="sm:hidden w-8 h-8 bg-brand-dark rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">A</span>
+                  <span className="text-white text-sm font-medium">
+                    {user?.name?.charAt(0) || 'U'}
+                  </span>
                 </div>
                 
-                <button className="p-2 text-gray-400 hover:text-gray-500">
-                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
+                <button
+                  onClick={logout}
+                  className="p-2 text-gray-400 hover:text-gray-500"
+                >
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               </div>
             </div>
