@@ -47,7 +47,7 @@ const About = () => {
               <span className="text-brand-dark">Restaurant Success</span>
             </h2>
             <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-              Smart Dine's team combines decades of restaurant industry experience with cutting-edge technology 
+              Smart Dine&apos;s team combines decades of restaurant industry experience with cutting-edge technology 
               to create solutions that actually work in real restaurant environments.
             </p>
             <p className="text-lg text-gray-600 mb-8 leading-relaxed">

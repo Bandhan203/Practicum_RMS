@@ -61,7 +61,7 @@ const Hero = () => {
                 </div>
                 <div className="bg-white rounded-lg p-4 mb-4">
                   <div className="flex justify-between items-center mb-2">
-                    <div className="text-sm font-semibold text-gray-700">Today's Revenue</div>
+                    <div className="text-sm font-semibold text-gray-700">Today&apos;s Revenue</div>
                     <div className="text-lg font-bold text-brand-dark">৳45,850</div>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">

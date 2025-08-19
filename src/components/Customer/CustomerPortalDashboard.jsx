@@ -84,7 +84,7 @@ export function CustomerPortalDashboard() {
             <p className="text-brand-100">Ready to enjoy some delicious food?</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-brand-100">Today's Date</p>
+            <p className="text-sm text-brand-100">Today&apos;s Date</p>
             <p className="text-lg font-semibold">
               {new Date().toLocaleDateString('en-US', { 
                 weekday: 'long', 
@@ -121,7 +121,7 @@ export function CustomerPortalDashboard() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-xl font-bold">Loyalty Rewards</h3>
-            <p className="text-purple-100">You're {nextRewardPoints} points away from your next reward!</p>
+            <p className="text-purple-100">You&apos;re {nextRewardPoints} points away from your next reward!</p>
           </div>
           <Award className="w-10 h-10 text-white" />
         </div>

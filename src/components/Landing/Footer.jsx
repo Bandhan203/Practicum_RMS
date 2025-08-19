@@ -28,7 +28,7 @@ const Footer = () => {
               <span className="text-xl font-bold">Smart Dine</span>
             </div>
             <p className="text-gray-400 mb-6 leading-relaxed">
-              Streamline your restaurant operations with Smart Dine's comprehensive management system. 
+              Streamline your restaurant operations with Smart Dine&apos;s comprehensive management system. 
               Built for efficiency, designed for growth.
             </p>
             <div className="flex space-x-4">

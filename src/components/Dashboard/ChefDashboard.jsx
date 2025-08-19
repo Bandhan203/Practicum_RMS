@@ -104,7 +104,7 @@ export function ChefDashboard() {
         <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-blue-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Today's Orders</p>
+              <p className="text-sm font-medium text-gray-600">Today&apos;s Orders</p>
               <p className="text-2xl font-semibold text-gray-900">{todayOrders.length}</p>
             </div>
             <Calendar className="w-8 h-8 text-blue-500" />
@@ -124,7 +124,7 @@ export function ChefDashboard() {
         <div className="bg-white rounded-lg shadow-sm p-6 border-l-4 border-red-500">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Today's Waste</p>
+              <p className="text-sm font-medium text-gray-600">Today&apos;s Waste</p>
               <p className="text-2xl font-semibold text-gray-900">৳ {liveData.waste.todayWaste.toFixed(2)}</p>
             </div>
             <Trash2 className="w-8 h-8 text-red-500" />

@@ -328,7 +328,7 @@ export function SignupForm() {
                   ) : (
                     <>
                       <AlertCircle className="h-4 w-4 text-red-500" />
-                      <span className="text-xs text-red-600">Passwords don't match</span>
+                      <span className="text-xs text-red-600">Passwords don&apos;t match</span>
                     </>
                   )}
                 </div>

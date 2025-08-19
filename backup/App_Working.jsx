@@ -168,7 +168,7 @@ function Dashboard({ user, onLogout }) {
             Hello <strong>{user.name}</strong> ({user.email})
           </p>
           <p style={{ color: '#666', marginBottom: '25px' }}>
-            🚀 Authentication is working perfectly! You're successfully logged in.
+            🚀 Authentication is working perfectly! You&apos;re successfully logged in.
           </p>
           
           <div style={{ 

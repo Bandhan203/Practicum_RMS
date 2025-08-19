@@ -142,7 +142,7 @@ const Contact = () => {
           <div>
             <h3 className="text-2xl font-bold text-gray-900 mb-6">Get in Touch</h3>
             <p className="text-gray-600 mb-8 leading-relaxed">
-              We're here to help you streamline your restaurant operations with Smart Dine. 
+              We&apos;re here to help you streamline your restaurant operations with Smart Dine. 
               Reach out to us for a personalized demo, questions about pricing, 
               or any other inquiries.
             </p>

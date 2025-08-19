@@ -84,7 +84,7 @@ export function CustomerDashboard() {
 				<div className="flex items-center justify-between mb-4">
 					<div>
 						<h3 className="text-lg font-semibold">Loyalty Rewards</h3>
-						<p className="text-purple-100">You're {nextRewardPoints} points away from your next reward!</p>
+						<p className="text-purple-100">You&apos;re {nextRewardPoints} points away from your next reward!</p>
 					</div>
 					<Award className="w-8 h-8 text-white" />
 				</div>

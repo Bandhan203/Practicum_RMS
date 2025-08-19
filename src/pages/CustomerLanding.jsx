@@ -230,7 +230,7 @@ export function CustomerLanding() {
               Visit Us Today
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Located in the heart of the city, we're easily accessible and ready to serve you.
+              Located in the heart of the city, we&apos;re easily accessible and ready to serve you.
             </p>
           </div>
 
