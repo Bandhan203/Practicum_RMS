@@ -4,6 +4,8 @@ import { DollarSign, ShoppingCart, Trash2, Users, AlertTriangle, Star, RefreshCw
 import { formatDistanceToNow } from 'date-fns';
 import { StatCard } from '../common/StatCard';
 import { ChartCard } from '../common/ChartCard';
+import ReduxTest from '../common/ReduxTest';
+import FeatureTestDashboard from '../common/FeatureTestDashboard';
 
 export function AdminDashboard() {
 	const { 
@@ -302,6 +304,17 @@ export function AdminDashboard() {
 					)}
 				</div>
 			</div>
+
+			{/* Redux Integration Test */}
+			        {/* Feature Testing Dashboard */}
+        <div className="mt-8">
+          <FeatureTestDashboard />
+        </div>
+
+        {/* Redux Testing Component */}
+        <div className="mt-8">
+          <ReduxTest />
+        </div>
 		</div>
 	);
 }

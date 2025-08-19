@@ -7,18 +7,67 @@ import {
   AlertCircle, 
   User,
   MapPin,
-  DollarSign
+  DollarSign,
+  Trash2
 } from 'lucide-react';
 import { format } from 'date-fns';
 
 export function OrderManagement() {
-  const { orders, updateOrderStatus } = useApp();
+  const { orders, updateOrderStatus, removeItemFromOrder } = useApp();
   const [filterStatus, setFilterStatus] = useState('all');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [showItemDeleteConfirm, setShowItemDeleteConfirm] = useState(false);
+  const [pendingItemDelete, setPendingItemDelete] = useState(null);
 
   const filteredOrders = orders.filter(order => {
     if (filterStatus === 'all') return true;
     return order.status === filterStatus;
   });
+
+  // Handle order status changes with confirmation for cancel/delete actions
+  const handleOrderAction = (orderId, action) => {
+    if (action === 'cancelled') {
+      // Show confirmation for cancel (delete-like) actions
+      setPendingAction({ orderId, action });
+      setShowDeleteConfirm(true);
+    } else {
+      // For non-destructive actions, proceed normally
+      updateOrderStatus(orderId, action);
+    }
+  };
+
+  // Handle individual item deletion from cart
+  const handleItemDelete = (orderId, itemIndex) => {
+    setPendingItemDelete({ orderId, itemIndex });
+    setShowItemDeleteConfirm(true);
+  };
+
+  const confirmItemDelete = () => {
+    if (pendingItemDelete && removeItemFromOrder) {
+      removeItemFromOrder(pendingItemDelete.orderId, pendingItemDelete.itemIndex);
+    }
+    setPendingItemDelete(null);
+    setShowItemDeleteConfirm(false);
+  };
+
+  const cancelItemDelete = () => {
+    setPendingItemDelete(null);
+    setShowItemDeleteConfirm(false);
+  };
+
+  const confirmDeleteAction = () => {
+    if (pendingAction) {
+      updateOrderStatus(pendingAction.orderId, pendingAction.action);
+      setPendingAction(null);
+      setShowDeleteConfirm(false);
+    }
+  };
+
+  const cancelDeleteAction = () => {
+    setPendingAction(null);
+    setShowDeleteConfirm(false);
+  };
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -138,17 +187,27 @@ export function OrderManagement() {
             {/* Order Items */}
             <div className="px-6 pb-4 flex-1">
               <div className="border-t border-gray-200 pt-4">
-                <h4 className="font-medium text-gray-900 mb-3">Items ({order.items.length}):</h4>
-                <div className="space-y-2 max-h-32 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                <h4 className="font-medium text-gray-900 mb-2 text-sm">Items <span className='text-gray-400'>({order.items.length})</span></h4>
+                <div className="space-y-1 max-h-20 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-gray-50">
                   {order.items.map((item, idx) => (
-                    <div key={idx} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-md">
+                    <div key={idx} className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded group hover:bg-gray-100 transition-colors">
                       <div className="flex items-center space-x-2 flex-1 min-w-0">
-                        <span className="w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        <span className="w-5 h-5 bg-gray-100 text-gray-700 rounded flex items-center justify-center text-xs font-semibold flex-shrink-0">
                           {item.quantity}
                         </span>
-                        <span className="text-sm text-gray-800 truncate">{item.menuItemName}</span>
+                        <span className="text-xs text-gray-900 truncate">{item.menuItemName}</span>
                       </div>
-                      <span className="text-sm font-medium text-gray-900 ml-2 whitespace-nowrap">৳ {(item.price * item.quantity).toFixed(2)}</span>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs font-medium text-gray-800 whitespace-nowrap">৳ {(item.price * item.quantity).toFixed(2)}</span>
+                        <button
+                          onClick={() => handleItemDelete(order.id, idx)}
+                          data-action="delete"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded transition-all delete-btn"
+                          title="Remove item"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -168,15 +227,16 @@ export function OrderManagement() {
 
             {/* Action Buttons */}
             {canUpdateOrders && getAvailableActions(order.status).length > 0 && (
-              <div className="p-6 pt-0 mt-auto">
+              <div className="p-6 pt-0 mt-auto order-status-actions">
                 <div className={`grid gap-2 ${getAvailableActions(order.status).length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   {getAvailableActions(order.status).map((action) => (
                     <button
                       key={action}
-                      onClick={() => updateOrderStatus(order.id, action)}
+                      onClick={() => handleOrderAction(order.id, action)}
+                      data-action={action === 'cancelled' ? 'delete' : action}
                       className={`py-2.5 px-4 rounded-md text-sm font-medium transition-colors text-center focus:outline-none focus:ring-2 focus:ring-offset-1 ${
                         action === 'cancelled' 
-                          ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500' 
+                          ? 'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 delete-btn' 
                           : 'bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500'
                       }`}
                     >
@@ -198,6 +258,58 @@ export function OrderManagement() {
           <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No orders found</h3>
           <p className="text-gray-500">No orders match your current filter criteria.</p>
+        </div>
+      )}
+
+      {/* Order-Specific Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full text-center border border-red-300">
+            <div className="text-4xl mb-4">⚠️</div>
+            <div className="text-xl font-bold mb-4 text-red-600">Cancel Order?</div>
+            <div className="text-lg mb-2 text-gray-700">Are you sure you want to cancel this order?</div>
+            <div className="mb-6 text-sm text-red-500 font-medium">This action cannot be undone!</div>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-6 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all"
+                onClick={confirmDeleteAction}
+              >
+                Yes, Cancel Order
+              </button>
+              <button
+                className="px-6 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
+                onClick={cancelDeleteAction}
+              >
+                Keep Order
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Item Delete Confirmation Modal */}
+      {showItemDeleteConfirm && (
+        <div className="fixed inset-0 z-[99997] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full text-center border border-red-300">
+            <div className="text-4xl mb-4">🗑️</div>
+            <div className="text-xl font-bold mb-4 text-red-600">Remove Item?</div>
+            <div className="text-lg mb-2 text-gray-700">Are you sure you want to remove this item from the order?</div>
+            <div className="mb-6 text-sm text-red-500 font-medium">This action cannot be undone!</div>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-6 py-2 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all"
+                onClick={confirmItemDelete}
+              >
+                Yes, Remove Item
+              </button>
+              <button
+                className="px-6 py-2 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
+                onClick={cancelItemDelete}
+              >
+                Keep Item
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

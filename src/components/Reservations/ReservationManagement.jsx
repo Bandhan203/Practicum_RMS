@@ -153,7 +153,7 @@ export function ReservationManagement() {
               table: ''
             });
           }}
-          className="bg-[#6B0000] text-white px-4 py-2 rounded-lg hover:bg-[#5A0000] flex items-center space-x-2"
+          className="bg-brand-dark text-white px-4 py-2 rounded-lg hover:bg-brand-light flex items-center space-x-2 transition-all duration-300 transform hover:scale-105"
         >
           <Plus className="w-4 h-4" />
           <span>New Reservation</span>
@@ -211,14 +211,14 @@ export function ReservationManagement() {
                 placeholder="Search by name, email, or phone..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B0000] focus:border-transparent"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-dark focus:border-transparent transition-all duration-300"
               />
             </div>
           </div>
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B0000] focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-dark focus:border-transparent transition-all duration-300"
           >
             <option value="all">All Status</option>
             {reservationStatuses.map(status => (
@@ -230,7 +230,7 @@ export function ReservationManagement() {
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B0000] focus:border-transparent"
+            className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-dark focus:border-transparent transition-all duration-300"
           >
             <option value="all">All Dates</option>
             <option value="today">Today</option>
@@ -256,7 +256,7 @@ export function ReservationManagement() {
                 required
                 value={formData.customerName}
                 onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B0000] focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-dark focus:border-transparent transition-all duration-300"
               />
             </div>
             <div>
@@ -267,7 +267,7 @@ export function ReservationManagement() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6B0000] focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-dark focus:border-transparent transition-all duration-300"
               />
             </div>
             <div>
@@ -350,7 +350,7 @@ export function ReservationManagement() {
             <div className="md:col-span-2 flex space-x-4">
               <button
                 type="submit"
-                className="bg-[#6B0000] text-white px-6 py-2 rounded-lg hover:bg-[#5A0000] flex items-center space-x-2"
+                className="bg-brand-dark text-white px-6 py-2 rounded-lg hover:bg-brand-light flex items-center space-x-2 transition-all duration-300 transform hover:scale-105 focus:ring-2 focus:ring-brand-dark focus:ring-offset-2"
               >
                 <Check className="w-4 h-4" />
                 <span>{editingReservation ? 'Update' : 'Create'} Reservation</span>
@@ -361,7 +361,7 @@ export function ReservationManagement() {
                   setShowAddForm(false);
                   setEditingReservation(null);
                 }}
-                className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 flex items-center space-x-2"
+                className="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 flex items-center space-x-2 transition-all duration-300 transform hover:scale-105 focus:ring-2 focus:ring-gray-400 focus:ring-offset-2"
               >
                 <X className="w-4 h-4" />
                 <span>Cancel</span>
@@ -415,7 +415,7 @@ export function ReservationManagement() {
                       <select
                         value={reservation.status}
                         onChange={(e) => handleStatusChange(reservation.id, e.target.value)}
-                        className={`px-2 py-1 rounded-full text-xs font-medium border-0 focus:outline-none focus:ring-2 focus:ring-[#6B0000] ${getStatusColor(reservation.status)}`}
+                        className={`px-2 py-1 rounded-full text-xs font-medium border-0 focus:outline-none focus:ring-2 focus:ring-brand-dark transition-all duration-300 ${getStatusColor(reservation.status)}`}
                       >
                         {reservationStatuses.map(status => (
                           <option key={status} value={status}>
@@ -428,14 +428,14 @@ export function ReservationManagement() {
                       <div className="flex space-x-2">
                         <button
                           onClick={() => handleEdit(reservation)}
-                          className="text-blue-600 hover:text-blue-800"
+                          className="text-brand-dark hover:text-brand-light transition-colors duration-300 transform hover:scale-110"
                           title="Edit"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(reservation.id)}
-                          className="text-red-600 hover:text-red-800"
+                          className="text-brand-light hover:text-brand-dark transition-colors duration-300 transform hover:scale-110"
                           title="Delete"
                         >
                           <Trash2 className="w-4 h-4" />

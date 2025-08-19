@@ -1288,6 +1288,24 @@ export function AppProvider({ children }) {
     );
   };
 
+  const removeItemFromOrder = (orderId, itemIndex) => {
+    setOrders(prev =>
+      prev.map(order => {
+        if (order.id === orderId) {
+          const newItems = order.items.filter((_, index) => index !== itemIndex);
+          // Recalculate total amount
+          const newTotalAmount = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+          return {
+            ...order,
+            items: newItems,
+            totalAmount: newTotalAmount
+          };
+        }
+        return order;
+      })
+    );
+  };
+
   const addReservation = (reservation) => {
     const newReservation = {
       ...reservation,
@@ -1624,6 +1642,7 @@ export function AppProvider({ children }) {
       clearCart,
       placeOrder,
       updateOrderStatus,
+      removeItemFromOrder,
       addReservation,
       updateReservation,
       deleteReservation,

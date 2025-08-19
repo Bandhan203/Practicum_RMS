@@ -265,9 +265,127 @@ function AdminLayout() {
   );
 }
 
+
 function App() {
+  const [permissionAsked, setPermissionAsked] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
+  const [isDeleteAction, setIsDeleteAction] = useState(false);
+  const [pendingEvent, setPendingEvent] = useState(null);
+
+  useEffect(() => {
+    // Handler for delete actions specifically
+    const handleDeleteAction = (e) => {
+      // Skip if the click is on the permission modal
+      if (e.target.closest('.permission-modal')) {
+        return;
+      }
+      
+      // Skip if this is an order status change button (not a delete action)
+      if (e.target.closest('[data-action="delete"]') && 
+          e.target.closest('.order-status-actions')) {
+        // This is an order cancellation, not a delete - let it proceed normally
+        return;
+      }
+      
+      // Skip if this is a menu delete button with its own confirmation
+      if (e.target.closest('.menu-delete-btn')) {
+        // This is a menu item delete with its own confirmation - let it proceed normally
+        return;
+      }
+      
+      // Check if this is a delete-related action
+      const isDelete = 
+        // Check for delete buttons, trash icons, remove buttons
+        e.target.closest('[data-action="delete"]') ||
+        e.target.closest('.delete-btn') ||
+        e.target.closest('[class*="delete"]') ||
+        e.target.closest('[class*="remove"]') ||
+        e.target.closest('[class*="trash"]') ||
+        // Check for delete/remove text content (but exclude order status buttons)
+        (e.target.textContent && !e.target.closest('.order-status-actions') && (
+          e.target.textContent.toLowerCase().includes('delete') ||
+          e.target.textContent.toLowerCase().includes('remove') ||
+          e.target.textContent.toLowerCase().includes('trash')
+        )) ||
+        // Check for delete keyboard shortcuts
+        (e.type === 'keydown' && (e.key === 'Delete' || e.key === 'Backspace')) ||
+        // Check for specific delete icon classes (lucide icons, etc)
+        e.target.closest('[class*="lucide-trash"]') ||
+        e.target.closest('[class*="fa-trash"]') ||
+        e.target.closest('[class*="icon-delete"]');
+
+      if (isDelete) {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDeleteAction(true);
+        setPermissionAsked(true);
+        setPendingEvent({
+          target: e.target,
+          type: e.type,
+          originalEvent: e
+        });
+        return false;
+      }
+    };
+    
+    // Listen to all possible delete interactions
+    document.addEventListener('click', handleDeleteAction, true);
+    document.addEventListener('keydown', handleDeleteAction, true);
+    document.addEventListener('contextmenu', handleDeleteAction, true); // Right-click context menu
+    
+    return () => {
+      document.removeEventListener('click', handleDeleteAction, true);
+      document.removeEventListener('keydown', handleDeleteAction, true);
+      document.removeEventListener('contextmenu', handleDeleteAction, true);
+    };
+  }, []);
+
+  const handlePermission = (granted) => {
+    if (granted && isDeleteAction) {
+      // Allow this specific delete action to proceed
+      setPermissionGranted(true);
+      setPermissionAsked(false);
+      setIsDeleteAction(false);
+      setPendingEvent(null);
+      // Reset permission for next delete action
+      setTimeout(() => setPermissionGranted(false), 100);
+    } else {
+      // Deny the delete action
+      setPermissionGranted(false);
+      setPermissionAsked(false);
+      setIsDeleteAction(false);
+      setPendingEvent(null);
+    }
+  };
+
   return (
     <AppProvider>
+      {/* Delete Permission Modal */}
+      {permissionAsked && (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black bg-opacity-50 permission-modal backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full text-center border border-red-300">
+            <div className="text-4xl mb-4">�️</div>
+            <div className="text-xl font-bold mb-4 text-red-600">Delete Permission Required</div>
+            <div className="text-lg mb-2 text-gray-700">You are about to delete something!</div>
+            <div className="mb-6 text-sm text-red-500 font-medium">⚠️ This action may be permanent. Do you want to proceed?</div>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-6 py-3 rounded-lg bg-red-600 text-white font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 transition-all"
+                onClick={() => handlePermission(true)}
+              >
+                ✅ Allow Delete
+              </button>
+              <button
+                className="px-6 py-3 rounded-lg bg-gray-600 text-white font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300 transition-all"
+                onClick={() => handlePermission(false)}
+              >
+                ❌ Cancel Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
