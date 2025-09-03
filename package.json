@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Smart Dine - Complete Restaurant Management System with React.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && vite",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

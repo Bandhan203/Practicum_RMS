@@ -1,16 +1,160 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import apiSlice from '../../services/apiSlice';
+// import apiSlice from '../../services/apiSlice';
 
-// Async thunks for API calls
+// Mock menu data
+const mockMenuItems = [
+  {
+    id: 1,
+    name: 'Butter Chicken',
+    description: 'Tender chicken pieces in a rich, creamy tomato-based sauce with aromatic spices',
+    price: 320,
+    category: 'Main Course',
+    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?w=400',
+    preparationTime: 25,
+    available: true,
+    featured: true,
+    ingredients: ['Chicken', 'Tomato', 'Cream', 'Spices'],
+    allergens: ['Dairy'],
+    calories: 450,
+    spiceLevel: 'Medium'
+  },
+  {
+    id: 2,
+    name: 'Garlic Naan',
+    description: 'Soft and fluffy Indian bread topped with fresh garlic and herbs',
+    price: 80,
+    category: 'Bread',
+    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400',
+    preparationTime: 10,
+    available: true,
+    featured: false,
+    ingredients: ['Flour', 'Garlic', 'Herbs', 'Butter'],
+    allergens: ['Gluten', 'Dairy'],
+    calories: 280,
+    spiceLevel: 'Mild'
+  },
+  {
+    id: 3,
+    name: 'Chicken Biryani',
+    description: 'Fragrant basmati rice cooked with tender chicken pieces and aromatic spices',
+    price: 450,
+    category: 'Rice',
+    image: 'https://images.unsplash.com/photo-1563379091339-03246963d7d3?w=400',
+    preparationTime: 35,
+    available: true,
+    featured: true,
+    ingredients: ['Basmati Rice', 'Chicken', 'Saffron', 'Spices'],
+    allergens: [],
+    calories: 520,
+    spiceLevel: 'Medium'
+  },
+  {
+    id: 4,
+    name: 'Raita',
+    description: 'Cool and refreshing yogurt-based side dish with cucumber and mint',
+    price: 60,
+    category: 'Sides',
+    image: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?w=400',
+    preparationTime: 5,
+    available: true,
+    featured: false,
+    ingredients: ['Yogurt', 'Cucumber', 'Mint', 'Spices'],
+    allergens: ['Dairy'],
+    calories: 80,
+    spiceLevel: 'Mild'
+  },
+  {
+    id: 5,
+    name: 'Fish Curry',
+    description: 'Fresh fish cooked in a spicy coconut-based curry sauce',
+    price: 380,
+    category: 'Main Course',
+    image: 'https://images.unsplash.com/photo-1567188040759-fb8a883dc6d8?w=400',
+    preparationTime: 30,
+    available: true,
+    featured: false,
+    ingredients: ['Fish', 'Coconut Milk', 'Curry Leaves', 'Spices'],
+    allergens: ['Fish'],
+    calories: 420,
+    spiceLevel: 'Hot'
+  },
+  {
+    id: 6,
+    name: 'Basmati Rice',
+    description: 'Fragrant long-grain basmati rice, perfectly steamed',
+    price: 120,
+    category: 'Rice',
+    image: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400',
+    preparationTime: 15,
+    available: true,
+    featured: false,
+    ingredients: ['Basmati Rice', 'Salt'],
+    allergens: [],
+    calories: 200,
+    spiceLevel: 'None'
+  },
+  {
+    id: 7,
+    name: 'Dal Makhani',
+    description: 'Rich and creamy black lentils slow-cooked with tomatoes and cream',
+    price: 280,
+    category: 'Main Course',
+    image: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=400',
+    preparationTime: 20,
+    available: true,
+    featured: true,
+    ingredients: ['Black Lentils', 'Tomato', 'Cream', 'Spices'],
+    allergens: ['Dairy'],
+    calories: 350,
+    spiceLevel: 'Medium'
+  },
+  {
+    id: 8,
+    name: 'Roti',
+    description: 'Traditional Indian flatbread made with whole wheat flour',
+    price: 40,
+    category: 'Bread',
+    image: 'https://images.unsplash.com/photo-1574894709920-11b28e7367e3?w=400',
+    preparationTime: 8,
+    available: true,
+    featured: false,
+    ingredients: ['Wheat Flour', 'Water', 'Salt'],
+    allergens: ['Gluten'],
+    calories: 150,
+    spiceLevel: 'None'
+  }
+];
+
+// Simulate API delay
+const simulateApiDelay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Async thunks for API calls with mock data
 export const fetchMenuItems = createAsyncThunk(
   'menu/fetchMenuItems',
   async (filters = {}, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.getMenuItems(filters);
-      if (result.success) {
-        return result.data;
+      await simulateApiDelay();
+      
+      // Apply filters if any
+      let filteredItems = [...mockMenuItems];
+      
+      if (filters.category && filters.category !== 'all') {
+        filteredItems = filteredItems.filter(item => item.category === filters.category);
       }
-      throw new Error(result.error);
+      
+      if (filters.available !== undefined) {
+        filteredItems = filteredItems.filter(item => item.available === filters.available);
+      }
+      
+      if (filters.search) {
+        const searchTerm = filters.search.toLowerCase();
+        filteredItems = filteredItems.filter(item =>
+          item.name.toLowerCase().includes(searchTerm) ||
+          item.description.toLowerCase().includes(searchTerm)
+        );
+      }
+      
+      return filteredItems;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -21,11 +165,18 @@ export const createMenuItem = createAsyncThunk(
   'menu/createMenuItem',
   async (itemData, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.createMenuItem(itemData);
-      if (result.success) {
-        return result.data;
-      }
-      throw new Error(result.error);
+      await simulateApiDelay();
+      
+      const newItem = {
+        id: Math.max(...mockMenuItems.map(item => item.id)) + 1,
+        ...itemData,
+        available: true
+      };
+      
+      // Add to mock data
+      mockMenuItems.push(newItem);
+      
+      return newItem;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -36,11 +187,20 @@ export const updateMenuItem = createAsyncThunk(
   'menu/updateMenuItem',
   async ({ id, updates }, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.updateMenuItem(id, updates);
-      if (result.success) {
-        return { id, updates };
+      await simulateApiDelay();
+      
+      // Find and update the item in mock data
+      const itemIndex = mockMenuItems.findIndex(item => item.id === id);
+      if (itemIndex === -1) {
+        throw new Error('Menu item not found');
       }
-      throw new Error(result.error);
+      
+      mockMenuItems[itemIndex] = {
+        ...mockMenuItems[itemIndex],
+        ...updates
+      };
+      
+      return { id, updates };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -51,11 +211,17 @@ export const deleteMenuItem = createAsyncThunk(
   'menu/deleteMenuItem',
   async (id, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.deleteMenuItem(id);
-      if (result.success) {
-        return id;
+      await simulateApiDelay();
+      
+      // Find and remove the item from mock data
+      const itemIndex = mockMenuItems.findIndex(item => item.id === id);
+      if (itemIndex === -1) {
+        throw new Error('Menu item not found');
       }
-      throw new Error(result.error);
+      
+      mockMenuItems.splice(itemIndex, 1);
+      
+      return id;
     } catch (error) {
       return rejectWithValue(error.message);
     }

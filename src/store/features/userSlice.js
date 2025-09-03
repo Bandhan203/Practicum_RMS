@@ -140,9 +140,9 @@ const userSlice = createSlice({
         active: 0,
         inactive: 0
       };
-      
+      const allowedRoles = ['admin', 'chef', 'staff', 'customer'];
       state.users.forEach(user => {
-        if (stats.hasOwnProperty(user.role)) {
+        if (allowedRoles.includes(user.role)) {
           stats[user.role]++;
         }
         if (user.status === 'active') {
@@ -151,7 +151,6 @@ const userSlice = createSlice({
           stats.inactive++;
         }
       });
-      
       state.userStats = stats;
     },
     clearError: (state) => {

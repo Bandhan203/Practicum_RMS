@@ -1,16 +1,96 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import apiSlice from '../../services/apiSlice';
+// import apiSlice from '../../services/apiSlice';
 
-// Async thunks
+// Mock data for orders (since we don't have a backend)
+const mockOrders = [
+  {
+    id: 'ORD-001',
+    customerName: 'John Doe',
+    customerEmail: 'john@example.com',
+    customerPhone: '+880123456789',
+    orderType: 'dine-in',
+    tableNumber: 5,
+    status: 'pending',
+    items: [
+      { id: 1, name: 'Butter Chicken', price: 320, quantity: 2 },
+      { id: 2, name: 'Garlic Naan', price: 80, quantity: 3 }
+    ],
+    totalAmount: 880,
+    createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(), // 30 minutes ago
+    updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'ORD-002',
+    customerName: 'Jane Smith',
+    customerEmail: 'jane@example.com',
+    customerPhone: '+880987654321',
+    orderType: 'pickup',
+    pickupTime: new Date(Date.now() + 20 * 60 * 1000).toISOString(), // 20 minutes from now
+    status: 'preparing',
+    items: [
+      { id: 3, name: 'Biryani', price: 450, quantity: 1 },
+      { id: 4, name: 'Raita', price: 60, quantity: 1 }
+    ],
+    totalAmount: 510,
+    createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(), // 45 minutes ago
+    updatedAt: new Date(Date.now() - 10 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'ORD-003',
+    customerName: 'Mike Johnson',
+    customerEmail: 'mike@example.com',
+    customerPhone: '+880555666777',
+    orderType: 'dine-in',
+    tableNumber: 12,
+    status: 'ready',
+    items: [
+      { id: 5, name: 'Fish Curry', price: 380, quantity: 1 },
+      { id: 6, name: 'Rice', price: 120, quantity: 2 }
+    ],
+    totalAmount: 620,
+    createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(), // 1 hour ago
+    updatedAt: new Date(Date.now() - 5 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'ORD-004',
+    customerName: 'Sarah Wilson',
+    customerEmail: 'sarah@example.com',
+    customerPhone: '+880111222333',
+    orderType: 'pickup',
+    pickupTime: new Date(Date.now() + 45 * 60 * 1000).toISOString(), // 45 minutes from now
+    status: 'served',
+    items: [
+      { id: 7, name: 'Dal Makhani', price: 280, quantity: 1 },
+      { id: 8, name: 'Roti', price: 40, quantity: 4 }
+    ],
+    totalAmount: 440,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
+    updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString()
+  }
+];
+
+// Simulate API delay
+const simulateApiDelay = (ms = 500) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Async thunks with mock data
 export const fetchOrders = createAsyncThunk(
   'orders/fetchOrders',
   async (filters = {}, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.getOrders(filters);
-      if (result.success) {
-        return result.data;
+      await simulateApiDelay();
+      
+      // Apply filters if any
+      let filteredOrders = [...mockOrders];
+      
+      if (filters.status && filters.status !== 'all') {
+        filteredOrders = filteredOrders.filter(order => order.status === filters.status);
       }
-      throw new Error(result.error);
+      
+      if (filters.orderType && filters.orderType !== 'all') {
+        filteredOrders = filteredOrders.filter(order => order.orderType === filters.orderType);
+      }
+      
+      return filteredOrders;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -21,11 +101,20 @@ export const createOrder = createAsyncThunk(
   'orders/createOrder',
   async (orderData, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.createOrder(orderData);
-      if (result.success) {
-        return result.data;
-      }
-      throw new Error(result.error);
+      await simulateApiDelay();
+      
+      const newOrder = {
+        id: `ORD-${String(mockOrders.length + 1).padStart(3, '0')}`,
+        ...orderData,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Add to mock data
+      mockOrders.unshift(newOrder);
+      
+      return newOrder;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -36,11 +125,21 @@ export const updateOrderStatus = createAsyncThunk(
   'orders/updateOrderStatus',
   async ({ id, status }, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.updateOrderStatus(id, status);
-      if (result.success) {
-        return { id, status };
+      await simulateApiDelay();
+      
+      // Find and update the order in mock data
+      const orderIndex = mockOrders.findIndex(order => order.id === id);
+      if (orderIndex === -1) {
+        throw new Error('Order not found');
       }
-      throw new Error(result.error);
+      
+      mockOrders[orderIndex] = {
+        ...mockOrders[orderIndex],
+        status,
+        updatedAt: new Date().toISOString()
+      };
+      
+      return { id, status };
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -51,11 +150,21 @@ export const cancelOrder = createAsyncThunk(
   'orders/cancelOrder',
   async (id, { rejectWithValue }) => {
     try {
-      const result = await apiSlice.cancelOrder(id);
-      if (result.success) {
-        return id;
+      await simulateApiDelay();
+      
+      // Find and update the order in mock data
+      const orderIndex = mockOrders.findIndex(order => order.id === id);
+      if (orderIndex === -1) {
+        throw new Error('Order not found');
       }
-      throw new Error(result.error);
+      
+      mockOrders[orderIndex] = {
+        ...mockOrders[orderIndex],
+        status: 'cancelled',
+        updatedAt: new Date().toISOString()
+      };
+      
+      return id;
     } catch (error) {
       return rejectWithValue(error.message);
     }
@@ -133,13 +242,12 @@ const orderSlice = createSlice({
         served: 0,
         cancelled: 0
       };
-      
+      const allowedStatuses = Object.keys(stats).filter(key => key !== 'total');
       state.orders.forEach(order => {
-        if (stats.hasOwnProperty(order.status)) {
+        if (allowedStatuses.includes(order.status)) {
           stats[order.status]++;
         }
       });
-      
       state.orderStats = stats;
     },
     clearError: (state) => {

@@ -49,7 +49,7 @@ export function UserManagement() {
   const [showUserDetails, setShowUserDetails] = useState(null);
   const [viewMode, setViewMode] = useState('table'); // table or cards
 
-  const roles = ['all', 'admin', 'chef', 'waiter', 'customer'];
+  const roles = ['all', 'admin', 'chef', 'waiter'];
   const statuses = ['all', 'active', 'suspended', 'banned'];
 
   // Filter users
@@ -68,7 +68,6 @@ export function UserManagement() {
   const userStats = useMemo(() => {
     const totalUsers = appUsers.length;
     const activeUsers = appUsers.filter(u => u.status === 'active').length;
-    const customers = appUsers.filter(u => u.role === 'customer').length;
     const staff = appUsers.filter(u => ['admin', 'chef', 'waiter'].includes(u.role)).length;
     const newThisMonth = appUsers.filter(u => {
       const joinDate = new Date(u.joinedDate);
@@ -77,7 +76,7 @@ export function UserManagement() {
       return joinDate >= thisMonth;
     }).length;
 
-    return { totalUsers, activeUsers, customers, staff, newThisMonth };
+    return { totalUsers, activeUsers, staff, newThisMonth };
   }, [appUsers]);
 
   const getRoleIcon = (role) => {
@@ -159,7 +158,7 @@ export function UserManagement() {
       name: user?.name || '',
       email: user?.email || '',
       phone: user?.phone || '',
-      role: user?.role || 'customer',
+      role: user?.role || 'waiter',
       address: user?.address || '',
       emergencyContact: user?.emergencyContact || '',
       notes: user?.notes || '',
@@ -256,44 +255,27 @@ export function UserManagement() {
                 />
               </div>
               
-              {formData.role !== 'customer' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
-                  <input
-                    type="tel"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    value={formData.emergencyContact}
-                    onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
-                    placeholder="+1234567890"
-                  />
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Emergency Contact</label>
+                <input
+                  type="tel"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={formData.emergencyContact}
+                  onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
+                  placeholder="+1234567890"
+                />
+              </div>
               
-              {formData.role === 'customer' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Preferences</label>
-                  <input
-                    type="text"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    value={formData.preferences}
-                    onChange={(e) => setFormData({...formData, preferences: e.target.value})}
-                    placeholder="vegetarian, no-spicy, gluten-free (comma separated)"
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Permissions</label>
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  value={formData.permissions}
+                  onChange={(e) => setFormData({...formData, permissions: e.target.value})}
+                  placeholder="kitchen, menu, orders (comma separated)"
                   />
                 </div>
-              )}
-              
-              {formData.role !== 'customer' && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Permissions</label>
-                  <input
-                    type="text"
-                    className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    value={formData.permissions}
-                    onChange={(e) => setFormData({...formData, permissions: e.target.value})}
-                    placeholder="kitchen, menu, orders (comma separated)"
-                  />
-                </div>
-              )}
               
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
@@ -471,39 +453,6 @@ export function UserManagement() {
 
             {/* Statistics Sidebar */}
             <div className="space-y-4">
-              {user.role === 'customer' && (
-                <>
-                  <div className="bg-purple-50 p-4 rounded-lg text-center">
-                    <Star className="w-8 h-8 text-purple-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-purple-700">Loyalty Points</p>
-                    <p className="text-2xl font-bold text-purple-900">{user.points || 0}</p>
-                    <button
-                      onClick={() => setShowPointsModal(true)}
-                      className="mt-2 text-xs text-purple-600 hover:text-purple-800"
-                    >
-                      Adjust Points
-                    </button>
-                  </div>
-
-                  <div className="bg-blue-50 p-4 rounded-lg text-center">
-                    <Activity className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-blue-700">Total Orders</p>
-                    <p className="text-2xl font-bold text-blue-900">{userOrders.length}</p>
-                  </div>
-
-                  {user.favoriteItems?.length > 0 && (
-                    <div className="bg-orange-50 p-4 rounded-lg">
-                      <h6 className="font-semibold text-orange-900 mb-2">Favorite Items</h6>
-                      <div className="space-y-1">
-                        {user.favoriteItems.map((item, index) => (
-                          <div key={index} className="text-sm text-orange-800">{item}</div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
-
               {user.permissions?.length > 0 && (
                 <div className="bg-green-50 p-4 rounded-lg">
                   <h6 className="font-semibold text-green-900 mb-2">Permissions</h6>
@@ -840,25 +789,9 @@ export function UserManagement() {
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {user.role === 'customer' ? (
-                      <div className="space-y-1">
-                        <div className="text-sm text-gray-900">
-                          {user.points || 0} points
-                        </div>
-                        {user.loyaltyTier && (
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getLoyaltyColor(user.loyaltyTier)}`}>
-                            {user.loyaltyTier}
-                          </span>
-                        )}
-                        <div className="text-xs text-gray-500">
-                          {user.totalOrders || 0} orders
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="text-sm text-gray-500">
-                        Staff member
-                      </div>
-                    )}
+                    <div className="text-sm text-gray-500">
+                      Staff member
+                    </div>
                   </td>
                   
                   <td className="px-6 py-4 whitespace-nowrap">

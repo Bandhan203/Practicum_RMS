@@ -8,6 +8,9 @@ import analyticsReducer from './features/analyticsSlice';
 import authReducer from './features/authSlice';
 import notificationReducer from './features/notificationSlice';
 
+// Use import.meta.env for Vite projects instead of process.env
+const isProd = import.meta.env && import.meta.env.MODE === 'production';
+
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -25,5 +28,5 @@ export const store = configureStore({
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
     }),
-  devTools: process.env.NODE_ENV !== 'production',
+  devTools: !isProd,
 });

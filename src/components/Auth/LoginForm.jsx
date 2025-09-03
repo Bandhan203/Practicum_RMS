@@ -84,8 +84,7 @@ export function LoginForm() {
   const demoAccounts = [
     { email: 'admin@restaurant.com', role: 'Admin', password: 'password' },
     { email: 'chef@restaurant.com', role: 'Chef', password: 'password' },
-    { email: 'waiter@restaurant.com', role: 'Waiter', password: 'password' },
-    { email: 'customer@restaurant.com', role: 'Customer', password: 'password' }
+    { email: 'waiter@restaurant.com', role: 'Waiter', password: 'password' }
   ];
 
   const fillDemoCredentials = (email, password) => {

@@ -185,13 +185,12 @@ const reservationSlice = createSlice({
         completed: 0,
         cancelled: 0
       };
-      
+      const allowedStatuses = Object.keys(stats).filter(key => key !== 'total');
       state.reservations.forEach(reservation => {
-        if (stats.hasOwnProperty(reservation.status)) {
+        if (allowedStatuses.includes(reservation.status)) {
           stats[reservation.status]++;
         }
       });
-      
       state.reservationStats = stats;
     },
     clearAvailability: (state) => {

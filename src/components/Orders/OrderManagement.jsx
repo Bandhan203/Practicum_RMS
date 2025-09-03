@@ -1,5 +1,17 @@
-import React, { useState } from 'react';
-import { useApp } from '../../contexts/AppContext';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { 
+  fetchOrders, 
+  updateOrderStatus, 
+  removeItemFromOrder,
+  createOrder,
+  selectOrders,
+  selectOrdersLoading,
+  selectOrdersError 
+} from '../../store/features/orderSlice';
+import { 
+  fetchMenuItems
+} from '../../store/features/menuSlice';
 import { 
   Clock, 
   CheckCircle, 
@@ -8,21 +20,51 @@ import {
   User,
   MapPin,
   DollarSign,
-  Trash2
-} from 'lucide-react';
+  Trash2,
+  Package,
+  Phone,
+  Mail,
+  Plus
+} from '../common/Icons';
 import { format } from 'date-fns';
+import { AddOrderModal } from './AddOrderModal';
 
 export function OrderManagement() {
-  const { orders, updateOrderStatus, removeItemFromOrder } = useApp();
-  const [filterStatus, setFilterStatus] = useState('all');
+  const dispatch = useDispatch();
+  const orders = useSelector(selectOrders);
+  const loading = useSelector(selectOrdersLoading);
+  const error = useSelector(selectOrdersError);
+  
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedOrderType, setSelectedOrderType] = useState('all');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [showItemDeleteConfirm, setShowItemDeleteConfirm] = useState(false);
   const [pendingItemDelete, setPendingItemDelete] = useState(null);
+  const [showAddOrderModal, setShowAddOrderModal] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
+    orderType: 'dine-in',
+    tableNumber: '',
+    pickupTime: '',
+    items: [],
+    notes: ''
+  });
+
+  // Fetch orders and menu items on component mount
+  useEffect(() => {
+    dispatch(fetchOrders());
+    dispatch(fetchMenuItems());
+  }, [dispatch]);
 
   const filteredOrders = orders.filter(order => {
-    if (filterStatus === 'all') return true;
-    return order.status === filterStatus;
+    if (selectedStatus === 'all') return true;
+    return order.status === selectedStatus;
+  }).filter(order => {
+    if (selectedOrderType === 'all') return true;
+    return order.orderType === selectedOrderType;
   });
 
   // Handle order status changes with confirmation for cancel/delete actions
@@ -33,7 +75,7 @@ export function OrderManagement() {
       setShowDeleteConfirm(true);
     } else {
       // For non-destructive actions, proceed normally
-      updateOrderStatus(orderId, action);
+      dispatch(updateOrderStatus({ id: orderId, status: action }));
     }
   };
 
@@ -44,8 +86,8 @@ export function OrderManagement() {
   };
 
   const confirmItemDelete = () => {
-    if (pendingItemDelete && removeItemFromOrder) {
-      removeItemFromOrder(pendingItemDelete.orderId, pendingItemDelete.itemIndex);
+    if (pendingItemDelete) {
+      dispatch(removeItemFromOrder(pendingItemDelete));
     }
     setPendingItemDelete(null);
     setShowItemDeleteConfirm(false);
@@ -58,7 +100,7 @@ export function OrderManagement() {
 
   const confirmDeleteAction = () => {
     if (pendingAction) {
-      updateOrderStatus(pendingAction.orderId, pendingAction.action);
+      dispatch(updateOrderStatus({ id: pendingAction.orderId, status: pendingAction.action }));
       setPendingAction(null);
       setShowDeleteConfirm(false);
     }
@@ -77,6 +119,22 @@ export function OrderManagement() {
       case 'served': return <CheckCircle className="w-4 h-4 text-green-600" />;
       case 'cancelled': return <XCircle className="w-4 h-4 text-red-500" />;
       default: return <Clock className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getOrderTypeIcon = (orderType) => {
+    switch (orderType) {
+      case 'dine-in': return <MapPin className="w-4 h-4 text-blue-500" />;
+      case 'pickup': return <Package className="w-4 h-4 text-orange-500" />;
+      default: return <MapPin className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getOrderTypeColor = (orderType) => {
+    switch (orderType) {
+      case 'dine-in': return 'bg-blue-100 text-blue-800';
+      case 'pickup': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -107,25 +165,143 @@ export function OrderManagement() {
   // Allow all users to update orders in the simplified version
   const canUpdateOrders = true;
 
+  // Add Order Modal Functions
+  const handleAddOrder = async (e) => {
+    e.preventDefault();
+    
+    if (!newOrder.customerName || newOrder.items.length === 0) {
+      return;
+    }
+
+    try {
+      const orderData = {
+        customerName: newOrder.customerName,
+        customerEmail: newOrder.customerEmail,
+        customerPhone: newOrder.customerPhone,
+        orderType: newOrder.orderType,
+        tableNumber: newOrder.orderType === 'dine-in' ? newOrder.tableNumber : null,
+        pickupTime: newOrder.orderType === 'pickup' ? newOrder.pickupTime : null,
+        items: newOrder.items,
+        notes: newOrder.notes,
+        status: 'pending',
+        total: newOrder.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+      };
+
+      await dispatch(createOrder(orderData)).unwrap();
+      
+      // Reset form and close modal
+      setNewOrder({
+        customerName: '',
+        customerEmail: '',
+        customerPhone: '',
+        orderType: 'dine-in',
+        tableNumber: '',
+        pickupTime: '',
+        items: [],
+        notes: ''
+      });
+      setShowAddOrderModal(false);
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      // You could add error handling UI here
+    }
+  };
+
+  const addItemToOrder = (menuItem) => {
+    const existingItemIndex = newOrder.items.findIndex(item => item.id === menuItem.id);
+    
+    if (existingItemIndex >= 0) {
+      // Item already exists, increase quantity
+      updateItemQuantity(existingItemIndex, newOrder.items[existingItemIndex].quantity + 1);
+    } else {
+      // Add new item
+      setNewOrder(prev => ({
+        ...prev,
+        items: [...prev.items, { ...menuItem, quantity: 1 }]
+      }));
+    }
+  };
+
+  const updateItemQuantity = (index, newQuantity) => {
+    if (newQuantity <= 0) {
+      removeItemFromOrder(index);
+      return;
+    }
+
+    setNewOrder(prev => ({
+      ...prev,
+      items: prev.items.map((item, i) => 
+        i === index ? { ...item, quantity: newQuantity } : item
+      )
+    }));
+  };
+
+  const removeItemFromOrder = (index) => {
+    setNewOrder(prev => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index)
+    }));
+  };
+
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
-        <div className="flex items-center space-x-4">
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-          >
-            <option value="all">All Orders</option>
-            <option value="pending">Pending</option>
-            <option value="preparing">Preparing</option>
-            <option value="ready">Ready</option>
-            <option value="served">Served</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+      {/* Loading State */}
+      {loading && (
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
         </div>
-      </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div className="flex">
+            <XCircle className="h-5 w-5 text-red-400" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">Error loading orders</h3>
+              <p className="mt-2 text-sm text-red-700">{error}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      {!loading && !error && (
+        <>
+          <div className="flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
+            <button
+              onClick={() => setShowAddOrderModal(true)}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Add Order</span>
+            </button>
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="preparing">Preparing</option>
+              <option value="ready">Ready</option>
+              <option value="served">Served</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <select
+              value={selectedOrderType}
+              onChange={(e) => setSelectedOrderType(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            >
+              <option value="all">All Types</option>
+              <option value="dine-in">Dine In</option>
+              <option value="pickup">Pickup</option>
+            </select>
+          </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {filteredOrders.map((order) => (
@@ -134,8 +310,16 @@ export function OrderManagement() {
             <div className="p-6 pb-4">
               <div className="flex justify-between items-start mb-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate">Order #{order.id}</h3>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <h3 className="text-lg font-semibold text-gray-900 truncate">Order #{order.id}</h3>
+                    {order.orderType && (
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getOrderTypeColor(order.orderType)}`}>
+                        {getOrderTypeIcon(order.orderType)}
+                        <span className="ml-1">{order.orderType === 'dine-in' ? 'Dine In' : 'Pickup'}</span>
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-500">
                     {format(new Date(order.createdAt), 'PPp')}
                   </p>
                 </div>
@@ -159,12 +343,36 @@ export function OrderManagement() {
                   </div>
                   <span className="text-sm text-gray-600 flex-1 truncate">{order.customerName}</span>
                 </div>
-                {order.tableNumber && (
+                {order.orderType === 'dine-in' && order.tableNumber && (
                   <div className="flex items-center space-x-3">
                     <div className="w-5 h-5 flex items-center justify-center">
                       <MapPin className="w-4 h-4 text-gray-400" />
                     </div>
                     <span className="text-sm text-gray-600 flex-1">Table {order.tableNumber}</span>
+                  </div>
+                )}
+                {order.orderType === 'pickup' && order.customerPhone && (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <span className="text-sm text-gray-600 flex-1">{order.customerPhone}</span>
+                  </div>
+                )}
+                {order.orderType === 'pickup' && order.customerEmail && (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <span className="text-sm text-gray-600 flex-1 truncate">{order.customerEmail}</span>
+                  </div>
+                )}
+                {order.orderType === 'pickup' && order.pickupTime && (
+                  <div className="flex items-center space-x-3">
+                    <div className="w-5 h-5 flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-gray-400" />
+                    </div>
+                    <span className="text-sm text-gray-600 flex-1">Pickup: {format(new Date(order.pickupTime), 'h:mm a')}</span>
                   </div>
                 )}
                 <div className="flex items-center space-x-3">
@@ -176,9 +384,9 @@ export function OrderManagement() {
                 {order.estimatedTime && (
                   <div className="flex items-center space-x-3">
                     <div className="w-5 h-5 flex items-center justify-center">
-                      <Clock className="w-4 h-4 text-gray-400" />
+                      <AlertCircle className="w-4 h-4 text-gray-400" />
                     </div>
-                    <span className="text-sm text-gray-600 flex-1">{order.estimatedTime} min</span>
+                    <span className="text-sm text-gray-600 flex-1">Est. {order.estimatedTime} min</span>
                   </div>
                 )}
               </div>
@@ -311,6 +519,17 @@ export function OrderManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Add Order Modal */}
+      <AddOrderModal
+        showModal={showAddOrderModal}
+        onClose={() => setShowAddOrderModal(false)}
+        newOrder={newOrder}
+        setNewOrder={setNewOrder}
+        onSubmit={handleAddOrder}
+      />
+        </>
       )}
     </div>
   );

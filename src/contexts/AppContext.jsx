@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { useState, createContext, useContext } from 'react';
 import { format } from 'date-fns';
 
-const AppContext = createContext(undefined);
+// Create the context
+const AppContext = createContext();
 
 // Mock data
 const mockMenuItems = [
@@ -511,10 +512,14 @@ const mockOrders = [
     id: '1',
     customerId: '4',
     customerName: 'Customer Jane',
+    orderType: 'dine-in', // dine-in or pickup
+    customerPhone: '+880-1234567890',
+    customerEmail: 'jane@email.com',
     items: [{ menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 1, price: 18.99 }],
     totalAmount: 18.99,
     status: 'preparing',
-    tableNumber: 5,
+    tableNumber: 5, // Only for dine-in orders
+    pickupTime: null, // Only for pickup orders
     createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
     estimatedTime: 15
   },
@@ -523,13 +528,17 @@ const mockOrders = [
     id: '2',
     customerId: '5',
     customerName: 'Mike Johnson',
+    orderType: 'pickup',
+    customerPhone: '+880-9876543210',
+    customerEmail: 'mike@email.com',
     items: [
       { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 },
       { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 2, price: 8.99 }
     ],
     totalAmount: 34.97,
     status: 'pending',
-    tableNumber: 3,
+    tableNumber: null,
+    pickupTime: new Date(Date.now() + 25 * 60 * 1000), // 25 minutes from now
     createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
     estimatedTime: 20,
     specialInstructions: 'Extra dressing on the side, please'
@@ -538,6 +547,9 @@ const mockOrders = [
     id: '3',
     customerId: '6',
     customerName: 'Sarah Wilson',
+    orderType: 'dine-in',
+    customerPhone: '+880-5555666677',
+    customerEmail: 'sarah@email.com',
     items: [
       { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 2, price: 22.99 },
       { menuItemId: '7', menuItemName: 'French Fries', quantity: 2, price: 9.99 }
@@ -545,6 +557,7 @@ const mockOrders = [
     totalAmount: 65.96,
     status: 'pending',
     tableNumber: 8,
+    pickupTime: null,
     createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
     estimatedTime: 25,
     specialInstructions: 'Medium well burgers, extra crispy fries'
@@ -553,12 +566,16 @@ const mockOrders = [
     id: '4',
     customerId: '7',
     customerName: 'David Chen',
+    orderType: 'pickup',
+    customerPhone: '+880-9999888877',
+    customerEmail: 'david@email.com',
     items: [
       { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 1, price: 19.99 }
     ],
     totalAmount: 19.99,
     status: 'pending',
-    tableNumber: 12,
+    tableNumber: null,
+    pickupTime: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
     createdAt: new Date(Date.now() - 1 * 60 * 1000), // 1 minute ago
     estimatedTime: 18
   },
@@ -567,6 +584,9 @@ const mockOrders = [
     id: '5',
     customerId: '8',
     customerName: 'Emma Brown',
+    orderType: 'dine-in',
+    customerPhone: '+880-7777888899',
+    customerEmail: 'emma@email.com',
     items: [
       { menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 1, price: 18.99 },
       { menuItemId: '9', menuItemName: 'Chocolate Cake', quantity: 1, price: 12.99 }
@@ -574,6 +594,7 @@ const mockOrders = [
     totalAmount: 31.98,
     status: 'served',
     tableNumber: 6,
+    pickupTime: null,
     createdAt: new Date(Date.now() - 90 * 60 * 1000), // 1.5 hours ago
     estimatedTime: 15
   },
@@ -581,13 +602,17 @@ const mockOrders = [
     id: '6',
     customerId: '9',
     customerName: 'Robert Taylor',
+    orderType: 'pickup',
+    customerPhone: '+880-6666777788',
+    customerEmail: 'robert@email.com',
     items: [
       { menuItemId: '5', menuItemName: 'Fish & Chips', quantity: 1, price: 21.99 },
       { menuItemId: '10', menuItemName: 'Iced Tea', quantity: 2, price: 4.99 }
     ],
     totalAmount: 31.97,
     status: 'served',
-    tableNumber: 15,
+    tableNumber: null,
+    pickupTime: new Date(Date.now() - 100 * 60 * 1000), // Was picked up 100 minutes ago
     createdAt: new Date(Date.now() - 120 * 60 * 1000), // 2 hours ago
     estimatedTime: 22
   },
@@ -595,6 +620,9 @@ const mockOrders = [
     id: '7',
     customerId: '10',
     customerName: 'Lisa Anderson',
+    orderType: 'dine-in',
+    customerPhone: '+880-4444555566',
+    customerEmail: 'lisa@email.com',
     items: [
       { menuItemId: '6', menuItemName: 'Vegetable Stir Fry', quantity: 1, price: 17.99 },
       { menuItemId: '11', menuItemName: 'Fresh Juice', quantity: 1, price: 6.99 }
@@ -602,6 +630,7 @@ const mockOrders = [
     totalAmount: 24.98,
     status: 'served',
     tableNumber: 4,
+    pickupTime: null,
     createdAt: new Date(Date.now() - 150 * 60 * 1000), // 2.5 hours ago
     estimatedTime: 16
   },
@@ -610,6 +639,9 @@ const mockOrders = [
     id: '8',
     customerId: '11',
     customerName: 'Tom Wilson',
+    orderType: 'dine-in',
+    customerPhone: '+880-3333444455',
+    customerEmail: 'tom@email.com',
     items: [
       { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 3, price: 22.99 },
       { menuItemId: '7', menuItemName: 'French Fries', quantity: 3, price: 9.99 }
@@ -617,6 +649,7 @@ const mockOrders = [
     totalAmount: 98.94,
     status: 'cancelled',
     tableNumber: 2,
+    pickupTime: null,
     createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
     estimatedTime: 25,
     specialInstructions: 'Customer left due to long wait time'
@@ -625,12 +658,16 @@ const mockOrders = [
     id: '9',
     customerId: '12',
     customerName: 'Anna Garcia',
+    orderType: 'pickup',
+    customerPhone: '+880-2222333344',
+    customerEmail: 'anna@email.com',
     items: [
       { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 }
     ],
     totalAmount: 16.99,
     status: 'cancelled',
-    tableNumber: 9,
+    tableNumber: null,
+    pickupTime: new Date(Date.now() - 55 * 60 * 1000), // Was supposed to pickup 55 minutes ago
     createdAt: new Date(Date.now() - 75 * 60 * 1000), // 1.25 hours ago
     estimatedTime: 20,
     specialInstructions: 'Customer allergic to croutons - cancelled after ordering'
@@ -640,6 +677,9 @@ const mockOrders = [
     id: '10',
     customerId: '13',
     customerName: 'Chris Martinez',
+    orderType: 'dine-in',
+    customerPhone: '+880-1111222233',
+    customerEmail: 'chris@email.com',
     items: [
       { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 2, price: 19.99 },
       { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 1, price: 8.99 }
@@ -647,6 +687,7 @@ const mockOrders = [
     totalAmount: 48.97,
     status: 'ready',
     tableNumber: 7,
+    pickupTime: null,
     createdAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
     estimatedTime: 18
   }
@@ -1037,55 +1078,6 @@ const mockAppUsers = [
     address: '789 Service Road, City',
     emergencyContact: '+1234567802',
     notes: 'Senior waiter with excellent customer service skills'
-  },
-  {
-    id: '4',
-    name: 'Customer Jane',
-    email: 'customer@restaurant.com',
-    phone: '+1234567893',
-    role: 'customer',
-    status: 'active',
-    joinedDate: new Date('2023-04-05'),
-    lastLogin: new Date(Date.now() - 1 * 60 * 60 * 1000),
-    points: 250,
-    totalOrders: 15,
-    preferences: ['vegetarian', 'no-spicy'],
-    favoriteItems: ['Margherita Pizza', 'Caesar Salad'],
-    address: '321 Customer Lane, City',
-    loyaltyTier: 'Gold'
-  },
-  {
-    id: '5',
-    name: 'Sarah Wilson',
-    email: 'sarah@email.com',
-    phone: '+1234567894',
-    role: 'customer',
-    status: 'active',
-    joinedDate: new Date('2023-05-20'),
-    lastLogin: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    points: 180,
-    totalOrders: 8,
-    preferences: ['gluten-free'],
-    favoriteItems: ['Grilled Salmon'],
-    address: '654 Wilson Street, City',
-    loyaltyTier: 'Silver'
-  },
-  {
-    id: '6',
-    name: 'Mike Johnson',
-    email: 'mike@email.com',
-    phone: '+1234567895',
-    role: 'customer',
-    status: 'suspended',
-    joinedDate: new Date('2023-06-15'),
-    lastLogin: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    points: 50,
-    totalOrders: 3,
-    preferences: [],
-    favoriteItems: [],
-    address: '987 Johnson Ave, City',
-    loyaltyTier: 'Bronze',
-    suspensionReason: 'Multiple no-shows for reservations'
   }
 ];
 
@@ -1266,6 +1258,20 @@ export function AppProvider({ children }) {
     setCart(prev => prev.filter(item => item.menuItemId !== menuItemId));
   };
 
+  const updateCartQuantity = (menuItemId, quantity) => {
+    if (quantity <= 0) {
+      removeFromCart(menuItemId);
+    } else {
+      setCart(prev => 
+        prev.map(item => 
+          item.menuItemId === menuItemId 
+            ? { ...item, quantity } 
+            : item
+        )
+      );
+    }
+  };
+
   const clearCart = () => {
     setCart([]);
   };
@@ -1274,7 +1280,14 @@ export function AppProvider({ children }) {
     const newOrder = {
       ...order,
       id: Date.now().toString(),
-      createdAt: new Date()
+      createdAt: new Date(),
+      // Set defaults based on order type
+      tableNumber: order.orderType === 'dine-in' ? order.tableNumber : null,
+      pickupTime: order.orderType === 'pickup' ? order.pickupTime : null,
+      // Ensure required contact info for pickup orders
+      customerPhone: order.customerPhone || '',
+      customerEmail: order.customerEmail || '',
+      orderType: order.orderType || 'dine-in' // default to dine-in
     };
     setOrders(prev => [newOrder, ...prev]);
     clearCart();
@@ -1639,6 +1652,7 @@ export function AppProvider({ children }) {
       cart,
       addToCart,
       removeFromCart,
+      updateCartQuantity,
       clearCart,
       placeOrder,
       updateOrderStatus,
@@ -1678,6 +1692,7 @@ export function AppProvider({ children }) {
   );
 }
 
+// useApp hook
 export function useApp() {
   const context = useContext(AppContext);
   if (context === undefined) {

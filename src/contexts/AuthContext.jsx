@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-const AuthContext = createContext(undefined);
+// Create the context
+const AuthContext = createContext();
 
 // Configure axios defaults
 axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
@@ -12,8 +13,7 @@ axios.defaults.withCredentials = true;
 const mockUsers = [
   { id: '1', name: 'Admin User', email: 'admin@restaurant.com', role: 'admin' },
   { id: '2', name: 'Chef Mario', email: 'chef@restaurant.com', role: 'chef' },
-  { id: '3', name: 'Waiter John', email: 'waiter@restaurant.com', role: 'waiter' },
-  { id: '4', name: 'Customer Jane', email: 'customer@restaurant.com', role: 'customer', points: 250 },
+  { id: '3', name: 'Waiter John', email: 'waiter@restaurant.com', role: 'waiter' }
 ];
 
 export function AuthProvider({ children }) {
@@ -250,6 +250,7 @@ export function AuthProvider({ children }) {
   );
 }
 
+// useAuth hook
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {

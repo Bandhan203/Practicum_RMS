@@ -290,7 +290,7 @@ export const selectIsSessionExpired = (state) => {
 // Role-based access selector
 export const selectCanAccess = (requiredRole) => (state) => {
   const userRole = state.auth.user?.role;
-  const roleHierarchy = ['customer', 'staff', 'chef', 'admin'];
+  const roleHierarchy = ['waiter', 'chef', 'admin'];
   const userLevel = roleHierarchy.indexOf(userRole);
   const requiredLevel = roleHierarchy.indexOf(requiredRole);
   return userLevel >= requiredLevel;

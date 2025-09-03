@@ -13,7 +13,7 @@ export function SignupForm() {
     email: '',
     password: '',
     confirmPassword: '',
-    role: 'customer'
+    role: 'waiter'
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);

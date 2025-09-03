@@ -153,10 +153,10 @@ export function ReportsManagement() {
     const lowStockItems = inventory.filter(item => item.quantity <= item.threshold);
     const outOfStockItems = inventory.filter(item => item.quantity === 0);
     
-    // Customer analytics
-    const totalCustomers = appUsers.filter(user => user.role === 'customer').length;
-    const activeCustomers = appUsers.filter(user => 
-      user.role === 'customer' && user.status === 'active'
+    // Staff analytics
+    const totalStaff = appUsers.filter(user => ['admin', 'chef', 'waiter'].includes(user.role)).length;
+    const activeStaff = appUsers.filter(user => 
+      ['admin', 'chef', 'waiter'].includes(user.role) && user.status === 'active'
     ).length;
 
     return {
@@ -166,8 +166,8 @@ export function ReportsManagement() {
         averageOrderValue,
         totalWasteCost,
         totalWasteQuantity,
-        totalCustomers,
-        activeCustomers,
+        totalStaff,
+        activeStaff,
         lowStockItems: lowStockItems.length,
         outOfStockItems: outOfStockItems.length
       },
@@ -742,15 +742,15 @@ export function ReportsManagement() {
         </div>
       )}
 
-      {/* Customer Analytics */}
+      {/* Staff Analytics */}
       {selectedReport === 'customers' && (
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-white rounded-lg shadow-sm p-6 border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                  <p className="text-2xl font-bold text-gray-900">{reportData.overview.totalCustomers}</p>
+                  <p className="text-sm font-medium text-gray-600">Total Staff</p>
+                  <p className="text-2xl font-bold text-gray-900">{reportData.overview.totalStaff}</p>
                 </div>
                 <Users className="w-8 h-8 text-blue-500" />
               </div>
@@ -759,8 +759,8 @@ export function ReportsManagement() {
             <div className="bg-white rounded-lg shadow-sm p-6 border">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Active Customers</p>
-                  <p className="text-2xl font-bold text-green-600">{reportData.overview.activeCustomers}</p>
+                  <p className="text-sm font-medium text-gray-600">Active Staff</p>
+                  <p className="text-2xl font-bold text-green-600">{reportData.overview.activeStaff}</p>
                 </div>
                 <Users className="w-8 h-8 text-green-500" />
               </div>

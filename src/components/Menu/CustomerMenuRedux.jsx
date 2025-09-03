@@ -1,14 +1,37 @@
-import React, { useState } from 'react';
-import { useApp } from '../../contexts/AppContext';
-import { Plus, Star, Clock, ShoppingCart, Search, Heart, DollarSign } from '../common/Icons';
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Plus, Star, Clock, ShoppingCart, Search, Filter, Heart, DollarSign } from '../common/Icons';
+import { 
+  addToCart, 
+  removeFromCart,
+  selectCart,
+  selectCartTotal 
+} from '../../store/features/orderSlice';
+import { 
+  fetchMenuItems,
+  selectMenuItems,
+  selectMenuLoading,
+  selectMenuError 
+} from '../../store/features/menuSlice';
 import { CartCheckout } from '../Cart/CartCheckout';
 
-export function CustomerMenu() {
-  const { menuItems } = useApp();
+export function CustomerMenuRedux() {
+  const dispatch = useDispatch();
+  const menuItems = useSelector(selectMenuItems);
+  const cart = useSelector(selectCart);
+  const cartTotal = useSelector(selectCartTotal);
+  const loading = useSelector(selectMenuLoading);
+  const error = useSelector(selectMenuError);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [favoriteItems, setFavoriteItems] = useState([]);
   const [showCart, setShowCart] = useState(false);
+
+  // Fetch menu items on component mount
+  useEffect(() => {
+    dispatch(fetchMenuItems());
+  }, [dispatch]);
 
   const categories = ['all', ...new Set(menuItems.map(item => item.category))];
   
@@ -28,9 +51,41 @@ export function CustomerMenu() {
     );
   };
 
+  const getCartQuantity = (itemId) => {
+    const cartItem = cart.find(item => item.menuItemId === itemId);
+    return cartItem ? cartItem.quantity : 0;
+  };
+
+  const handleAddToCart = (itemId) => {
+    dispatch(addToCart({ menuItemId: itemId, quantity: 1 }));
+  };
+
+  const handleRemoveFromCart = (itemId) => {
+    dispatch(removeFromCart(itemId));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <h3 className="text-lg font-medium text-red-800">Error loading menu</h3>
+          <p className="text-red-600">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
-      {/* Header */}
+      {/* Header with Cart */}
       <div className="flex justify-between items-center">
         <div className="text-center flex-1">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Our Menu</h1>
@@ -38,10 +93,15 @@ export function CustomerMenu() {
         </div>
         <button
           onClick={() => setShowCart(true)}
-          className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2"
+          className="relative bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors flex items-center space-x-2"
         >
           <ShoppingCart className="w-5 h-5" />
-          <span>View Cart</span>
+          <span>Cart ({cart.reduce((sum, item) => sum + item.quantity, 0)})</span>
+          {cart.length > 0 && (
+            <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center">
+              {cart.reduce((sum, item) => sum + item.quantity, 0)}
+            </span>
+          )}
         </button>
       </div>
 
@@ -73,6 +133,7 @@ export function CustomerMenu() {
       {/* Menu Items Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredItems.map((item) => {
+          const cartQuantity = getCartQuantity(item.id);
           const isFavorite = favoriteItems.includes(item.id);
           
           return (
@@ -117,10 +178,35 @@ export function CustomerMenu() {
                   </div>
                 </div>
                 
-                <button className="w-full bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2">
-                  <Plus className="w-4 h-4" />
-                  <span>Add to Cart</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  {cartQuantity > 0 ? (
+                    <div className="flex items-center space-x-2 flex-1">
+                      <button
+                        onClick={() => handleRemoveFromCart(item.id)}
+                        className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        -
+                      </button>
+                      <span className="px-4 py-2 bg-orange-600 text-white rounded-lg font-medium">
+                        {cartQuantity}
+                      </span>
+                      <button
+                        onClick={() => handleAddToCart(item.id)}
+                        className="bg-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+                      >
+                        +
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleAddToCart(item.id)}
+                      className="flex-1 bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add to Cart</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           );
