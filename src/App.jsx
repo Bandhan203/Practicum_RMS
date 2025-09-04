@@ -83,17 +83,16 @@ function SimpleLogin() {
             </div>
           </form>
 
-            <div className="text-center">
-              <span className="text-sm text-gray-600">
-                Don&apos;t have an account?{' '}
-                <button 
-                  onClick={() => navigate('/signup')}
-                  className="font-medium text-red-600 hover:text-red-500"
-                >
-                  Sign up
-                </button>
-              </span>
-            </div>
+          <div className="text-center">
+            <span className="text-sm text-gray-600">
+              Don&apos;t have an account?{' '}
+              <button
+                onClick={() => navigate('/signup')}
+                className="font-medium text-red-600 hover:text-red-500"
+              >
+                Sign up
+              </button>
+            </span>
           </div>
         </div>
       </div>
