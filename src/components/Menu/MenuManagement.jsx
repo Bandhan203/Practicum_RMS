@@ -33,8 +33,10 @@ import {
   Pie
 } from 'recharts';
 
-export function MenuManagement() {
+export function MenuManagement({ readOnly = false }) {
   const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem } = useApp();
+  const userRole = localStorage.getItem('userRole') || 'admin';
+  const isReadOnly = readOnly || userRole === 'waiter';
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -593,8 +595,15 @@ export function MenuManagement() {
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center space-y-4 lg:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Menu Management</h1>
-          <p className="text-gray-600 mt-1">Manage your restaurant&apos;s menu items and track performance analytics.</p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {isReadOnly ? 'Menu Items' : 'Menu Management'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {isReadOnly 
+              ? 'Browse available menu items and their details.'
+              : 'Manage your restaurant\'s menu items and track performance analytics.'
+            }
+          </p>
         </div>
         <div className="flex items-center space-x-4">
           <div className="relative flex bg-white rounded-lg p-1 shadow-sm border border-gray-200 overflow-hidden">
@@ -635,7 +644,7 @@ export function MenuManagement() {
               </span>
             </button>
           </div>
-          {viewMode === 'grid' && (
+          {viewMode === 'grid' && !isReadOnly && (
             <button
               onClick={() => setShowAddForm(true)}
               className="bg-brand-dark text-white px-6 py-2 rounded-lg hover:bg-brand-light focus:ring-2 focus:ring-brand-dark focus:ring-offset-2 flex items-center space-x-2 shadow-sm transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 active:scale-95 group"
@@ -749,22 +758,24 @@ export function MenuManagement() {
                     )}
                   </div>
                   
-                  <div className="flex space-x-2 mt-auto opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-100">
-                    <button
-                      onClick={() => setEditingItem(item)}
-                        className="flex-1 bg-brand-dark text-white py-2 px-3 rounded-lg hover:bg-brand-light focus:ring-2 focus:ring-brand-dark focus:ring-offset-2 flex items-center justify-center space-x-1 transition-all duration-300 transform hover:scale-105 active:scale-95"
-                      >
-                        <Edit className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
-                        <span>Edit</span>
-                      </button>
+                  {!isReadOnly && (
+                    <div className="flex space-x-2 mt-auto opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-300 delay-100">
                       <button
-                        onClick={() => handleDeleteClick(item)}
-                        className="flex-1 bg-brand-light text-white py-2 px-3 rounded-lg hover:bg-brand-dark focus:ring-2 focus:ring-brand-light focus:ring-offset-2 flex items-center justify-center space-x-1 transition-all duration-300 transform hover:scale-105 active:scale-95 menu-delete-btn"
-                      >
-                        <Trash2 className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
-                        <span>Delete</span>
-                      </button>
-                    </div>
+                        onClick={() => setEditingItem(item)}
+                          className="flex-1 bg-brand-dark text-white py-2 px-3 rounded-lg hover:bg-brand-light focus:ring-2 focus:ring-brand-dark focus:ring-offset-2 flex items-center justify-center space-x-1 transition-all duration-300 transform hover:scale-105 active:scale-95"
+                        >
+                          <Edit className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          onClick={() => handleDeleteClick(item)}
+                          className="flex-1 bg-brand-light text-white py-2 px-3 rounded-lg hover:bg-brand-dark focus:ring-2 focus:ring-brand-light focus:ring-offset-2 flex items-center justify-center space-x-1 transition-all duration-300 transform hover:scale-105 active:scale-95 menu-delete-btn"
+                        >
+                          <Trash2 className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -774,14 +785,14 @@ export function MenuManagement() {
       </div>
 
       {/* Add/Edit Form */}
-      {showAddForm && (
+      {showAddForm && !isReadOnly && (
         <MenuItemForm
           onSubmit={handleAddItem}
           onCancel={() => setShowAddForm(false)}
         />
       )}
       
-      {editingItem && (
+      {editingItem && !isReadOnly && (
         <MenuItemForm
           item={editingItem}
           onSubmit={handleUpdateItem}
@@ -790,7 +801,7 @@ export function MenuManagement() {
       )}
 
       {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
+      {showDeleteConfirm && !isReadOnly && (
         <div className="fixed inset-0 z-[99998] flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
           <div className="bg-white rounded-lg shadow-2xl p-6 max-w-md w-full text-center border border-red-300">
             <div className="text-4xl mb-4">🗑️</div>

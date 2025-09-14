@@ -29,11 +29,14 @@ import {
 import { format } from 'date-fns';
 import { AddOrderModal } from './AddOrderModal';
 
-export function OrderManagement() {
+export function OrderManagement({ readOnly = false }) {
   const dispatch = useDispatch();
   const orders = useSelector(selectOrders);
   const loading = useSelector(selectOrdersLoading);
   const error = useSelector(selectOrdersError);
+  
+  const userRole = localStorage.getItem('userRole') || 'admin';
+  const isReadOnly = readOnly || userRole === 'cashier';
   
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedOrderType, setSelectedOrderType] = useState('all');
@@ -162,8 +165,8 @@ export function OrderManagement() {
     }
   };
 
-  // Allow all users to update orders in the simplified version
-  const canUpdateOrders = true;
+  // Role-based order update permission
+  const canUpdateOrders = !isReadOnly;
 
   // Add Order Modal Functions
   const handleAddOrder = async (e) => {
@@ -269,14 +272,18 @@ export function OrderManagement() {
       {!loading && !error && (
         <>
           <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
-            <button
-              onClick={() => setShowAddOrderModal(true)}
-              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-            >
-              <Plus className="h-4 w-4" />
-              <span>Add Order</span>
-            </button>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {isReadOnly ? 'View Orders' : 'Order Management'}
+            </h1>
+            {!isReadOnly && (
+              <button
+                onClick={() => setShowAddOrderModal(true)}
+                className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <Plus className="h-4 w-4" />
+                <span>Add Order</span>
+              </button>
+            )}
           </div>
 
           <div className="flex items-center space-x-4">
@@ -522,13 +529,15 @@ export function OrderManagement() {
       )}
 
       {/* Add Order Modal */}
-      <AddOrderModal
-        showModal={showAddOrderModal}
-        onClose={() => setShowAddOrderModal(false)}
-        newOrder={newOrder}
-        setNewOrder={setNewOrder}
-        onSubmit={handleAddOrder}
-      />
+      {!isReadOnly && (
+        <AddOrderModal
+          showModal={showAddOrderModal}
+          onClose={() => setShowAddOrderModal(false)}
+          newOrder={newOrder}
+          setNewOrder={setNewOrder}
+          onSubmit={handleAddOrder}
+        />
+      )}
         </>
       )}
     </div>

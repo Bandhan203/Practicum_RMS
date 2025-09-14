@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { RestaurantLogo } from '../common/RestaurantLogo';
 
-export function Header({ toggleSidebar }) {
+export function Header({ toggleSidebar, userRole }) {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showFullNotifications, setShowFullNotifications] = useState(false);
@@ -120,10 +120,11 @@ export function Header({ toggleSidebar }) {
   };
 
   const handleLogout = () => {
-    // Clear any stored user data (if you add localStorage later)
-    // localStorage.removeItem('user');
-    // Navigate to landing page
-    navigate('/');
+    // Clear user data
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('isAuthenticated');
+    // Navigate to login page
+    navigate('/login');
   };
 
   return (
@@ -276,12 +277,12 @@ export function Header({ toggleSidebar }) {
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="hidden sm:flex items-center space-x-2">
                   <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium text-gray-700">Admin</span>
+                  <span className="text-sm font-medium text-gray-700 capitalize">{userRole || 'User'}</span>
                 </div>
                 
                 {/* Mobile User Avatar */}
                 <div className="sm:hidden w-8 h-8 bg-brand-dark rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">A</span>
+                  <span className="text-white text-sm font-medium">{userRole?.charAt(0).toUpperCase() || 'U'}</span>
                 </div>
                 
                 <button className="p-2 text-gray-400 hover:text-gray-500">

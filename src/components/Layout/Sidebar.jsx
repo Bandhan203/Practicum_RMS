@@ -5,51 +5,45 @@ import {
   Home,
   ShoppingCart,
   Menu as MenuIcon,
-  Calendar,
-  Package,
-  Trash2,
-  BarChart3,
   Users,
-  FileText,
-  Settings,
+  CreditCard,
   LogOut
 } from 'lucide-react';
 
-const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
+const Sidebar = ({ activeTab, isOpen, setIsOpen, userRole }) => {
   const { isMobile } = useResponsive();
   const navigate = useNavigate();
   const location = useLocation();
 
   // Handle logout
   const handleLogout = useCallback(() => {
-    // Clear any stored user data (if you add localStorage later)
-    // localStorage.removeItem('user');
-    // Navigate to landing page
-    navigate('/');
+    // Clear user data
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('isAuthenticated');
+    // Navigate to login page
+    navigate('/login');
   }, [navigate]);
 
-  // Get current panel name based on active tab
+  // Get current panel name based on active tab and role
   const getCurrentPanelName = useCallback(() => {
-    // Always show Admin Panel for dashboard
+    const roleNames = {
+      admin: 'Admin Panel',
+      waiter: 'Waiter Panel',
+      cashier: 'Cashier Panel'
+    };
+    
     if (activeTab === 'dashboard') {
-      return 'Admin Panel';
+      return roleNames[userRole] || 'Dashboard';
     }
 
-    // Otherwise, show specific section name
     switch (activeTab) {
-      case 'orders': return 'Orders';
+      case 'orders': return 'Order Management';
       case 'menu': return 'Menu Management';
-      case 'analytics': return 'Analytics';
-      case 'waste': return 'Waste Management';
-      case 'inventory': return 'Inventory';
-      case 'reservations': return 'Reservations';
       case 'users': return 'User Management';
-      case 'reports': return 'Reports';
-      case 'settings': return 'Settings';
-      case 'loyalty': return 'Loyalty Program';
-      default: return 'Admin Panel';
+      case 'billing': return 'Billing System';
+      default: return roleNames[userRole] || 'Dashboard';
     }
-  }, [activeTab]);
+  }, [activeTab, userRole]);
 
   // Optimized outside click handler for mobile
   useEffect(() => {
@@ -72,29 +66,36 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
     };
   }, [isMobile, isOpen, setIsOpen]);
 
-  // Memoized menu items - Admin access to all features
+  // Role-based menu items
   const menuItems = useMemo(() => {
-    return [
-      { id: 'dashboard', label: 'Dashboard', icon: Home },
-      { id: 'orders', label: 'Orders', icon: ShoppingCart },
-      { id: 'menu', label: 'Menu', icon: MenuIcon },
-      { id: 'reservations', label: 'Reservations', icon: Calendar },
-      { id: 'inventory', label: 'Inventory', icon: Package },
-      { id: 'waste', label: 'Waste Log', icon: Trash2 },
-      { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-      { id: 'users', label: 'Users', icon: Users },
-      { id: 'reports', label: 'Reports', icon: FileText },
-      { id: 'settings', label: 'Settings', icon: Settings }
-    ];
-  }, []);
+    const baseItems = {
+      admin: [
+        { id: 'dashboard', label: 'Dashboard', icon: Home },
+        { id: 'menu', label: 'Menu Management', icon: MenuIcon },
+        { id: 'orders', label: 'Order Management', icon: ShoppingCart },
+        { id: 'users', label: 'User Management', icon: Users },
+        { id: 'billing', label: 'Billing System', icon: CreditCard }
+      ],
+      waiter: [
+        { id: 'orders', label: 'Orders', icon: ShoppingCart },
+        { id: 'menu', label: 'View Menu', icon: MenuIcon }
+      ],
+      cashier: [
+        { id: 'billing', label: 'Billing', icon: CreditCard },
+        { id: 'orders', label: 'View Orders', icon: ShoppingCart }
+      ]
+    };
+
+    return baseItems[userRole] || baseItems.admin;
+  }, [userRole]);
 
   // Optimized menu item click handler
   const handleMenuItemClick = useCallback((itemId) => {
-    navigate(`/admin/${itemId}`);
+    navigate(`/${userRole}/${itemId}`);
     if (isMobile) {
       setIsOpen(false);
     }
-  }, [navigate, isMobile, setIsOpen]);
+  }, [navigate, isMobile, setIsOpen, userRole]);
 
   // Memoized sidebar classes for better performance
   const sidebarClasses = useMemo(() => {
@@ -130,9 +131,9 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
         <nav className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hidden">
           <div className="space-y-1 px-3 py-4">
             {menuItems.map((item) => {
-              const isActive = location.pathname === `/admin/${item.id}` || 
-                              (location.pathname === '/admin' && item.id === 'dashboard') ||
-                              (location.pathname === '/admin/dashboard' && item.id === 'dashboard');
+              const isActive = location.pathname === `/${userRole}/${item.id}` || 
+                              (location.pathname === `/${userRole}` && item.id === 'dashboard') ||
+                              (location.pathname === `/${userRole}/dashboard` && item.id === 'dashboard');
               
               return (
                 <button
@@ -166,15 +167,15 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
             <div className="flex items-center space-x-3">
               <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-medium">
-                  A
+                  {userRole?.charAt(0).toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">
-                  Admin User
+                  {userRole?.charAt(0).toUpperCase() + userRole?.slice(1) || 'User'}
                 </p>
                 <p className="text-xs text-gray-500 capitalize truncate">
-                  Administrator
+                  {userRole || 'User'}
                 </p>
               </div>
             </div>

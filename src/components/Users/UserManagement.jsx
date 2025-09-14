@@ -49,8 +49,8 @@ export function UserManagement() {
   const [showUserDetails, setShowUserDetails] = useState(null);
   const [viewMode, setViewMode] = useState('table'); // table or cards
 
-  const roles = ['all', 'admin', 'chef', 'waiter'];
-  const statuses = ['all', 'active', 'suspended', 'banned'];
+  const roles = ['all', 'admin', 'waiter', 'cashier'];
+  const statuses = ['all', 'active', 'inactive'];
 
   // Filter users
   const filteredUsers = useMemo(() => {
@@ -82,9 +82,8 @@ export function UserManagement() {
   const getRoleIcon = (role) => {
     switch (role) {
       case 'admin': return <Shield className="w-4 h-4 text-red-500" />;
-      case 'chef': return <ChefHat className="w-4 h-4 text-orange-500" />;
       case 'waiter': return <UserCheck className="w-4 h-4 text-blue-500" />;
-      case 'customer': return <Crown className="w-4 h-4 text-purple-500" />;
+      case 'cashier': return <Users className="w-4 h-4 text-green-500" />;
       default: return <Users className="w-4 h-4 text-gray-500" />;
     }
   };
@@ -92,8 +91,7 @@ export function UserManagement() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 border-green-200';
-      case 'suspended': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'banned': return 'bg-red-100 text-red-800 border-red-200';
+      case 'inactive': return 'bg-gray-100 text-gray-800 border-gray-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -237,10 +235,9 @@ export function UserManagement() {
                   value={formData.role}
                   onChange={(e) => setFormData({...formData, role: e.target.value})}
                 >
-                  <option value="customer">Customer</option>
-                  <option value="waiter">Waiter</option>
-                  <option value="chef">Chef</option>
                   <option value="admin">Admin</option>
+                  <option value="waiter">Waiter</option>
+                  <option value="cashier">Cashier</option>
                 </select>
               </div>
               
