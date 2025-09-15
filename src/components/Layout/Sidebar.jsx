@@ -7,7 +7,8 @@ import {
   Menu as MenuIcon,
   Users,
   CreditCard,
-  LogOut
+  LogOut,
+  Settings
 } from 'lucide-react';
 
 const Sidebar = ({ activeTab, isOpen, setIsOpen, userRole }) => {
@@ -29,7 +30,8 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen, userRole }) => {
     const roleNames = {
       admin: 'Admin Panel',
       waiter: 'Waiter Panel',
-      cashier: 'Cashier Panel'
+      cashier: 'Cashier Panel',
+      staff: 'Staff Panel'
     };
     
     if (activeTab === 'dashboard') {
@@ -74,24 +76,46 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen, userRole }) => {
         { id: 'menu', label: 'Menu Management', icon: MenuIcon },
         { id: 'orders', label: 'Order Management', icon: ShoppingCart },
         { id: 'users', label: 'User Management', icon: Users },
-        { id: 'billing', label: 'Billing System', icon: CreditCard }
+        { id: 'billing', label: 'Billing System', icon: CreditCard },
+        { id: 'settings', label: 'Settings', icon: Settings },
+      ],
+      chef: [
+        { id: 'chef-dashboard', label: 'Chef Dashboard', icon: Home },
+        { id: 'orders', label: 'Order Management', icon: ShoppingCart },
+        { id: 'menu', label: 'Menu Management', icon: MenuIcon },
+        { id: 'settings', label: 'Settings', icon: Settings },
       ],
       waiter: [
-        { id: 'orders', label: 'Orders', icon: ShoppingCart },
-        { id: 'menu', label: 'View Menu', icon: MenuIcon }
+        { id: 'dashboard', label: 'Dashboard', icon: Home },
+        { id: 'orders', label: 'Order Management', icon: ShoppingCart },
+        { id: 'menu', label: 'Menu Management', icon: MenuIcon },
+        { id: 'settings', label: 'Settings', icon: Settings },
       ],
       cashier: [
-        { id: 'billing', label: 'Billing', icon: CreditCard },
-        { id: 'orders', label: 'View Orders', icon: ShoppingCart }
-      ]
+        { id: 'dashboard', label: 'Dashboard', icon: Home },
+        { id: 'billing', label: 'Billing System', icon: CreditCard },
+        { id: 'orders', label: 'Order Management', icon: ShoppingCart },
+        { id: 'settings', label: 'Settings', icon: Settings },
+      ],
+      staff: [
+        { id: 'staff-dashboard', label: 'Staff Dashboard', icon: Home },
+        { id: 'orders', label: 'Order Management', icon: ShoppingCart },
+        { id: 'settings', label: 'Settings', icon: Settings },
+      ],
     };
-
     return baseItems[userRole] || baseItems.admin;
   }, [userRole]);
 
   // Optimized menu item click handler
   const handleMenuItemClick = useCallback((itemId) => {
-    navigate(`/${userRole}/${itemId}`);
+    // Route to the correct path for the current role
+    let basePath = userRole;
+    // Special case for admin dashboard
+    if (userRole === 'admin' && itemId === 'dashboard') basePath = 'admin';
+    if (userRole === 'chef' && itemId === 'chef-dashboard') basePath = 'chef';
+    if (userRole === 'staff' && itemId === 'staff-dashboard') basePath = 'staff';
+    let path = `/${basePath}/${itemId}`;
+    navigate(path);
     if (isMobile) {
       setIsOpen(false);
     }

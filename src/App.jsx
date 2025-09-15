@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
 import { Header } from './components/Layout/Header';
-import Sidebar from './components/Layout/Sidebar';
+import { default as Sidebar } from './components/Layout/Sidebar';
 import { MenuManagement } from './components/Menu/MenuManagement';
 import { OrderManagement } from './components/Orders/OrderManagement';
 import { UserManagement } from './components/Users/UserManagement';
 import { BillingSystem } from './components/Billing/BillingSystem';
+import { StaffDashboard } from './components/Dashboard/StaffDashboard';
+import { ChefDashboard } from './components/Dashboard/ChefDashboard';
+import { AdminDashboard } from './components/Dashboard/AdminDashboard';
+import { SettingsManagement } from './components/Settings/SettingsManagement';
 
 // Login Component with Role Selection
 function LoginWithRoles() {
@@ -176,8 +180,40 @@ function MainLayout() {
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
+      return;
     }
-  }, [isAuthenticated, navigate]);
+    // Only redirect to dashboard if on the root path for the role
+    const path = location.pathname;
+    switch (userRole) {
+      case 'admin':
+        if (path === '/admin' || path === '/admin/') {
+          navigate('/admin/dashboard', { replace: true });
+        }
+        break;
+      case 'chef':
+        if (path === '/chef' || path === '/chef/') {
+          navigate('/chef/dashboard', { replace: true });
+        }
+        break;
+      case 'waiter':
+        if (path === '/waiter' || path === '/waiter/') {
+          navigate('/waiter/orders', { replace: true });
+        }
+        break;
+      case 'cashier':
+        if (path === '/cashier' || path === '/cashier/') {
+          navigate('/cashier/billing', { replace: true });
+        }
+        break;
+      case 'staff':
+        if (path === '/staff' || path === '/staff/') {
+          navigate('/staff/dashboard', { replace: true });
+        }
+        break;
+      default:
+        break;
+    }
+  }, [isAuthenticated, navigate, userRole, location.pathname]);
 
   // Get active tab from current route
   const getActiveTab = () => {
@@ -234,35 +270,17 @@ function MainLayout() {
         <main className={getMainContentClass()}>
           <div className="h-full overflow-auto p-6">
             <Routes>
-              {/* Admin Routes */}
-              {userRole === 'admin' && (
-                <>
-                  <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-                  <Route path="/dashboard" element={<SimpleDashboard />} />
-                  <Route path="/menu" element={<MenuManagement />} />
-                  <Route path="/orders" element={<OrderManagement />} />
-                  <Route path="/users" element={<UserManagement />} />
-                  <Route path="/billing" element={<BillingSystem />} />
-                </>
-              )}
-              
-              {/* Waiter Routes */}
-              {userRole === 'waiter' && (
-                <>
-                  <Route path="/" element={<Navigate to="/waiter/orders" replace />} />
-                  <Route path="/orders" element={<OrderManagement />} />
-                  <Route path="/menu" element={<MenuManagement readOnly={true} />} />
-                </>
-              )}
-              
-              {/* Cashier Routes */}
-              {userRole === 'cashier' && (
-                <>
-                  <Route path="/" element={<Navigate to="/cashier/billing" replace />} />
-                  <Route path="/billing" element={<BillingSystem />} />
-                  <Route path="/orders" element={<OrderManagement readOnly={true} />} />
-                </>
-              )}
+              {/* Settings Route (all roles) */}
+              <Route path="/settings" element={<SettingsManagement />} />
+
+              {/* All modules available for all roles */}
+              <Route path="/dashboard" element={<AdminDashboard />} />
+              <Route path="/chef-dashboard" element={<ChefDashboard />} />
+              <Route path="/staff-dashboard" element={<StaffDashboard />} />
+              <Route path="/menu" element={<MenuManagement />} />
+              <Route path="/orders" element={<OrderManagement />} />
+              <Route path="/users" element={<UserManagement />} />
+              <Route path="/billing" element={<BillingSystem />} />
             </Routes>
           </div>
         </main>
@@ -278,12 +296,14 @@ function App() {
       <Routes>
         {/* Login Route */}
         <Route path="/login" element={<LoginWithRoles />} />
-        
+
         {/* Protected Routes */}
         <Route path="/admin/*" element={<MainLayout />} />
+        <Route path="/chef/*" element={<MainLayout />} />
         <Route path="/waiter/*" element={<MainLayout />} />
         <Route path="/cashier/*" element={<MainLayout />} />
-        
+        <Route path="/staff/*" element={<MainLayout />} />
+
         {/* Default Route */}
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>

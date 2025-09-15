@@ -273,19 +273,34 @@ export function Header({ toggleSidebar, userRole }) {
                 )}
               </div>
 
-              {/* Settings and Logout */}
+              {/* Role Filter, Settings and Logout */}
               <div className="flex items-center space-x-2 sm:space-x-3">
-                <div className="hidden sm:flex items-center space-x-2">
-                  <Shield className="w-4 h-4" />
-                  <span className="text-sm font-medium text-gray-700 capitalize">{userRole || 'User'}</span>
-                </div>
-                
+                {/* Role Selector Dropdown */}
+                <select
+                  value={userRole}
+                  onChange={e => {
+                    localStorage.setItem('userRole', e.target.value);
+                    window.location.reload();
+                  }}
+                  className="px-2 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 capitalize focus:ring-2 focus:ring-brand-light focus:border-transparent"
+                  style={{ minWidth: 100 }}
+                >
+                  <option value="admin">Admin</option>
+                  <option value="chef">Chef</option>
+                  <option value="waiter">Waiter</option>
+                  <option value="staff">Staff</option>
+                </select>
+
                 {/* Mobile User Avatar */}
                 <div className="sm:hidden w-8 h-8 bg-brand-dark rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">{userRole?.charAt(0).toUpperCase() || 'U'}</span>
                 </div>
-                
-                <button className="p-2 text-gray-400 hover:text-gray-500">
+
+                <button
+                  className="p-2 text-gray-400 hover:text-gray-500"
+                  onClick={() => navigate('/settings')}
+                  title="Settings"
+                >
                   <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
 

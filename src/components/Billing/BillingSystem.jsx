@@ -1,4 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
+import { generateInvoicePDF } from './invoiceUtils';
 
 export function BillingSystem() {
   const [orders, setOrders] = useState([]);
@@ -180,12 +182,31 @@ export function BillingSystem() {
                   </div>
                 </div>
 
-                <button
-                  onClick={generateBill}
-                  className="w-full mt-6 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Generate Bill & Process Payment
-                </button>
+                <div className="flex flex-col gap-2 mt-6">
+                  <button
+                    onClick={generateBill}
+                    className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    Generate Bill & Process Payment
+                  </button>
+                  <button
+                    onClick={() => generateInvoicePDF({
+                      id: Date.now(),
+                      orderId: selectedOrder.id,
+                      tableNumber: selectedOrder.tableNumber,
+                      items: selectedOrder.items,
+                      subtotal: calculateTotal(selectedOrder.items),
+                      tax: (parseFloat(calculateTotal(selectedOrder.items)) * 0.08).toFixed(2),
+                      total: (parseFloat(calculateTotal(selectedOrder.items)) * 1.08).toFixed(2),
+                      paymentMethod,
+                      timestamp: new Date().toISOString(),
+                      waiter: selectedOrder.waiter
+                    })}
+                    className="w-full bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  >
+                    Generate Invoice PDF
+                  </button>
+                </div>
               </div>
             </div>
           ) : (
