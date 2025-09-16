@@ -56,7 +56,7 @@ class MenuController extends Controller
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
             'category' => 'required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120', // 5MB limit
             'preparation_time' => 'nullable|integer|min:1',
             'available' => 'nullable|in:0,1,true,false',
             'featured' => 'nullable|in:0,1,true,false',
@@ -64,6 +64,10 @@ class MenuController extends Controller
             'dietary_info' => 'nullable|string|max:255',
             'calories' => 'nullable|integer|min:0',
             'rating' => 'nullable|numeric|between:0,5',
+        ], [
+            'image.max' => 'The image file size must not exceed 5MB (5120 KB).',
+            'image.image' => 'The uploaded file must be an image (JPEG, PNG, JPG, GIF, SVG).',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif, svg.',
         ]);
 
         if ($validator->fails()) {
@@ -139,7 +143,7 @@ class MenuController extends Controller
             'description' => 'sometimes|required|string',
             'price' => 'sometimes|required|numeric|min:0',
             'category' => 'sometimes|required|string|max:255',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120', // 5MB limit
             'preparation_time' => 'nullable|integer|min:1',
             'available' => 'nullable|in:0,1,true,false',
             'featured' => 'nullable|in:0,1,true,false',
@@ -147,6 +151,10 @@ class MenuController extends Controller
             'dietary_info' => 'nullable|string|max:255',
             'calories' => 'nullable|integer|min:0',
             'rating' => 'nullable|numeric|between:0,5',
+        ], [
+            'image.max' => 'The image file size must not exceed 5MB (5120 KB).',
+            'image.image' => 'The uploaded file must be an image (JPEG, PNG, JPG, GIF, SVG).',
+            'image.mimes' => 'The image must be a file of type: jpeg, png, jpg, gif, svg.',
         ]);
 
         if ($validator->fails()) {

@@ -10,6 +10,7 @@ import { UserManagement } from './components/Users/UserManagement';
 import { BillingSystem } from './components/Billing/BillingSystem';
 import { AdminDashboard } from './components/Dashboard/AdminDashboard';
 import { SettingsManagement } from './components/Settings/SettingsManagement';
+import { CustomerMenuRedux } from './components/Menu/CustomerMenuRedux';
 import { LoginForm } from './components/Auth/LoginForm';
 import SignupPage from './pages/SignupPage';
 import { LandingPage } from './pages/LandingPage';
@@ -124,6 +125,7 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
           <Route path="/public" element={<LandingPage />} />
+          <Route path="/menu" element={<CustomerMenuRedux />} />
           
           {/* Auth Routes */}
           <Route path="/login" element={<LoginForm />} />

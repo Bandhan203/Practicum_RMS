@@ -16,12 +16,16 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = Cookies.get('authToken');
+    if (!token && config.url.includes('menu-items')) {
+      console.warn('API Request: No auth token found for menu-items request:', config.url);
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
+    console.error('API Request Interceptor Error:', error);
     return Promise.reject(error);
   }
 );
@@ -110,7 +114,9 @@ export const userAPI = {
 // Menu API calls
 export const menuAPI = {
   getMenuItems: async (filters = {}) => {
+    console.log('menuAPI.getMenuItems: Making API request...');
     const response = await api.get('/menu-items', { params: filters });
+    console.log('menuAPI.getMenuItems: Success, response status:', response.status);
     return response.data;
   },
 

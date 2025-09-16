@@ -1,7 +1,9 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
-import { selectMenuItems, selectMenuLoading } from '../../store/features/menuSlice';
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectMenuItems, selectMenuLoading, selectMenuError, fetchMenuItems } from '../../store/features/menuSlice';
+import { useAuth } from '../../contexts/AuthContext';
 import { X, Trash2 } from '../common/Icons';
+import Cookies from 'js-cookie';
 
 export function AddOrderModal({ 
   showModal, 
@@ -10,8 +12,104 @@ export function AddOrderModal({
   setNewOrder, 
   onSubmit 
 }) {
+  const dispatch = useDispatch();
+  const { user, isAuthenticated } = useAuth();
   const menuItems = useSelector(selectMenuItems);
   const menuLoading = useSelector(selectMenuLoading);
+  const menuError = useSelector(selectMenuError);
+  
+  // Local state for direct API fetch
+  const [directMenuItems, setDirectMenuItems] = useState([]);
+  const [directLoading, setDirectLoading] = useState(false);
+  const [directError, setDirectError] = useState(null);
+
+  // Direct API fetch method using GET request
+  const fetchMenuItemsDirect = async () => {
+    setDirectLoading(true);
+    setDirectError(null);
+    
+    try {
+      const token = Cookies.get('authToken');
+      console.log('Direct fetch: Token available:', !!token);
+      
+      const response = await fetch('http://localhost:8000/api/menu-items', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      console.log('Direct fetch: Response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Direct fetch: Full response:', data);
+      
+      // Handle different response structures
+      let items = [];
+      if (data.data && Array.isArray(data.data)) {
+        items = data.data;
+      } else if (Array.isArray(data)) {
+        items = data;
+      } else {
+        throw new Error('Unexpected response format');
+      }
+      
+      console.log('Direct fetch: Extracted items:', items);
+      setDirectMenuItems(items);
+      setDirectError(null);
+      
+    } catch (error) {
+      console.error('Direct fetch error:', error);
+      setDirectError(error.message);
+      setDirectMenuItems([]);
+    } finally {
+      setDirectLoading(false);
+    }
+  };
+
+  // Fetch menu items when modal opens - try both Redux and direct methods
+  useEffect(() => {
+    if (showModal && isAuthenticated) {
+      console.log('Fetching menu items for order modal...', { user, isAuthenticated });
+      // Try Redux first
+      dispatch(fetchMenuItems());
+      // Also try direct fetch as backup
+      fetchMenuItemsDirect();
+    }
+  }, [showModal, isAuthenticated, dispatch, user]);
+
+  // Debug log for menu items (only when there are issues)
+  useEffect(() => {
+    console.log('Menu State Debug:', {
+      redux: {
+        menuItems: menuItems || 'undefined',
+        menuItemsLength: menuItems ? menuItems.length : 'N/A',
+        menuLoading,
+        menuError
+      },
+      direct: {
+        directMenuItems: directMenuItems || 'undefined',
+        directItemsLength: directMenuItems ? directMenuItems.length : 'N/A',
+        directLoading,
+        directError
+      },
+      auth: {
+        user: user ? 'User found' : 'No user',
+        isAuthenticated
+      }
+    });
+  }, [menuItems, menuLoading, menuError, directMenuItems, directLoading, directError, isAuthenticated, user]);
+
+  // Use direct fetch items as fallback if Redux fails
+  const activeMenuItems = (menuItems && menuItems.length > 0) ? menuItems : directMenuItems;
+  const activeLoading = menuLoading || directLoading;
+  const activeError = menuError || directError;
 
   if (!showModal) return null;
 
@@ -167,40 +265,123 @@ export function AddOrderModal({
           {/* Menu Items Selection */}
           <div>
             <h3 className="text-lg font-medium text-gray-900 mb-4">Select Menu Items</h3>
-            {menuLoading ? (
+            {activeLoading ? (
               <div className="text-center py-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
                 <p className="text-gray-500 mt-2">Loading menu items...</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {menuLoading && directLoading ? 'Trying multiple methods...' : 
+                   menuLoading ? 'Loading via Redux...' : 'Loading direct API...'}
+                </p>
+              </div>
+            ) : activeError ? (
+              <div className="text-center py-8 border border-red-200 rounded-lg bg-red-50">
+                <p className="text-red-600 mb-2">Error loading menu items</p>
+                <p className="text-sm text-red-500">{activeError}</p>
+                <div className="mt-2 space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => dispatch(fetchMenuItems())}
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                  >
+                    Retry Redux
+                  </button>
+                  <button
+                    type="button"
+                    onClick={fetchMenuItemsDirect}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Retry Direct
+                  </button>
+                </div>
+              </div>
+            ) : !activeMenuItems || activeMenuItems.length === 0 ? (
+              <div className="text-center py-8 border border-gray-200 rounded-lg">
+                <p className="text-gray-500 mb-2">No menu items available</p>
+                <p className="text-sm text-gray-400">Please add menu items first in Menu Management</p>
+                <div className="mt-4 space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('Redux fetch triggered');
+                      dispatch(fetchMenuItems());
+                    }}
+                    className="px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700"
+                  >
+                    Try Redux
+                  </button>
+                  <button
+                    type="button"
+                    onClick={fetchMenuItemsDirect}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                  >
+                    Try Direct GET
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      console.log('Current state:', {
+                        redux: { items: menuItems, loading: menuLoading, error: menuError },
+                        direct: { items: directMenuItems, loading: directLoading, error: directError }
+                      });
+                    }}
+                    className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700"
+                  >
+                    Debug State
+                  </button>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-64 overflow-y-auto border border-gray-200 rounded-lg p-4">
-                {menuItems.map((item) => (
-                  <div key={item.id} className="border border-gray-200 rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium text-gray-900">{item.name}</h4>
-                      <span className="text-sm font-medium text-orange-600">৳{item.price}</span>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-3">{item.description}</p>
-                    <div className="flex items-center justify-between">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        item.available 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {item.available ? 'Available' : 'Unavailable'}
-                      </span>
-                      {item.available && (
-                        <button
-                          type="button"
-                          onClick={() => addItemToOrder(item)}
-                          className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm"
-                        >
-                          Add
-                        </button>
-                      )}
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="mb-3 flex justify-between items-center">
+                  <p className="text-sm text-gray-600">
+                    Found {activeMenuItems.length} menu items 
+                    {menuItems && menuItems.length > 0 ? ' (via Redux)' : ' (via Direct API)'}
+                  </p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-64 overflow-y-auto">
+                  {(activeMenuItems || []).map((item) => (
+                  <div key={item.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+                    {item.image && (
+                      <div className="h-32 w-full">
+                        <img
+                          src={`http://localhost:8000/storage/${item.image}`}
+                          alt={item.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.target.style.display = 'none';
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div className="p-3">
+                      <div className="flex justify-between items-start mb-2">
+                        <h4 className="font-medium text-gray-900">{item.name}</h4>
+                        <span className="text-sm font-medium text-orange-600">৳{item.price}</span>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">{item.description}</p>
+                      <div className="flex items-center justify-between">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          item.available 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {item.available ? 'Available' : 'Unavailable'}
+                        </span>
+                        {item.available && (
+                          <button
+                            type="button"
+                            onClick={() => addItemToOrder(item)}
+                            className="bg-orange-600 hover:bg-orange-700 text-white px-3 py-1 rounded text-sm"
+                          >
+                            Add
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>

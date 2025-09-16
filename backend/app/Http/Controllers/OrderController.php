@@ -73,7 +73,7 @@ class OrderController extends Controller
 
             foreach ($validated['items'] as $item) {
                 $menuItem = MenuItem::findOrFail($item['id']);
-                
+
                 if (!$menuItem->available) {
                     return response()->json([
                         'success' => false,
@@ -179,7 +179,7 @@ class OrderController extends Controller
             ]);
 
             $order = Order::findOrFail($id);
-            
+
             $order->update([
                 'status' => $validated['status'],
                 'notes' => $validated['notes'] ?? $order->notes
@@ -220,7 +220,7 @@ class OrderController extends Controller
     {
         try {
             $order = Order::findOrFail($id);
-            
+
             // Only allow deletion of pending or cancelled orders
             if (!in_array($order->status, ['pending', 'cancelled'])) {
                 return response()->json([

@@ -1,4 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { 
+  fetchMenuItems,
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+  selectMenuItems,
+  selectMenuLoading,
+  selectMenuError 
+} from '../../store/features/menuSlice';
 import { menuAPI } from '../../services/api';
 import { 
   Plus, 
@@ -17,10 +27,14 @@ import {
 } from 'lucide-react';
 
 export function ApiMenuManagement() {
-  const [menuItems, setMenuItems] = useState([]);
+  // Redux state
+  const dispatch = useDispatch();
+  const menuItems = useSelector(selectMenuItems);
+  const loading = useSelector(selectMenuLoading);
+  const error = useSelector(selectMenuError);
+  
+  // Local state for UI
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);
@@ -47,25 +61,13 @@ export function ApiMenuManagement() {
   
   const [imagePreview, setImagePreview] = useState(null);
 
-  // Load menu items on component mount
+  // Load menu items on component mount using Redux
   useEffect(() => {
-    loadMenuItems();
+    dispatch(fetchMenuItems());
     loadCategories();
-  }, []);
+  }, [dispatch]);
 
-  const loadMenuItems = async () => {
-    try {
-      setLoading(true);
-      const response = await menuAPI.getMenuItems();
-      setMenuItems(response.data || response);
-      setError(null);
-    } catch (error) {
-      console.error('Error loading menu items:', error);
-      setError('Failed to load menu items');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // loadMenuItems function removed - now using Redux fetchMenuItems
 
   const loadCategories = async () => {
     try {
@@ -95,6 +97,23 @@ export function ApiMenuManagement() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      // Check file size (5MB = 5 * 1024 * 1024 bytes)
+      const maxSize = 5 * 1024 * 1024;
+      if (file.size > maxSize) {
+        setError('Image file size must not exceed 5MB. Please choose a smaller image.');
+        e.target.value = ''; // Clear the file input
+        return;
+      }
+
+      // Check file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
+        setError('Please select a valid image file (JPEG, PNG, JPG, GIF, SVG).');
+        e.target.value = ''; // Clear the file input
+        return;
+      }
+
+      setError(''); // Clear any previous errors
       setFormData(prev => ({
         ...prev,
         image: file
@@ -138,7 +157,6 @@ export function ApiMenuManagement() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
       
       // Create FormData for file upload
       const submitData = new FormData();
@@ -177,12 +195,12 @@ export function ApiMenuManagement() {
       }
 
       if (editingItem) {
-        await menuAPI.updateMenuItem(editingItem.id, submitData);
+        await dispatch(updateMenuItem({ id: editingItem.id, updates: submitData }));
       } else {
-        await menuAPI.createMenuItem(submitData);
+        await dispatch(createMenuItem(submitData));
       }
 
-      await loadMenuItems();
+      // Redux automatically updates the state, so no need to reload
       await loadCategories();
       resetForm();
       setShowAddForm(false);
@@ -197,10 +215,8 @@ export function ApiMenuManagement() {
           .join('\n');
         setError(`Validation errors:\n${errorMessages}`);
       } else {
-        setError(error.response?.data?.message || 'Failed to save menu item');
+        console.error('Error submitting form:', error);
       }
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -238,15 +254,10 @@ export function ApiMenuManagement() {
   const confirmDelete = async () => {
     if (pendingDelete) {
       try {
-        setLoading(true);
-        await menuAPI.deleteMenuItem(pendingDelete.id);
-        await loadMenuItems();
+        await dispatch(deleteMenuItem(pendingDelete.id));
         await loadCategories();
       } catch (error) {
         console.error('Error deleting menu item:', error);
-        setError('Failed to delete menu item');
-      } finally {
-        setLoading(false);
       }
     }
     setPendingDelete(null);
@@ -524,7 +535,7 @@ export function ApiMenuManagement() {
                     type="file"
                     name="image"
                     onChange={handleFileChange}
-                    accept="image/*"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/svg+xml"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                   />
                   {imagePreview && (
