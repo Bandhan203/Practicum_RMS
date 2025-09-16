@@ -1,170 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
+import { AuthProvider } from './contexts/AuthContext';
 import { Header } from './components/Layout/Header';
-import { default as Sidebar } from './components/Layout/Sidebar';
-import { MenuManagement } from './components/Menu/MenuManagement';
+import { default as Sidebar } from './components/Layout/SidebarNew';
+import { ApiMenuManagement as MenuManagement } from './components/Menu/ApiMenuManagement';
 import { OrderManagement } from './components/Orders/OrderManagement';
 import { UserManagement } from './components/Users/UserManagement';
 import { BillingSystem } from './components/Billing/BillingSystem';
-import { StaffDashboard } from './components/Dashboard/StaffDashboard';
-import { ChefDashboard } from './components/Dashboard/ChefDashboard';
 import { AdminDashboard } from './components/Dashboard/AdminDashboard';
 import { SettingsManagement } from './components/Settings/SettingsManagement';
+import { LoginForm } from './components/Auth/LoginForm';
+import SignupPage from './pages/SignupPage';
+import { LandingPage } from './pages/LandingPage';
+import { useAuth } from './contexts/AuthContext';
 
-// Login Component with Role Selection
-function LoginWithRoles() {
-  const navigate = useNavigate();
-  const [selectedRole, setSelectedRole] = useState('admin');
-  
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Store user role in localStorage for simplicity
-    localStorage.setItem('userRole', selectedRole);
-    localStorage.setItem('isAuthenticated', 'true');
-    
-    // Redirect based on role
-    switch(selectedRole) {
-      case 'admin':
-        navigate('/admin/dashboard');
-        break;
-      case 'waiter':
-        navigate('/waiter/orders');
-        break;
-      case 'cashier':
-        navigate('/cashier/billing');
-        break;
-      default:
-        navigate('/admin/dashboard');
-    }
-  };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="text-center">
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Restaurant Management System
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Sign in to access the system
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                Select Role
-              </label>
-              <div className="mt-1">
-                <select
-                  id="role"
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="waiter">Waiter</option>
-                  <option value="cashier">Cashier</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  defaultValue="user@restaurant.com"
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  defaultValue="password"
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-red-500 focus:border-red-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-              >
-                Sign in
-              </button>
-            </div>
-          </form>
-
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => {
-                localStorage.removeItem('userRole');
-                localStorage.removeItem('isAuthenticated');
-              }}
-              className="text-sm text-gray-600 hover:text-gray-800"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Simple Dashboard Component
-function SimpleDashboard() {
-  const userRole = localStorage.getItem('userRole') || 'admin';
-  
-  return (
-    <div className="p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Welcome to the Restaurant Management System ({userRole})</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900">Total Orders</h3>
-          <p className="text-3xl font-bold text-blue-600">24</p>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900">Menu Items</h3>
-          <p className="text-3xl font-bold text-green-600">156</p>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900">Today's Revenue</h3>
-          <p className="text-3xl font-bold text-yellow-600">$1,234</p>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-medium text-gray-900">Active Users</h3>
-          <p className="text-3xl font-bold text-purple-600">8</p>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Main Layout Component
 function MainLayout() {
@@ -173,47 +24,23 @@ function MainLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const userRole = localStorage.getItem('userRole') || 'admin';
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+  const { user, isAuthenticated, loading } = useAuth();
 
   // Redirect if not authenticated
   useEffect(() => {
+    if (loading) return; // Wait for auth to load
+    
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    // Only redirect to dashboard if on the root path for the role
+    
+    // Redirect to dashboard if on root
     const path = location.pathname;
-    switch (userRole) {
-      case 'admin':
-        if (path === '/admin' || path === '/admin/') {
-          navigate('/admin/dashboard', { replace: true });
-        }
-        break;
-      case 'chef':
-        if (path === '/chef' || path === '/chef/') {
-          navigate('/chef/dashboard', { replace: true });
-        }
-        break;
-      case 'waiter':
-        if (path === '/waiter' || path === '/waiter/') {
-          navigate('/waiter/orders', { replace: true });
-        }
-        break;
-      case 'cashier':
-        if (path === '/cashier' || path === '/cashier/') {
-          navigate('/cashier/billing', { replace: true });
-        }
-        break;
-      case 'staff':
-        if (path === '/staff' || path === '/staff/') {
-          navigate('/staff/dashboard', { replace: true });
-        }
-        break;
-      default:
-        break;
+    if (path === '/' || path === '/dashboard') {
+      navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, navigate, userRole, location.pathname]);
+  }, [isAuthenticated, loading, navigate, location.pathname]);
 
   // Get active tab from current route
   const getActiveTab = () => {
@@ -253,34 +80,33 @@ function MainLayout() {
     return `flex-1 min-h-[calc(100vh-4rem)] ${marginLeft} transition-all duration-300 ease-in-out`;
   };
 
+  if (loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>;
+  }
+
   if (!isAuthenticated) {
     return null; // Will redirect to login
   }
 
   return (
     <div className="min-h-screen bg-gray-50 pt-16">
-      <Header toggleSidebar={toggleSidebar} userRole={userRole} />
+      <Header toggleSidebar={toggleSidebar} />
       <div className="relative">
         <Sidebar 
           activeTab={activeTab} 
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
-          userRole={userRole}
         />
         <main className={getMainContentClass()}>
           <div className="h-full overflow-auto p-6">
             <Routes>
-              {/* Settings Route (all roles) */}
-              <Route path="/settings" element={<SettingsManagement />} />
-
-              {/* All modules available for all roles */}
+              {/* Admin Routes */}
               <Route path="/dashboard" element={<AdminDashboard />} />
-              <Route path="/chef-dashboard" element={<ChefDashboard />} />
-              <Route path="/staff-dashboard" element={<StaffDashboard />} />
               <Route path="/menu" element={<MenuManagement />} />
               <Route path="/orders" element={<OrderManagement />} />
               <Route path="/users" element={<UserManagement />} />
               <Route path="/billing" element={<BillingSystem />} />
+              <Route path="/settings" element={<SettingsManagement />} />
             </Routes>
           </div>
         </main>
@@ -292,22 +118,23 @@ function MainLayout() {
 
 function App() {
   return (
-    <AppProvider>
-      <Routes>
-        {/* Login Route */}
-        <Route path="/login" element={<LoginWithRoles />} />
+    <AuthProvider>
+      <AppProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/public" element={<LandingPage />} />
+          
+          {/* Auth Routes */}
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/signup" element={<SignupPage />} />
 
-        {/* Protected Routes */}
-        <Route path="/admin/*" element={<MainLayout />} />
-        <Route path="/chef/*" element={<MainLayout />} />
-        <Route path="/waiter/*" element={<MainLayout />} />
-        <Route path="/cashier/*" element={<MainLayout />} />
-        <Route path="/staff/*" element={<MainLayout />} />
-
-        {/* Default Route */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </AppProvider>
+          {/* Protected Routes */}
+          <Route path="/dashboard/*" element={<MainLayout />} />
+          <Route path="/admin/*" element={<MainLayout />} />
+        </Routes>
+      </AppProvider>
+    </AuthProvider>
   );
 }
 

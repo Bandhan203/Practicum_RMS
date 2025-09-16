@@ -1,29 +1,52 @@
 import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { authAPI } from '../services/api';
 
 // Create the context
 const AuthContext = createContext();
 
 // Configure axios defaults
-axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-axios.defaults.withCredentials = true;
+axios.defaults.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+axios.defaults.withCredentials = false;
 
-// Mock users for demonstration (will be replaced with real API)
-const mockUsers = [
-  { id: '1', name: 'Admin User', email: 'admin@restaurant.com', role: 'admin' },
-  { id: '2', name: 'Chef Mario', email: 'chef@restaurant.com', role: 'chef' },
-  { id: '3', name: 'Waiter John', email: 'waiter@restaurant.com', role: 'waiter' }
-];
+
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+  const clearAuthData = useCallback(() => {
+    // Remove token from cookies
+    Cookies.remove('authToken');
+    
+    // Remove axios header
+    delete axios.defaults.headers.common['Authorization'];
+    
+    // Clear user data
+    setUser(null);
+    setError(null);
+    localStorage.removeItem('restaurant_user');
+  }, []);
+
+  const verifyToken = useCallback(async () => {
+    try {
+      // Call Laravel backend to verify token
+      const response = await authAPI.me();
+      if (response) {
+        setUser(response);
+        localStorage.setItem('restaurant_user', JSON.stringify(response));
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Token verification failed:', error);
+      // Clear auth data if token is invalid
+      clearAuthData();
+      return false;
+    }
+  }, [clearAuthData]);
 
   const initializeAuth = useCallback(async () => {
     try {
@@ -36,7 +59,7 @@ export function AuthProvider({ children }) {
         // Set axios default header
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
         
-        // Try to verify token with backend (mock for now)
+        // Try to verify token with backend
         await verifyToken();
       } else {
         // Check localStorage for demo purposes
@@ -58,55 +81,47 @@ export function AuthProvider({ children }) {
     }
   }, [clearAuthData, verifyToken]);
 
-  const verifyToken = useCallback(async () => {
-    try {
-      // Mock API call - replace with real API
-      const storedUser = localStorage.getItem('restaurant_user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-        return true;
-      }
-      return false;
-    } catch (error) {
-      console.error('Token verification failed:', error);
-      // Call clearAuthData directly since it's defined below
-      Cookies.remove('authToken');
-      delete axios.defaults.headers.common['Authorization'];
-      setUser(null);
-      setError(null);
-      localStorage.removeItem('restaurant_user');
-      return false;
-    }
-  }, []);
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+
 
   const login = async (email, password) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Mock authentication - replace with real API call
-      const foundUser = mockUsers.find(u => u.email === email);
+      // Call Laravel backend API
+      const response = await authAPI.login({ email, password });
       
-      if (foundUser && password === 'password') {
-        // Mock token generation
-        const mockToken = `mock_token_${foundUser.id}_${Date.now()}`;
-        
+      if (response.token && response.user) {
         // Store token in cookie
-        Cookies.set('authToken', mockToken, { expires: 7, secure: true, sameSite: 'strict' });
+        Cookies.set('authToken', response.token, { expires: 7, secure: false, sameSite: 'lax' });
         
         // Set axios header
-        axios.defaults.headers.common['Authorization'] = `Bearer ${mockToken}`;
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.token}`;
         
         // Store user data
-        setUser(foundUser);
-        localStorage.setItem('restaurant_user', JSON.stringify(foundUser));
+        setUser(response.user);
+        localStorage.setItem('restaurant_user', JSON.stringify(response.user));
         
-        return { success: true, user: foundUser };
+        return { success: true, user: response.user };
       } else {
-        throw new Error('Invalid email or password');
+        throw new Error('Invalid response from server');
       }
     } catch (error) {
-      const errorMessage = error.message || 'Login failed';
+      let errorMessage = 'Login failed';
+      
+      if (error.response?.data?.errors) {
+        const errorMessages = Object.values(error.response.data.errors).flat();
+        errorMessage = errorMessages.join(', ');
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -119,56 +134,36 @@ export function AuthProvider({ children }) {
       setLoading(true);
       setError(null);
 
-      // Validate required fields
-      const { name, email, password, confirmPassword } = userData;
+      // Call Laravel backend API
+      const response = await authAPI.signup(userData);
       
-      if (!name || !email || !password) {
-        throw new Error('Please fill in all required fields');
+      if (response.token && response.user) {
+        // Store token in cookie
+        Cookies.set('authToken', response.token, { expires: 7, secure: false, sameSite: 'lax' });
+        
+        // Set axios header
+        axios.defaults.headers.common['Authorization'] = `Bearer ${response.token}`;
+        
+        // Store user data
+        setUser(response.user);
+        localStorage.setItem('restaurant_user', JSON.stringify(response.user));
+        
+        return { success: true, user: response.user };
+      } else {
+        throw new Error('Invalid response from server');
       }
-      
-      if (password !== confirmPassword) {
-        throw new Error('Passwords do not match');
-      }
-      
-      if (password.length < 6) {
-        throw new Error('Password must be at least 6 characters long');
-      }
-
-      // Check if user already exists
-      const existingUser = mockUsers.find(u => u.email === email);
-      if (existingUser) {
-        throw new Error('User with this email already exists');
-      }
-
-      // Create new user (mock)
-      const newUser = {
-        id: Date.now().toString(),
-        name,
-        email,
-        role: userData.role || 'customer',
-        points: userData.role === 'customer' ? 0 : undefined,
-        createdAt: new Date().toISOString()
-      };
-
-      // Mock token generation
-      const mockToken = `mock_token_${newUser.id}_${Date.now()}`;
-      
-      // Store token in cookie
-      Cookies.set('authToken', mockToken, { expires: 7, secure: true, sameSite: 'strict' });
-      
-      // Set axios header
-      axios.defaults.headers.common['Authorization'] = `Bearer ${mockToken}`;
-      
-      // Store user data
-      setUser(newUser);
-      localStorage.setItem('restaurant_user', JSON.stringify(newUser));
-      
-      // Add to mock users array (for demo)
-      mockUsers.push(newUser);
-      
-      return { success: true, user: newUser };
     } catch (error) {
-      const errorMessage = error.message || 'Signup failed';
+      let errorMessage = 'Signup failed';
+      
+      if (error.response?.data?.errors) {
+        const errorMessages = Object.values(error.response.data.errors).flat();
+        errorMessage = errorMessages.join(', ');
+      } else if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       setError(errorMessage);
       return { success: false, error: errorMessage };
     } finally {
@@ -176,22 +171,16 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const logout = () => {
-    clearAuthData();
+  const logout = async () => {
+    try {
+      // Call Laravel backend logout API
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      clearAuthData();
+    }
   };
-
-  const clearAuthData = useCallback(() => {
-    // Remove token from cookies
-    Cookies.remove('authToken');
-    
-    // Remove axios header
-    delete axios.defaults.headers.common['Authorization'];
-    
-    // Clear user data
-    setUser(null);
-    setError(null);
-    localStorage.removeItem('restaurant_user');
-  }, []);
 
   const updateProfile = async (profileData) => {
     try {
@@ -218,13 +207,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  const switchRole = (role) => {
-    if (user) {
-      const newUser = { ...user, role };
-      setUser(newUser);
-      localStorage.setItem('restaurant_user', JSON.stringify(newUser));
-    }
-  };
+
 
   const clearError = () => {
     setError(null);
@@ -239,7 +222,6 @@ export function AuthProvider({ children }) {
     signup,
     logout,
     updateProfile,
-    switchRole,
     clearError
   };
 

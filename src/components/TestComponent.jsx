@@ -10,7 +10,7 @@ import { ChefDashboard } from './Dashboard/ChefDashboard';
 import { StaffDashboard } from './Dashboard/StaffDashboard';
 import { SettingsManagement } from './Settings/SettingsManagement';
 import { Header } from './Layout/Header';
-import Sidebar from './Layout/Sidebar';
+import Sidebar from './Layout/SidebarNew';
 
 export function TestComponent() {
   return (

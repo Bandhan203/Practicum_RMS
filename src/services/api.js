@@ -3,11 +3,12 @@ import Cookies from 'js-cookie';
 
 // Create axios instance with default configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
   timeout: 10000,
-  withCredentials: true,
+  withCredentials: false, // Using Bearer token authentication, no need for credentials
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
 });
 
@@ -44,22 +45,22 @@ api.interceptors.response.use(
 // Authentication API calls
 export const authAPI = {
   login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
+    const response = await api.post('/login', credentials);
     return response.data;
   },
 
   signup: async (userData) => {
-    const response = await api.post('/auth/signup', userData);
+    const response = await api.post('/signup', userData);
     return response.data;
   },
 
   logout: async () => {
-    const response = await api.post('/auth/logout');
+    const response = await api.post('/logout');
     return response.data;
   },
 
-  verifyToken: async () => {
-    const response = await api.get('/auth/verify');
+  me: async () => {
+    const response = await api.get('/me');
     return response.data;
   },
 
@@ -109,32 +110,41 @@ export const userAPI = {
 // Menu API calls
 export const menuAPI = {
   getMenuItems: async (filters = {}) => {
-    const response = await api.get('/menu', { params: filters });
+    const response = await api.get('/menu-items', { params: filters });
     return response.data;
   },
 
   getMenuItem: async (id) => {
-    const response = await api.get(`/menu/${id}`);
+    const response = await api.get(`/menu-items/${id}`);
     return response.data;
   },
 
   createMenuItem: async (itemData) => {
-    const response = await api.post('/menu', itemData);
+    const response = await api.post('/menu-items', itemData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data;
   },
 
   updateMenuItem: async (id, itemData) => {
-    const response = await api.put(`/menu/${id}`, itemData);
+    const response = await api.post(`/menu-items/${id}`, itemData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'X-HTTP-Method-Override': 'PUT'
+      },
+    });
     return response.data;
   },
 
   deleteMenuItem: async (id) => {
-    const response = await api.delete(`/menu/${id}`);
+    const response = await api.delete(`/menu-items/${id}`);
     return response.data;
   },
 
   getCategories: async () => {
-    const response = await api.get('/menu/categories');
+    const response = await api.get('/menu-categories');
     return response.data;
   },
 };

@@ -35,8 +35,7 @@ import {
 
 export function MenuManagement({ readOnly = false }) {
   const { menuItems, addMenuItem, updateMenuItem, deleteMenuItem } = useApp();
-  const userRole = localStorage.getItem('userRole') || 'admin';
-  const isReadOnly = readOnly || userRole === 'waiter';
+  const isReadOnly = readOnly; // Admin has full access
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [showAddForm, setShowAddForm] = useState(false);

@@ -35,8 +35,7 @@ export function OrderManagement({ readOnly = false }) {
   const loading = useSelector(selectOrdersLoading);
   const error = useSelector(selectOrdersError);
   
-  const userRole = localStorage.getItem('userRole') || 'admin';
-  const isReadOnly = readOnly || userRole === 'cashier';
+  const isReadOnly = readOnly; // Admin has full access
   
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedOrderType, setSelectedOrderType] = useState('all');

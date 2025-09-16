@@ -63,28 +63,15 @@ export function LoginForm() {
     const result = await login(formData.email, formData.password);
     
     if (result.success) {
-      // Redirect based on user role
-      const { role } = result.user;
-      
-      switch (role) {
-        case 'admin':
-        case 'chef':
-        case 'waiter':
-          navigate('/dashboard');
-          break;
-        case 'customer':
-          navigate('/customer/dashboard');
-          break;
-        default:
-          navigate('/');
-      }
+      // All users go to the admin dashboard
+      navigate('/dashboard');
     }
   };
 
   const demoAccounts = [
     { email: 'admin@restaurant.com', role: 'Admin', password: 'password' },
-    { email: 'chef@restaurant.com', role: 'Chef', password: 'password' },
-    { email: 'waiter@restaurant.com', role: 'Waiter', password: 'password' }
+    { email: 'manager@restaurant.com', role: 'Manager', password: 'password' },
+    { email: 'sysadmin@restaurant.com', role: 'System Admin', password: 'password' }
   ];
 
   const fillDemoCredentials = (email, password) => {
@@ -141,6 +128,7 @@ export function LoginForm() {
                   name="email"
                   type="email"
                   required
+                  autoComplete="email"
                   className={`block w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors ${
                     formErrors.email ? 'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}
@@ -166,6 +154,7 @@ export function LoginForm() {
                   name="password"
                   type={showPassword ? 'text' : 'password'}
                   required
+                  autoComplete="current-password"
                   className={`block w-full pl-10 pr-10 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent transition-colors ${
                     formErrors.password ? 'border-red-300 bg-red-50' : 'border-gray-300'
                   }`}

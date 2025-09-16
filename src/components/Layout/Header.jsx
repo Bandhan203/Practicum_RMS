@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { RestaurantLogo } from '../common/RestaurantLogo';
 
-export function Header({ toggleSidebar, userRole }) {
+export function Header({ toggleSidebar }) {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showFullNotifications, setShowFullNotifications] = useState(false);
@@ -121,7 +121,6 @@ export function Header({ toggleSidebar, userRole }) {
 
   const handleLogout = () => {
     // Clear user data
-    localStorage.removeItem('userRole');
     localStorage.removeItem('isAuthenticated');
     // Navigate to login page
     navigate('/login');
@@ -273,27 +272,11 @@ export function Header({ toggleSidebar, userRole }) {
                 )}
               </div>
 
-              {/* Role Filter, Settings and Logout */}
+              {/* Settings and Logout */}
               <div className="flex items-center space-x-2 sm:space-x-3">
-                {/* Role Selector Dropdown */}
-                <select
-                  value={userRole}
-                  onChange={e => {
-                    localStorage.setItem('userRole', e.target.value);
-                    window.location.reload();
-                  }}
-                  className="px-2 py-1 border border-gray-300 rounded-md text-sm font-medium text-gray-700 capitalize focus:ring-2 focus:ring-brand-light focus:border-transparent"
-                  style={{ minWidth: 100 }}
-                >
-                  <option value="admin">Admin</option>
-                  <option value="chef">Chef</option>
-                  <option value="waiter">Waiter</option>
-                  <option value="staff">Staff</option>
-                </select>
-
                 {/* Mobile User Avatar */}
                 <div className="sm:hidden w-8 h-8 bg-brand-dark rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">{userRole?.charAt(0).toUpperCase() || 'U'}</span>
+                  <span className="text-white text-sm font-medium">A</span>
                 </div>
 
                 <button

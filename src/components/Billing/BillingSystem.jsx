@@ -1,6 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { generateInvoicePDF } from './invoiceUtils';
+import { generateProjectDocPDF } from './generateProjectDocPDF';
+      {/* Project Documentation PDF Button */}
+      <div className="mt-8 flex justify-end">
+        <button
+          onClick={generateProjectDocPDF}
+          className="bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
+        >
+          Download Project Documentation PDF
+        </button>
+      </div>
 
 export function BillingSystem() {
   const [orders, setOrders] = useState([]);

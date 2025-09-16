@@ -1,0 +1,162 @@
+# My_RMS (Restaurant Management System) – Project Documentation
+
+## Overview
+My_RMS is a full-stack Restaurant Management System designed to streamline restaurant operations. The project features a modern React frontend and is ready for integration with a PHP Laravel backend. It supports role-based access, order management, menu management, billing (with invoice PDF generation), analytics, inventory, reservations, and more.
+
+---
+
+## 1. Frontend
+
+### Tech Stack
+- **Framework:** React (with hooks, context, and React Router)
+- **State Management:** Redux Toolkit
+- **Styling:** Tailwind CSS
+- **Build Tool:** Vite
+- **PDF Generation:** jsPDF
+- **Other:** Lucide-react for icons
+
+### Structure
+```
+src/
+  App.jsx                // Main app and routing logic
+  main.jsx               // Entry point
+  index.css              // Global styles
+  assets/                // Images and static assets
+  components/            // All UI components, grouped by feature
+    Billing/             // BillingSystem, invoice PDF logic
+    Dashboard/           // Dashboards for Admin, Chef, Customer, Staff
+    Menu/                // Menu management and customer menu
+    Orders/              // Order management and modals
+    Users/               // User management
+    ...                  // Other modules (Analytics, Inventory, etc.)
+  contexts/              // React context providers (Auth, App, API)
+  hooks/                 // Custom React hooks
+  pages/                 // Page-level components
+  services/              // API and Redux slices
+  store/                 // Redux store and features
+  styles/                // CSS files
+```
+
+### Key Features
+- **Role-Based Access:** Sidebar and routes adapt to user roles (Admin, Chef, Staff, Customer).
+- **Billing & Invoicing:** Generate bills and download invoice PDFs for completed orders.
+- **Order Management:** View, add, and manage restaurant orders.
+- **Menu Management:** CRUD operations for menu items.
+- **Analytics & Reports:** Dashboard analytics and reporting modules.
+- **Inventory & Reservations:** Manage stock and table bookings.
+- **Settings & User Management:** Administer users and system settings.
+
+### Notable Files
+- `src/components/Billing/BillingSystem.jsx`: Billing UI and logic.
+- `src/components/Billing/invoiceUtils.js`: PDF invoice generation using jsPDF.
+- `src/components/Layout/Sidebar.jsx`: Role-based navigation.
+- `src/components/Layout/Header.jsx`: Top navigation bar.
+- `src/services/api.js`: API service layer.
+- `src/store/`: Redux slices for each feature.
+
+---
+
+## 2. Backend (Recommended: PHP Laravel)
+
+### Suggested Setup
+- **Framework:** Laravel 10+
+- **Database:** MySQL/PostgreSQL/SQLite (configurable in `.env`)
+- **Authentication:** Laravel Breeze, Jetstream, or Sanctum for API auth
+- **API:** RESTful endpoints for all modules (users, orders, menu, billing, etc.)
+
+### Suggested Folder Structure
+```
+backend/
+  app/
+    Http/
+      Controllers/
+      Middleware/
+    Models/
+  database/
+    migrations/
+    seeders/
+  routes/
+    api.php
+  .env
+  composer.json
+  ...
+```
+
+### Example API Endpoints
+- `POST /api/login` – User authentication
+- `GET /api/orders` – List orders
+- `POST /api/orders` – Create order
+- `GET /api/menu` – List menu items
+- `POST /api/billing/invoice` – Generate/store invoice
+- ... (extend for all modules)
+
+---
+
+## 3. How to Run (Frontend)
+
+1. **Install dependencies:**
+   ```
+   npm install
+   ```
+2. **Start the development server:**
+   ```
+   npm run dev
+   ```
+3. **Access the app:**
+   - Open `http://localhost:5173` in your browser.
+
+---
+
+## 4. How to Run (Backend – Laravel)
+
+1. **Install Laravel:**
+   ```
+   composer create-project laravel/laravel backend
+   ```
+2. **Configure `.env`:**
+   - Set up your database credentials.
+3. **Run migrations:**
+   ```
+   php artisan migrate
+   ```
+4. **Start the server:**
+   ```
+   php artisan serve
+   ```
+5. **API will be available at:**  
+   `http://localhost:8000/api`
+
+---
+
+## 5. Integration
+- The React frontend communicates with the Laravel backend via RESTful APIs.
+- Update `src/services/api.js` with your backend API base URL.
+- Use JWT or Sanctum for secure API authentication.
+
+---
+
+## 6. Deployment
+- **Frontend:** Deployable to Netlify, Vercel, or any static hosting.
+- **Backend:** Deployable to shared hosting, VPS, or cloud (Heroku, DigitalOcean, AWS, etc.).
+
+---
+
+## 7. Customization & Extension
+- Add new modules by creating new components and Redux slices.
+- Extend backend by adding new models, migrations, and controllers.
+- Update API endpoints and connect them in `api.js`.
+
+---
+
+## 8. Contributors
+- Project Owner: Bandhan203
+- Frontend: React, Redux, Tailwind, jsPDF
+- Backend: PHP Laravel (recommended)
+
+---
+
+## 9. License
+This project is for educational and demonstration purposes.  
+For production use, review and update security, authentication, and data validation.
+
+---
