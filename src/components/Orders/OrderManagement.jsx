@@ -29,12 +29,14 @@ import {
 } from '../common/Icons';
 import { format } from 'date-fns';
 import { AddOrderModal } from './AddOrderModal';
+import { useAuth } from '../../contexts/AuthContext';
 
 export function OrderManagement({ readOnly = false }) {
   const dispatch = useDispatch();
   const orders = useSelector(selectOrders);
   const loading = useSelector(selectOrdersLoading);
   const error = useSelector(selectOrdersError);
+  const { user, token } = useAuth();
   
   const isReadOnly = readOnly; // Admin has full access
   
@@ -58,9 +60,11 @@ export function OrderManagement({ readOnly = false }) {
 
   // Fetch orders and menu items on component mount
   useEffect(() => {
-    dispatch(fetchOrders());
-    dispatch(fetchMenuItems());
-  }, [dispatch]);
+    if (user && token) {
+      dispatch(fetchOrders());
+      dispatch(fetchMenuItems());
+    }
+  }, [dispatch, user, token]);
 
   const filteredOrders = orders.filter(order => {
     if (selectedStatus === 'all') return true;
@@ -258,13 +262,31 @@ export function OrderManagement({ readOnly = false }) {
       )}
 
       {/* Error State */}
-      {error && (
+      {!user && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex">
+            <AlertCircle className="h-5 w-5 text-yellow-400" />
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-yellow-800">Authentication Required</h3>
+              <p className="mt-2 text-sm text-yellow-700">Please log in to view and manage orders.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {error && user && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <div className="flex">
             <XCircle className="h-5 w-5 text-red-400" />
             <div className="ml-3">
               <h3 className="text-sm font-medium text-red-800">Error loading orders</h3>
               <p className="mt-2 text-sm text-red-700">{error}</p>
+              <button 
+                onClick={() => dispatch(fetchOrders())}
+                className="mt-2 text-sm bg-red-100 hover:bg-red-200 text-red-800 px-3 py-1 rounded"
+              >
+                Retry
+              </button>
             </div>
           </div>
         </div>
