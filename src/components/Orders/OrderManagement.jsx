@@ -67,7 +67,7 @@ export function OrderManagement({ readOnly = false }) {
     return order.status === selectedStatus;
   }).filter(order => {
     if (selectedOrderType === 'all') return true;
-    return order.orderType === selectedOrderType;
+    return order.order_type === selectedOrderType;
   });
 
   // Handle order status changes with confirmation for cancel/delete actions
@@ -321,15 +321,15 @@ export function OrderManagement({ readOnly = false }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-2 mb-2">
                     <h3 className="text-lg font-semibold text-gray-900 truncate">Order #{order.id}</h3>
-                    {order.orderType && (
-                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getOrderTypeColor(order.orderType)}`}>
-                        {getOrderTypeIcon(order.orderType)}
-                        <span className="ml-1">{order.orderType === 'dine-in' ? 'Dine In' : 'Pickup'}</span>
+                    {order.order_type && (
+                      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getOrderTypeColor(order.order_type)}`}>
+                        {getOrderTypeIcon(order.order_type)}
+                        <span className="ml-1">{order.order_type === 'dine-in' ? 'Dine In' : 'Pickup'}</span>
                       </span>
                     )}
                   </div>
                   <p className="text-sm text-gray-500">
-                    {format(new Date(order.createdAt), 'PPp')}
+                    {order.created_at ? format(new Date(order.created_at), 'PPp') : 'Just now'}
                   </p>
                 </div>
                 <div className="flex items-center space-x-2 ml-4">
@@ -350,52 +350,52 @@ export function OrderManagement({ readOnly = false }) {
                   <div className="w-5 h-5 flex items-center justify-center">
                     <User className="w-4 h-4 text-gray-400" />
                   </div>
-                  <span className="text-sm text-gray-600 flex-1 truncate">{order.customerName}</span>
+                  <span className="text-sm text-gray-600 flex-1 truncate">{order.customer_name}</span>
                 </div>
-                {order.orderType === 'dine-in' && order.tableNumber && (
+                {order.order_type === 'dine-in' && order.table_number && (
                   <div className="flex items-center space-x-3">
                     <div className="w-5 h-5 flex items-center justify-center">
                       <MapPin className="w-4 h-4 text-gray-400" />
                     </div>
-                    <span className="text-sm text-gray-600 flex-1">Table {order.tableNumber}</span>
+                    <span className="text-sm text-gray-600 flex-1">Table {order.table_number}</span>
                   </div>
                 )}
-                {order.orderType === 'pickup' && order.customerPhone && (
+                {order.order_type === 'pickup' && order.customer_phone && (
                   <div className="flex items-center space-x-3">
                     <div className="w-5 h-5 flex items-center justify-center">
                       <Phone className="w-4 h-4 text-gray-400" />
                     </div>
-                    <span className="text-sm text-gray-600 flex-1">{order.customerPhone}</span>
+                    <span className="text-sm text-gray-600 flex-1">{order.customer_phone}</span>
                   </div>
                 )}
-                {order.orderType === 'pickup' && order.customerEmail && (
+                {order.order_type === 'pickup' && order.customer_email && (
                   <div className="flex items-center space-x-3">
                     <div className="w-5 h-5 flex items-center justify-center">
                       <Mail className="w-4 h-4 text-gray-400" />
                     </div>
-                    <span className="text-sm text-gray-600 flex-1 truncate">{order.customerEmail}</span>
+                    <span className="text-sm text-gray-600 flex-1 truncate">{order.customer_email}</span>
                   </div>
                 )}
-                {order.orderType === 'pickup' && order.pickupTime && (
+                {order.order_type === 'pickup' && order.pickup_time && (
                   <div className="flex items-center space-x-3">
                     <div className="w-5 h-5 flex items-center justify-center">
                       <Clock className="w-4 h-4 text-gray-400" />
                     </div>
-                    <span className="text-sm text-gray-600 flex-1">Pickup: {format(new Date(order.pickupTime), 'h:mm a')}</span>
+                    <span className="text-sm text-gray-600 flex-1">Pickup: {format(new Date(order.pickup_time), 'h:mm a')}</span>
                   </div>
                 )}
                 <div className="flex items-center space-x-3">
                   <div className="w-5 h-5 flex items-center justify-center">
                     <DollarSign className="w-4 h-4 text-gray-400" />
                   </div>
-                  <span className="text-sm text-gray-600 flex-1 font-medium">৳ {order.totalAmount.toFixed(2)}</span>
+                  <span className="text-sm text-gray-600 flex-1 font-medium">৳ {order.total_amount}</span>
                 </div>
-                {order.estimatedTime && (
+                {order.estimated_time && (
                   <div className="flex items-center space-x-3">
                     <div className="w-5 h-5 flex items-center justify-center">
                       <AlertCircle className="w-4 h-4 text-gray-400" />
                     </div>
-                    <span className="text-sm text-gray-600 flex-1">Est. {order.estimatedTime} min</span>
+                    <span className="text-sm text-gray-600 flex-1">Est. {order.estimated_time} min</span>
                   </div>
                 )}
               </div>
@@ -404,18 +404,18 @@ export function OrderManagement({ readOnly = false }) {
             {/* Order Items */}
             <div className="px-6 pb-4 flex-1">
               <div className="border-t border-gray-200 pt-4">
-                <h4 className="font-medium text-gray-900 mb-2 text-sm">Items <span className='text-gray-400'>({order.items.length})</span></h4>
+                <h4 className="font-medium text-gray-900 mb-2 text-sm">Items <span className='text-gray-400'>({order.order_items?.length || 0})</span></h4>
                 <div className="space-y-1 max-h-20 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-gray-50">
-                  {order.items.map((item, idx) => (
+                  {order.order_items?.map((item, idx) => (
                     <div key={idx} className="flex items-center justify-between py-1 px-2 bg-gray-50 rounded group hover:bg-gray-100 transition-colors">
                       <div className="flex items-center space-x-2 flex-1 min-w-0">
                         <span className="w-5 h-5 bg-gray-100 text-gray-700 rounded flex items-center justify-center text-xs font-semibold flex-shrink-0">
                           {item.quantity}
                         </span>
-                        <span className="text-xs text-gray-900 truncate">{item.menuItemName}</span>
+                        <span className="text-xs text-gray-900 truncate">{item.item_name}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs font-medium text-gray-800 whitespace-nowrap">৳ {(item.price * item.quantity).toFixed(2)}</span>
+                        <span className="text-xs font-medium text-gray-800 whitespace-nowrap">৳ {item.subtotal}</span>
                         <button
                           onClick={() => handleItemDelete(order.id, idx)}
                           data-action="delete"
