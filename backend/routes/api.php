@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -29,9 +30,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('menu-items', MenuController::class);
     Route::get('/menu-categories', [MenuController::class, 'categories']);
 
+    // Order routes
+    Route::apiResource('orders', OrderController::class);
+    Route::get('/orders-statistics', [OrderController::class, 'statistics']);
+
     // Add other protected routes here as needed
     // Route::apiResource('users', UserController::class);
-    // Route::apiResource('orders', OrderController::class);
 });
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {

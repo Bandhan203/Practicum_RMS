@@ -166,18 +166,18 @@ export const orderAPI = {
     return response.data;
   },
 
-  updateOrderStatus: async (id, status) => {
-    const response = await api.put(`/orders/${id}/status`, { status });
+  updateOrder: async (id, updateData) => {
+    const response = await api.put(`/orders/${id}`, updateData);
     return response.data;
   },
 
-  cancelOrder: async (id) => {
+  deleteOrder: async (id) => {
     const response = await api.delete(`/orders/${id}`);
     return response.data;
   },
 
-  getOrderHistory: async (userId) => {
-    const response = await api.get(`/orders/history/${userId}`);
+  getOrderStatistics: async () => {
+    const response = await api.get('/orders-statistics');
     return response.data;
   },
 };

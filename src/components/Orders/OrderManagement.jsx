@@ -5,6 +5,7 @@ import {
   updateOrderStatus, 
   removeItemFromOrder,
   createOrder,
+  deleteOrder,
   selectOrders,
   selectOrdersLoading,
   selectOrdersError 
@@ -71,8 +72,8 @@ export function OrderManagement({ readOnly = false }) {
 
   // Handle order status changes with confirmation for cancel/delete actions
   const handleOrderAction = (orderId, action) => {
-    if (action === 'cancelled') {
-      // Show confirmation for cancel (delete-like) actions
+    if (action === 'cancelled' || action === 'delete') {
+      // Show confirmation for cancel/delete actions
       setPendingAction({ orderId, action });
       setShowDeleteConfirm(true);
     } else {
@@ -102,7 +103,11 @@ export function OrderManagement({ readOnly = false }) {
 
   const confirmDeleteAction = () => {
     if (pendingAction) {
-      dispatch(updateOrderStatus({ id: pendingAction.orderId, status: pendingAction.action }));
+      if (pendingAction.action === 'delete') {
+        dispatch(deleteOrder(pendingAction.orderId));
+      } else {
+        dispatch(updateOrderStatus({ id: pendingAction.orderId, status: pendingAction.action }));
+      }
       setPendingAction(null);
       setShowDeleteConfirm(false);
     }
@@ -181,12 +186,10 @@ export function OrderManagement({ readOnly = false }) {
         customerEmail: newOrder.customerEmail,
         customerPhone: newOrder.customerPhone,
         orderType: newOrder.orderType,
-        tableNumber: newOrder.orderType === 'dine-in' ? newOrder.tableNumber : null,
+        tableNumber: newOrder.orderType === 'dine-in' ? parseInt(newOrder.tableNumber) || null : null,
         pickupTime: newOrder.orderType === 'pickup' ? newOrder.pickupTime : null,
         items: newOrder.items,
-        notes: newOrder.notes,
-        status: 'pending',
-        total: newOrder.items.reduce((total, item) => total + (item.price * item.quantity), 0)
+        notes: newOrder.notes
       };
 
       await dispatch(createOrder(orderData)).unwrap();
