@@ -8,7 +8,9 @@ import {
   Users,
   CreditCard,
   LogOut,
-  Settings
+  Settings,
+  Package,
+  BarChart3
 } from 'lucide-react';
 
 const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
@@ -31,7 +33,8 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
       case 'dashboard': return 'Admin Panel';
       case 'orders': return 'Order Management';
       case 'menu': return 'Menu Management';
-      case 'users': return 'User Management';
+      case 'inventory': return 'Inventory Management';
+      case 'analytics': return 'Analytics & Reports';
       case 'billing': return 'Billing System';
       default: return 'Admin Panel';
     }
@@ -64,7 +67,8 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
       { id: 'dashboard', label: 'Dashboard', icon: Home },
       { id: 'menu', label: 'Menu Management', icon: MenuIcon },
       { id: 'orders', label: 'Order Management', icon: ShoppingCart },
-      { id: 'users', label: 'User Management', icon: Users },
+      { id: 'inventory', label: 'Inventory Management', icon: Package },
+      { id: 'analytics', label: 'Analytics & Reports', icon: BarChart3 },
       { id: 'billing', label: 'Billing System', icon: CreditCard },
       { id: 'settings', label: 'Settings', icon: Settings },
     ];

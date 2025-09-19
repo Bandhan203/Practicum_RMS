@@ -4,7 +4,7 @@ import Cookies from 'js-cookie';
 // Create axios instance with default configuration
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
-  timeout: 10000,
+  timeout: 30000, // Increased timeout to 30 seconds
   withCredentials: false, // Using Bearer token authentication, no need for credentials
   headers: {
     'Content-Type': 'application/json',
@@ -38,9 +38,11 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Token expired or invalid
+      console.warn('Authentication error - token may be expired:', error.response?.data);
       Cookies.remove('authToken');
       localStorage.removeItem('restaurant_user');
-      window.location.href = '/login';
+      // Temporarily disable auto-redirect to prevent bouncing
+      // window.location.href = '/login';
     }
     return Promise.reject(error);
   }
@@ -126,22 +128,36 @@ export const menuAPI = {
   },
 
   createMenuItem: async (itemData) => {
-    const response = await api.post('/menu-items', itemData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    });
-    return response.data;
+    // If itemData contains a file, use FormData, otherwise use JSON
+    if (itemData instanceof FormData) {
+      const response = await api.post('/menu-items', itemData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } else {
+      // For regular JSON data
+      const response = await api.post('/menu-items', itemData);
+      return response.data;
+    }
   },
 
   updateMenuItem: async (id, itemData) => {
-    const response = await api.post(`/menu-items/${id}`, itemData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        'X-HTTP-Method-Override': 'PUT'
-      },
-    });
-    return response.data;
+    // If itemData contains a file, use FormData with POST and method override
+    if (itemData instanceof FormData) {
+      const response = await api.post(`/menu-items/${id}`, itemData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'X-HTTP-Method-Override': 'PUT'
+        },
+      });
+      return response.data;
+    } else {
+      // For regular JSON data, use PUT
+      const response = await api.put(`/menu-items/${id}`, itemData);
+      return response.data;
+    }
   },
 
   deleteMenuItem: async (id) => {
@@ -241,6 +257,69 @@ export const reservationAPI = {
     });
     return response.data;
   },
+};
+
+// Inventory API calls
+export const inventoryAPI = {
+  getInventoryItems: async (filters = {}) => {
+    const response = await api.get('/inventory', { params: filters });
+    return response.data;
+  },
+
+  getInventoryItem: async (id) => {
+    const response = await api.get(`/inventory/${id}`);
+    return response.data;
+  },
+
+  createInventoryItem: async (itemData) => {
+    const response = await api.post('/inventory', itemData);
+    return response.data;
+  },
+
+  updateInventoryItem: async (id, itemData) => {
+    const response = await api.put(`/inventory/${id}`, itemData);
+    return response.data;
+  },
+
+  deleteInventoryItem: async (id) => {
+    const response = await api.delete(`/inventory/${id}`);
+    return response.data;
+  },
+
+  adjustStock: async (id, adjustment, reason = null) => {
+    const response = await api.post(`/inventory/${id}/adjust-stock`, {
+      adjustment,
+      reason
+    });
+    return response.data;
+  },
+
+  getInventoryStats: async () => {
+    const response = await api.get('/inventory-stats');
+    return response.data;
+  },
+
+  getInventoryAlerts: async () => {
+    const response = await api.get('/inventory-alerts');
+    return response.data;
+  },
+
+  // Helper functions for common operations
+  increaseStock: async (id, amount = 1) => {
+    return inventoryAPI.adjustStock(id, Math.abs(amount), 'Stock increase');
+  },
+
+  decreaseStock: async (id, amount = 1) => {
+    return inventoryAPI.adjustStock(id, -Math.abs(amount), 'Stock decrease');
+  },
+
+  markAsUsed: async (id, amount, reason = 'Used in preparation') => {
+    return inventoryAPI.adjustStock(id, -Math.abs(amount), reason);
+  },
+
+  restockItem: async (id, amount, reason = 'Restocking') => {
+    return inventoryAPI.adjustStock(id, Math.abs(amount), reason);
+  }
 };
 
 export default api;

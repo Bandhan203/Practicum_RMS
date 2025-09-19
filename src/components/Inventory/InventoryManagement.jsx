@@ -6,11 +6,14 @@ import { format } from 'date-fns';
 export function InventoryManagement() {
   const { 
     inventory, 
+    inventoryLoading,
+    inventoryError,
     updateInventory, 
     addInventoryItem, 
     updateInventoryItem, 
     deleteInventoryItem,
-    adjustInventoryStock 
+    adjustInventoryStock,
+    refreshInventory 
   } = useApp();
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -41,9 +44,9 @@ export function InventoryManagement() {
       
       let matchesStatus = true;
       if (statusFilter === 'critical') {
-        matchesStatus = item.quantity <= item.criticalLevel;
+        matchesStatus = item.quantity <= (item.critical_level || item.criticalLevel);
       } else if (statusFilter === 'low') {
-        matchesStatus = item.quantity <= item.threshold && item.quantity > item.criticalLevel;
+        matchesStatus = item.quantity <= item.threshold && item.quantity > (item.critical_level || item.criticalLevel);
       } else if (statusFilter === 'adequate') {
         matchesStatus = item.quantity > item.threshold;
       }
@@ -54,8 +57,8 @@ export function InventoryManagement() {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const critical = inventory.filter(item => item.quantity <= item.criticalLevel).length;
-    const low = inventory.filter(item => item.quantity <= item.threshold && item.quantity > item.criticalLevel).length;
+    const critical = inventory.filter(item => item.quantity <= (item.critical_level || item.criticalLevel)).length;
+    const low = inventory.filter(item => item.quantity <= item.threshold && item.quantity > (item.critical_level || item.criticalLevel)).length;
     const adequate = inventory.filter(item => item.quantity > item.threshold).length;
     const totalValue = inventory.reduce((sum, item) => sum + (item.quantity * item.cost), 0);
     
@@ -63,7 +66,7 @@ export function InventoryManagement() {
   }, [inventory]);
 
   const getStockStatus = (item) => {
-    if (item.quantity <= item.criticalLevel) return 'critical';
+    if (item.quantity <= (item.critical_level || item.criticalLevel)) return 'critical';
     if (item.quantity <= item.threshold) return 'low';
     return 'adequate';
   };
@@ -77,43 +80,57 @@ export function InventoryManagement() {
     }
   };
 
-  const handleAddItem = (e) => {
+  const handleAddItem = async (e) => {
     e.preventDefault();
     if (!newItem.name || !newItem.quantity || !newItem.unit || !newItem.category) return;
 
-    addInventoryItem({
+    const result = await addInventoryItem({
       ...newItem,
       quantity: parseFloat(newItem.quantity),
       threshold: parseFloat(newItem.threshold) || 10,
       cost: parseFloat(newItem.cost) || 0,
-      criticalLevel: parseFloat(newItem.criticalLevel) || 5
+      critical_level: parseFloat(newItem.criticalLevel) || 5
     });
 
-    setNewItem({
-      name: '',
-      quantity: '',
-      unit: '',
-      category: '',
-      threshold: '',
-      cost: '',
-      criticalLevel: ''
-    });
-    setShowAddForm(false);
-  };
-
-  const handleUpdateItem = (itemId, updates) => {
-    updateInventoryItem(itemId, updates);
-    setEditingItem(null);
-  };
-
-  const handleDeleteItem = (itemId) => {
-    if (window.confirm('Are you sure you want to delete this inventory item?')) {
-      deleteInventoryItem(itemId);
+    if (result.success) {
+      setNewItem({
+        name: '',
+        quantity: '',
+        unit: '',
+        category: '',
+        threshold: '',
+        cost: '',
+        criticalLevel: ''
+      });
+      setShowAddForm(false);
+    } else {
+      alert(`Error adding item: ${result.error}`);
     }
   };
 
-  const handleStockAdjustment = (itemId, adjustment) => {
-    adjustInventoryStock(itemId, adjustment);
+  const handleUpdateItem = async (itemId, updates) => {
+    const result = await updateInventoryItem(itemId, updates);
+    if (result.success) {
+      setEditingItem(null);
+    } else {
+      alert(`Error updating item: ${result.error}`);
+    }
+  };
+
+  const handleDeleteItem = async (itemId) => {
+    if (window.confirm('Are you sure you want to delete this inventory item?')) {
+      const result = await deleteInventoryItem(itemId);
+      if (!result.success) {
+        alert(`Error deleting item: ${result.error}`);
+      }
+    }
+  };
+
+  const handleStockAdjustment = async (itemId, adjustment) => {
+    const result = await adjustInventoryStock(itemId, adjustment);
+    if (!result.success) {
+      alert(`Error adjusting stock: ${result.error}`);
+    }
   };
 
   const ItemForm = ({ item, onSave, onCancel, isEdit = false }) => {
@@ -250,6 +267,37 @@ export function InventoryManagement() {
     );
   };
 
+  // Show loading state
+  if (inventoryLoading) {
+    return (
+      <div className="p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading inventory...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (inventoryError) {
+    return (
+      <div className="p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+          <AlertTriangle className="mx-auto h-8 w-8 text-red-600 mb-2" />
+          <h3 className="text-lg font-medium text-red-800">Error Loading Inventory</h3>
+          <p className="text-red-600 mb-4">{inventoryError}</p>
+          <button
+            onClick={refreshInventory}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -360,15 +408,19 @@ export function InventoryManagement() {
       {/* Add Item Form */}
       {showAddForm && (
         <ItemForm
-          onSave={(data) => {
-            addInventoryItem({
+          onSave={async (data) => {
+            const result = await addInventoryItem({
               ...data,
               quantity: parseFloat(data.quantity),
               threshold: parseFloat(data.threshold) || 10,
               cost: parseFloat(data.cost) || 0,
-              criticalLevel: parseFloat(data.criticalLevel) || 5
+              critical_level: parseFloat(data.criticalLevel) || 5
             });
-            setShowAddForm(false);
+            if (result.success) {
+              setShowAddForm(false);
+            } else {
+              alert(`Error adding item: ${result.error}`);
+            }
           }}
           onCancel={() => setShowAddForm(false)}
         />
@@ -436,7 +488,10 @@ export function InventoryManagement() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {format(item.lastUpdated, 'MMM dd, HH:mm')}
+                        {item.updated_at || item.lastUpdated ? 
+                          format(new Date(item.updated_at || item.lastUpdated), 'MMM dd, HH:mm') : 
+                          'N/A'
+                        }
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">

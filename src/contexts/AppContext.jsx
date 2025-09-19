@@ -1,5 +1,6 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, useEffect } from 'react';
 import { format } from 'date-fns';
+import { inventoryAPI, menuAPI } from '../services/api';
 
 // Create the context
 const AppContext = createContext();
@@ -690,6 +691,172 @@ const mockOrders = [
     pickupTime: null,
     createdAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
     estimatedTime: 18
+  },
+  // Additional Historical Orders for Better Analytics
+  {
+    id: '10',
+    customerId: '13',
+    customerName: 'Alice Johnson',
+    orderType: 'dine-in',
+    customerPhone: '+880-2222333344',
+    customerEmail: 'alice@email.com',
+    items: [
+      { menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 2, price: 18.99 },
+      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 }
+    ],
+    totalAmount: 54.97,
+    status: 'served',
+    tableNumber: 3,
+    pickupTime: null,
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    estimatedTime: 20
+  },
+  {
+    id: '11',
+    customerId: '14',
+    customerName: 'Bob Smith',
+    orderType: 'pickup',
+    customerPhone: '+880-1111222233',
+    customerEmail: 'bob@email.com',
+    items: [
+      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 3, price: 19.99 },
+      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 3, price: 8.99 }
+    ],
+    totalAmount: 86.94,
+    status: 'served',
+    tableNumber: null,
+    pickupTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+    estimatedTime: 25
+  },
+  {
+    id: '12',
+    customerId: '15',
+    customerName: 'Carol White',
+    orderType: 'dine-in',
+    customerPhone: '+880-9999000011',
+    customerEmail: 'carol@email.com',
+    items: [
+      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 1, price: 22.99 },
+      { menuItemId: '7', menuItemName: 'French Fries', quantity: 1, price: 9.99 },
+      { menuItemId: '10', menuItemName: 'Iced Tea', quantity: 2, price: 4.99 }
+    ],
+    totalAmount: 42.96,
+    status: 'served',
+    tableNumber: 9,
+    pickupTime: null,
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    estimatedTime: 18
+  },
+  {
+    id: '13',
+    customerId: '16',
+    customerName: 'David Lee',
+    orderType: 'pickup',
+    customerPhone: '+880-8888999900',
+    customerEmail: 'david.lee@email.com',
+    items: [
+      { menuItemId: '5', menuItemName: 'Fish & Chips', quantity: 2, price: 21.99 },
+      { menuItemId: '11', menuItemName: 'Fresh Juice', quantity: 2, price: 6.99 }
+    ],
+    totalAmount: 57.96,
+    status: 'served',
+    tableNumber: null,
+    pickupTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 45 * 60 * 1000),
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    estimatedTime: 22
+  },
+  {
+    id: '14',
+    customerId: '17',
+    customerName: 'Eva Green',
+    orderType: 'dine-in',
+    customerPhone: '+880-7777666655',
+    customerEmail: 'eva@email.com',
+    items: [
+      { menuItemId: '6', menuItemName: 'Vegetable Stir Fry', quantity: 1, price: 17.99 },
+      { menuItemId: '9', menuItemName: 'Chocolate Cake', quantity: 2, price: 12.99 }
+    ],
+    totalAmount: 43.97,
+    status: 'served',
+    tableNumber: 11,
+    pickupTime: null,
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    estimatedTime: 16
+  },
+  {
+    id: '15',
+    customerId: '18',
+    customerName: 'Frank Miller',
+    orderType: 'pickup',
+    customerPhone: '+880-6666555544',
+    customerEmail: 'frank@email.com',
+    items: [
+      { menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 1, price: 18.99 },
+      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 },
+      { menuItemId: '10', menuItemName: 'Iced Tea', quantity: 1, price: 4.99 }
+    ],
+    totalAmount: 40.97,
+    status: 'served',
+    tableNumber: null,
+    pickupTime: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000 + 20 * 60 * 1000),
+    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+    estimatedTime: 15
+  },
+  {
+    id: '16',
+    customerId: '19',
+    customerName: 'Grace Davis',
+    orderType: 'dine-in',
+    customerPhone: '+880-5555444433',
+    customerEmail: 'grace@email.com',
+    items: [
+      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 1, price: 19.99 },
+      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 1, price: 8.99 },
+      { menuItemId: '11', menuItemName: 'Fresh Juice', quantity: 1, price: 6.99 }
+    ],
+    totalAmount: 35.97,
+    status: 'served',
+    tableNumber: 2,
+    pickupTime: null,
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    estimatedTime: 20
+  },
+  {
+    id: '17',
+    customerId: '20',
+    customerName: 'Henry Wilson',
+    orderType: 'pickup',
+    customerPhone: '+880-4444333322',
+    customerEmail: 'henry@email.com',
+    items: [
+      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 2, price: 22.99 },
+      { menuItemId: '7', menuItemName: 'French Fries', quantity: 2, price: 9.99 }
+    ],
+    totalAmount: 65.96,
+    status: 'served',
+    tableNumber: null,
+    pickupTime: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 + 35 * 60 * 1000),
+    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+    estimatedTime: 25
+  },
+  {
+    id: '18',
+    customerId: '21',
+    customerName: 'Ivy Brown',
+    orderType: 'dine-in',
+    customerPhone: '+880-3333222211',
+    customerEmail: 'ivy@email.com',
+    items: [
+      { menuItemId: '5', menuItemName: 'Fish & Chips', quantity: 1, price: 21.99 },
+      { menuItemId: '9', menuItemName: 'Chocolate Cake', quantity: 1, price: 12.99 }
+    ],
+    totalAmount: 34.98,
+    status: 'served',
+    tableNumber: 6,
+    pickupTime: null,
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+    estimatedTime: 22
   }
 ];
 
@@ -1086,10 +1253,55 @@ export function AppProvider({ children }) {
   const [menuItems, setMenuItems] = useState(mockMenuItems);
   const [reservations, setReservations] = useState(mockReservations);
   const [wasteLogs, setWasteLogs] = useState(mockWasteLogs);
-  const [inventory, setInventory] = useState(mockInventory);
+  const [inventory, setInventory] = useState([]);
+  const [inventoryLoading, setInventoryLoading] = useState(false);
+  const [inventoryError, setInventoryError] = useState(null);
   const [analytics] = useState(mockAnalytics);
   const [appUsers, setAppUsers] = useState(mockAppUsers);
   const [cart, setCart] = useState([]);
+
+  // Load inventory from API on component mount
+  useEffect(() => {
+    loadInventory();
+    loadMenuItems();
+  }, []);
+
+  const loadMenuItems = async () => {
+    try {
+      const response = await menuAPI.getMenuItems();
+      if (response.data && response.data.length > 0) {
+        setMenuItems(response.data);
+      } else {
+        console.warn('No menu items returned from API, using mock data');
+        // Keep mock data if API returns empty
+      }
+    } catch (error) {
+      console.error('Error loading menu items:', error);
+      // Keep mock data if API fails
+    }
+  };
+
+  const loadInventory = async () => {
+    try {
+      setInventoryLoading(true);
+      setInventoryError(null);
+      const response = await inventoryAPI.getInventoryItems();
+      if (response.success) {
+        setInventory(response.data || []);
+      } else {
+        console.warn('Failed to load inventory:', response.message);
+        // Fallback to mock data if API fails
+        setInventory(mockInventory);
+      }
+    } catch (error) {
+      console.error('Error loading inventory:', error);
+      setInventoryError(error.message);
+      // Fallback to mock data
+      setInventory(mockInventory);
+    } finally {
+      setInventoryLoading(false);
+    }
+  };
 
   // Dynamic calculations for real-time analytics
   const calculateLiveWasteAnalytics = () => {
@@ -1358,53 +1570,142 @@ export function AppProvider({ children }) {
     setWasteLogs(prev => prev.filter(waste => waste.id !== wasteId));
   };
 
-  const updateInventory = (itemId, quantity) => {
-    setInventory(prev =>
-      prev.map(item =>
-        item.id === itemId
-          ? { ...item, quantity, lastUpdated: new Date() }
-          : item
-      )
-    );
+  const updateInventory = async (itemId, quantity) => {
+    try {
+      const response = await inventoryAPI.updateInventoryItem(itemId, { quantity });
+      if (response.success) {
+        setInventory(prev =>
+          prev.map(item =>
+            item.id === itemId
+              ? { ...item, quantity, updated_at: new Date().toISOString() }
+              : item
+          )
+        );
+        return { success: true, data: response.data };
+      } else {
+        console.error('Failed to update inventory:', response.message);
+        return { success: false, error: response.message };
+      }
+    } catch (error) {
+      console.error('Error updating inventory:', error);
+      // Fallback to local update
+      setInventory(prev =>
+        prev.map(item =>
+          item.id === itemId
+            ? { ...item, quantity, updated_at: new Date().toISOString() }
+            : item
+        )
+      );
+      return { success: false, error: error.message };
+    }
   };
 
-  const addInventoryItem = (item) => {
-    const newItem = {
-      ...item,
-      id: Date.now().toString(),
-      lastUpdated: new Date()
-    };
-    setInventory(prev => [newItem, ...prev]);
+  const addInventoryItem = async (item) => {
+    try {
+      const response = await inventoryAPI.createInventoryItem(item);
+      if (response.success) {
+        setInventory(prev => [response.data, ...prev]);
+        return { success: true, data: response.data };
+      } else {
+        console.error('Failed to add inventory item:', response.message);
+        return { success: false, error: response.message };
+      }
+    } catch (error) {
+      console.error('Error adding inventory item:', error);
+      // Fallback to local add
+      const newItem = {
+        ...item,
+        id: Date.now().toString(),
+        updated_at: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      };
+      setInventory(prev => [newItem, ...prev]);
+      return { success: false, error: error.message };
+    }
   };
 
-  const updateInventoryItem = (itemId, updates) => {
-    setInventory(prev =>
-      prev.map(item =>
-        item.id === itemId
-          ? { ...item, ...updates, lastUpdated: new Date() }
-          : item
-      )
-    );
+  const updateInventoryItem = async (itemId, updates) => {
+    try {
+      const response = await inventoryAPI.updateInventoryItem(itemId, updates);
+      if (response.success) {
+        setInventory(prev =>
+          prev.map(item =>
+            item.id === itemId ? response.data : item
+          )
+        );
+        return { success: true, data: response.data };
+      } else {
+        console.error('Failed to update inventory item:', response.message);
+        return { success: false, error: response.message };
+      }
+    } catch (error) {
+      console.error('Error updating inventory item:', error);
+      // Fallback to local update
+      setInventory(prev =>
+        prev.map(item =>
+          item.id === itemId
+            ? { ...item, ...updates, updated_at: new Date().toISOString() }
+            : item
+        )
+      );
+      return { success: false, error: error.message };
+    }
   };
 
-  const deleteInventoryItem = (itemId) => {
-    setInventory(prev => prev.filter(item => item.id !== itemId));
+  const deleteInventoryItem = async (itemId) => {
+    try {
+      const response = await inventoryAPI.deleteInventoryItem(itemId);
+      if (response.success) {
+        setInventory(prev => prev.filter(item => item.id !== itemId));
+        return { success: true };
+      } else {
+        console.error('Failed to delete inventory item:', response.message);
+        return { success: false, error: response.message };
+      }
+    } catch (error) {
+      console.error('Error deleting inventory item:', error);
+      // Fallback to local delete
+      setInventory(prev => prev.filter(item => item.id !== itemId));
+      return { success: false, error: error.message };
+    }
   };
 
-  const adjustInventoryStock = (itemId, adjustment, _reason = 'Manual adjustment') => {
-    setInventory(prev =>
-      prev.map(item => {
-        if (item.id === itemId) {
-          const newQuantity = Math.max(0, item.quantity + adjustment);
-          return {
-            ...item,
-            quantity: newQuantity,
-            lastUpdated: new Date()
-          };
-        }
-        return item;
-      })
-    );
+  const adjustInventoryStock = async (itemId, adjustment, reason = 'Manual adjustment') => {
+    try {
+      const response = await inventoryAPI.adjustStock(itemId, adjustment, reason);
+      if (response.success) {
+        setInventory(prev =>
+          prev.map(item =>
+            item.id === itemId ? response.data : item
+          )
+        );
+        return { success: true, data: response.data };
+      } else {
+        console.error('Failed to adjust inventory stock:', response.message);
+        return { success: false, error: response.message };
+      }
+    } catch (error) {
+      console.error('Error adjusting inventory stock:', error);
+      // Fallback to local adjustment
+      setInventory(prev =>
+        prev.map(item => {
+          if (item.id === itemId) {
+            const newQuantity = Math.max(0, item.quantity + adjustment);
+            return {
+              ...item,
+              quantity: newQuantity,
+              updated_at: new Date().toISOString()
+            };
+          }
+          return item;
+        })
+      );
+      return { success: false, error: error.message };
+    }
+  };
+
+  const refreshInventory = () => {
+    loadInventory();
   };
 
   // Settings data
@@ -1620,24 +1921,63 @@ export function AppProvider({ children }) {
     );
   };
 
-  const addMenuItem = (item) => {
-    const newItem = {
-      ...item,
-      id: Date.now().toString()
-    };
-    setMenuItems(prev => [newItem, ...prev]);
+  const addMenuItem = async (item) => {
+    try {
+      // Call API to save to database
+      const response = await menuAPI.createMenuItem(item);
+      const newItem = response.data;
+      
+      // Update local state with the item from database (includes ID)
+      setMenuItems(prev => [newItem, ...prev]);
+      return newItem;
+    } catch (error) {
+      console.error('Error adding menu item:', error);
+      // Fallback to local state if API fails
+      const newItem = {
+        ...item,
+        id: Date.now().toString()
+      };
+      setMenuItems(prev => [newItem, ...prev]);
+      return newItem;
+    }
   };
 
-  const updateMenuItem = (itemId, updates) => {
-    setMenuItems(prev =>
-      prev.map(item =>
-        item.id === itemId ? { ...item, ...updates } : item
-      )
-    );
+  const updateMenuItem = async (itemId, updates) => {
+    try {
+      // Call API to update in database
+      const response = await menuAPI.updateMenuItem(itemId, updates);
+      const updatedItem = response.data;
+      
+      // Update local state
+      setMenuItems(prev =>
+        prev.map(item =>
+          item.id == itemId ? updatedItem : item
+        )
+      );
+      return updatedItem;
+    } catch (error) {
+      console.error('Error updating menu item:', error);
+      // Fallback to local state if API fails
+      setMenuItems(prev =>
+        prev.map(item =>
+          item.id === itemId ? { ...item, ...updates } : item
+        )
+      );
+    }
   };
 
-  const deleteMenuItem = (itemId) => {
-    setMenuItems(prev => prev.filter(item => item.id !== itemId));
+  const deleteMenuItem = async (itemId) => {
+    try {
+      // Call API to delete from database
+      await menuAPI.deleteMenuItem(itemId);
+      
+      // Update local state
+      setMenuItems(prev => prev.filter(item => item.id != itemId));
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      // Fallback to local state if API fails
+      setMenuItems(prev => prev.filter(item => item.id !== itemId));
+    }
   };
 
   return (
@@ -1647,6 +1987,8 @@ export function AppProvider({ children }) {
       reservations,
       wasteLogs,
       inventory,
+      inventoryLoading,
+      inventoryError,
       appUsers,
       analytics,
       cart,
@@ -1668,6 +2010,7 @@ export function AppProvider({ children }) {
       updateInventoryItem,
       deleteInventoryItem,
       adjustInventoryStock,
+      refreshInventory,
       addUser,
       updateUser,
       deleteUser,

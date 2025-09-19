@@ -5,10 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\MenuItem;
+use App\Models\Bill;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Log;
 
 class OrderController extends Controller
 {
@@ -174,7 +176,7 @@ class OrderController extends Controller
     {
         try {
             $validated = $request->validate([
-                'status' => 'required|in:pending,preparing,ready,completed,cancelled',
+                'status' => 'required|in:pending,preparing,ready,served,completed,cancelled',
                 'notes' => 'nullable|string|max:1000'
             ]);
 
@@ -184,6 +186,13 @@ class OrderController extends Controller
                 'status' => $validated['status'],
                 'notes' => $validated['notes'] ?? $order->notes
             ]);
+
+            // If order is marked as served, automatically create a bill and mark as completed
+            if ($validated['status'] === 'served') {
+                $this->createBillForOrder($order);
+                // Update order status to completed for billing system compatibility
+                $order->update(['status' => 'completed']);
+            }
 
             $order->load(['orderItems.menuItem']);
 
@@ -279,6 +288,50 @@ class OrderController extends Controller
                 'message' => 'Failed to fetch statistics',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Automatically create a bill when order is served
+     */
+    private function createBillForOrder(Order $order)
+    {
+        try {
+            // Check if bill already exists for this order
+            $existingBill = Bill::where('order_id', $order->id)->first();
+            if ($existingBill) {
+                return; // Bill already exists, don't create duplicate
+            }
+
+            // Calculate totals
+            $subtotal = floatval($order->total_amount);
+            $taxRate = 0.10; // 10% tax rate
+            $taxAmount = $subtotal * $taxRate;
+            $totalAmount = $subtotal + $taxAmount;
+
+            // Create the bill
+            $bill = Bill::create([
+                'order_id' => $order->id,
+                'customer_name' => $order->customer_name,
+                'customer_email' => $order->customer_email,
+                'customer_phone' => $order->customer_phone,
+                'subtotal' => $subtotal,
+                'tax_amount' => $taxAmount,
+                'discount_amount' => 0.00,
+                'total_amount' => $totalAmount,
+                'payment_status' => 'pending',
+                'payment_method' => 'cash', // Default payment method
+                'table_number' => $order->table_number,
+                'order_type' => $order->order_type,
+                'notes' => 'Auto-generated bill for served order',
+                'is_printed' => false,
+            ]);
+
+            return $bill;
+        } catch (\Exception $e) {
+            // Log error but don't fail the order update
+            Log::error('Failed to create bill for order ' . $order->id . ': ' . $e->getMessage());
+            return null;
         }
     }
 }

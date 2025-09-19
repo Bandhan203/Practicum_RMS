@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics API Test - Smart Dine POS</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button { 
+            background: #dc2626; 
+            color: white; 
+            border: none; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #b91c1c; }
+        button:disabled { 
+            background: #ccc; 
+            cursor: not-allowed;
+        }
+        .result { 
+            margin-top: 10px; 
+            padding: 10px; 
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #dc2626; }
+        .info { background: #dbeafe; color: #1e40af; }
+        h1 { color: #dc2626; }
+        h2 { color: #374151; margin-top: 0; }
+        .auth-section {
+            background: #fef3c7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        .status-connected { background: #22c55e; }
+        .status-disconnected { background: #ef4444; }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏪 Smart Dine POS - Analytics API Test</h1>
+    
+    <div class="container">
+        <h2>📊 Server Status</h2>
+        <div id="serverStatus">
+            <span class="status-indicator status-disconnected"></span>
+            Checking server connection...
+        </div>
+    </div>
+
+    <div class="auth-section">
+        <h3>🔐 Authentication</h3>
+        <p><strong>Note:</strong> Most analytics endpoints require authentication. Please login first:</p>
+        <div>
+            <input type="email" id="email" placeholder="Email" value="admin@restaurant.com">
+            <input type="password" id="password" placeholder="Password" value="password">
+            <button onclick="login()">Login</button>
+            <button onclick="logout()">Logout</button>
+        </div>
+        <div id="authStatus" class="result info">Not authenticated</div>
+    </div>
+
+    <div class="container">
+        <div class="test-section">
+            <h2>📈 Dashboard Stats</h2>
+            <p>Get comprehensive dashboard statistics for different time periods.</p>
+            <select id="dashboardPeriod">
+                <option value="today">Today</option>
+                <option value="week">This Week</option>
+                <option value="month">This Month</option>
+                <option value="year">This Year</option>
+            </select>
+            <button onclick="testDashboardStats()">Get Dashboard Stats</button>
+            <div id="dashboardResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>💰 Sales Report</h2>
+            <p>Get detailed sales analytics for a specific date range.</p>
+            <input type="date" id="salesStartDate" value="2025-09-01">
+            <input type="date" id="salesEndDate" value="2025-09-18">
+            <button onclick="testSalesReport()">Get Sales Report</button>
+            <div id="salesResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📦 Inventory Report</h2>
+            <p>Get comprehensive inventory analytics including stock levels and alerts.</p>
+            <button onclick="testInventoryReport()">Get Inventory Report</button>
+            <div id="inventoryResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🍽️ Menu Report</h2>
+            <p>Get menu analytics including popular items and performance metrics.</p>
+            <input type="date" id="menuStartDate" value="2025-09-01">
+            <input type="date" id="menuEndDate" value="2025-09-18">
+            <button onclick="testMenuReport()">Get Menu Report</button>
+            <div id="menuResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📋 Comprehensive Report</h2>
+            <p>Get all analytics data combined (Sales + Inventory + Menu).</p>
+            <input type="date" id="compStartDate" value="2025-09-01">
+            <input type="date" id="compEndDate" value="2025-09-18">
+            <button onclick="testComprehensiveReport()">Get Comprehensive Report</button>
+            <div id="comprehensiveResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🗂️ Saved Reports</h2>
+            <p>Manage saved analytics reports.</p>
+            <button onclick="testSavedReports()">Get Saved Reports</button>
+            <button onclick="clearSavedReports()">Clear Results</button>
+            <div id="savedReportsResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let authToken = null;
+
+        // Check server status
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/test-inventory`);
+                if (response.ok) {
+                    updateServerStatus(true);
+                } else {
+                    updateServerStatus(false);
+                }
+            } catch (error) {
+                updateServerStatus(false);
+            }
+        }
+
+        function updateServerStatus(connected) {
+            const statusEl = document.getElementById('serverStatus');
+            const indicator = statusEl.querySelector('.status-indicator');
+            
+            if (connected) {
+                indicator.className = 'status-indicator status-connected';
+                statusEl.innerHTML = '<span class="status-indicator status-connected"></span>Server connected ✅';
+            } else {
+                indicator.className = 'status-indicator status-disconnected';
+                statusEl.innerHTML = '<span class="status-indicator status-disconnected"></span>Server disconnected ❌';
+            }
+        }
+
+        // Authentication
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    authToken = data.token;
+                    document.getElementById('authStatus').innerHTML = `✅ Authenticated as: ${data.user.name} (${data.user.email})`;
+                    document.getElementById('authStatus').className = 'result success';
+                } else {
+                    throw new Error(data.message || 'Login failed');
+                }
+            } catch (error) {
+                document.getElementById('authStatus').innerHTML = `❌ Login failed: ${error.message}`;
+                document.getElementById('authStatus').className = 'result error';
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            document.getElementById('authStatus').innerHTML = '🚪 Logged out';
+            document.getElementById('authStatus').className = 'result info';
+        }
+
+        // Helper function for API calls
+        async function apiCall(endpoint, resultElementId) {
+            const resultEl = document.getElementById(resultElementId);
+            resultEl.innerHTML = '⏳ Loading...';
+            resultEl.className = 'result info';
+
+            try {
+                const headers = {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                };
+
+                if (authToken) {
+                    headers['Authorization'] = `Bearer ${authToken}`;
+                }
+
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'GET',
+                    headers: headers
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultEl.innerHTML = `✅ Success:\n${JSON.stringify(data, null, 2)}`;
+                    resultEl.className = 'result success';
+                } else {
+                    throw new Error(data.message || `HTTP ${response.status}`);
+                }
+            } catch (error) {
+                resultEl.innerHTML = `❌ Error: ${error.message}`;
+                resultEl.className = 'result error';
+            }
+        }
+
+        // Test functions
+        async function testDashboardStats() {
+            const period = document.getElementById('dashboardPeriod').value;
+            await apiCall(`/analytics/dashboard-stats?period=${period}`, 'dashboardResult');
+        }
+
+        async function testSalesReport() {
+            const startDate = document.getElementById('salesStartDate').value;
+            const endDate = document.getElementById('salesEndDate').value;
+            await apiCall(`/analytics/sales-report?start_date=${startDate}&end_date=${endDate}`, 'salesResult');
+        }
+
+        async function testInventoryReport() {
+            await apiCall('/analytics/inventory-report', 'inventoryResult');
+        }
+
+        async function testMenuReport() {
+            const startDate = document.getElementById('menuStartDate').value;
+            const endDate = document.getElementById('menuEndDate').value;
+            await apiCall(`/analytics/menu-report?start_date=${startDate}&end_date=${endDate}`, 'menuResult');
+        }
+
+        async function testComprehensiveReport() {
+            const startDate = document.getElementById('compStartDate').value;
+            const endDate = document.getElementById('compEndDate').value;
+            await apiCall(`/analytics/comprehensive-report?start_date=${startDate}&end_date=${endDate}`, 'comprehensiveResult');
+        }
+
+        async function testSavedReports() {
+            await apiCall('/analytics/reports', 'savedReportsResult');
+        }
+
+        function clearSavedReports() {
+            document.getElementById('savedReportsResult').innerHTML = '';
+            document.getElementById('savedReportsResult').className = 'result';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkServerStatus();
+            
+            // Set default dates to current date range
+            const today = new Date().toISOString().split('T')[0];
+            const monthAgo = new Date();
+            monthAgo.setMonth(monthAgo.getMonth() - 1);
+            const monthAgoStr = monthAgo.toISOString().split('T')[0];
+            
+            document.getElementById('salesStartDate').value = monthAgoStr;
+            document.getElementById('salesEndDate').value = today;
+            document.getElementById('menuStartDate').value = monthAgoStr;
+            document.getElementById('menuEndDate').value = today;
+            document.getElementById('compStartDate').value = monthAgoStr;
+            document.getElementById('compEndDate').value = today;
+        });
+    </script>
+</body>
+</html>

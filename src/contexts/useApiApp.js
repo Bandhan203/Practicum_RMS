@@ -1,11 +1,11 @@
-import React from 'react';
-  
-  const UseApiApp = () =>  {
-	return (
-	  <div>
-	  </div>
-	);
+import { useContext } from 'react';
+import { ApiAppContext } from './ApiAppContext';
+
+export const useApiApp = () => {
+  const context = useContext(ApiAppContext);
+  if (!context) {
+    throw new Error('useApiApp must be used within an ApiAppProvider');
   }
-  
-  export default UseApiApp;
+  return context;
+};
   

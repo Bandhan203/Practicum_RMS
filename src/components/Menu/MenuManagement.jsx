@@ -454,7 +454,7 @@ export function MenuManagement({ readOnly = false }) {
     addMenuItem({
       ...formData,
       price: parseFloat(formData.price),
-      preparationTime: parseInt(formData.preparationTime),
+      preparation_time: parseInt(formData.preparationTime),
       available: true,
       featured: false,
       ingredients: formData.ingredients.split(',').map(i => i.trim())
@@ -466,7 +466,7 @@ export function MenuManagement({ readOnly = false }) {
     updateMenuItem(editingItem.id, {
       ...formData,
       price: parseFloat(formData.price),
-      preparationTime: parseInt(formData.preparationTime),
+      preparation_time: parseInt(formData.preparationTime),
       ingredients: formData.ingredients.split(',').map(i => i.trim())
     });
     setEditingItem(null);
