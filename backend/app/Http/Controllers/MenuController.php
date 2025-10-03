@@ -58,8 +58,8 @@ class MenuController extends Controller
             'category' => 'required|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120', // 5MB limit
             'preparation_time' => 'nullable|integer|min:1',
-            'available' => 'nullable|in:0,1,true,false',
-            'featured' => 'nullable|in:0,1,true,false',
+            'available' => 'nullable|boolean',
+            'featured' => 'nullable|boolean',
             'ingredients' => 'nullable|string', // Accept as JSON string
             'dietary_info' => 'nullable|string|max:255',
             'calories' => 'nullable|integer|min:0',
@@ -80,8 +80,13 @@ class MenuController extends Controller
         $data = $request->all();
 
         // Process form data properly
-        $data['available'] = in_array($request->available, ['1', 'true', true, 1]);
-        $data['featured'] = in_array($request->featured, ['1', 'true', true, 1]);
+        $data['available'] = $request->boolean('available', true);
+        $data['featured'] = $request->boolean('featured', false);
+
+        // Set default preparation_time if not provided
+        if (!isset($data['preparation_time']) || $data['preparation_time'] === null) {
+            $data['preparation_time'] = 15; // Default 15 minutes
+        }
 
         // Handle ingredients JSON string
         if ($request->ingredients) {
@@ -90,12 +95,15 @@ class MenuController extends Controller
             $data['ingredients'] = [];
         }
 
-        // Handle image upload
+        // Handle image upload or URL
         if ($request->hasFile('image')) {
             $image = $request->file('image');
             $imageName = time() . '.' . $image->getClientOriginalExtension();
             $imagePath = $image->storeAs('menu-images', $imageName, 'public');
             $data['image'] = $imagePath;
+        } elseif ($request->has('image_url') && $request->image_url) {
+            // Handle image URL directly
+            $data['image'] = $request->image_url;
         }
 
         $menuItem = MenuItem::create($data);
@@ -145,8 +153,8 @@ class MenuController extends Controller
             'category' => 'sometimes|required|string|max:255',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:5120', // 5MB limit
             'preparation_time' => 'nullable|integer|min:1',
-            'available' => 'nullable|in:0,1,true,false',
-            'featured' => 'nullable|in:0,1,true,false',
+            'available' => 'nullable|boolean',
+            'featured' => 'nullable|boolean',
             'ingredients' => 'nullable|string', // Accept as JSON string
             'dietary_info' => 'nullable|string|max:255',
             'calories' => 'nullable|integer|min:0',
@@ -167,11 +175,11 @@ class MenuController extends Controller
         $data = $request->all();
 
         // Process form data properly
-        if (isset($request->available)) {
-            $data['available'] = in_array($request->available, ['1', 'true', true, 1]);
+        if ($request->has('available')) {
+            $data['available'] = $request->boolean('available');
         }
-        if (isset($request->featured)) {
-            $data['featured'] = in_array($request->featured, ['1', 'true', true, 1]);
+        if ($request->has('featured')) {
+            $data['featured'] = $request->boolean('featured');
         }
 
         // Handle ingredients JSON string
@@ -179,10 +187,10 @@ class MenuController extends Controller
             $data['ingredients'] = json_decode($request->ingredients, true) ?: [];
         }
 
-        // Handle image upload
+        // Handle image upload or URL
         if ($request->hasFile('image')) {
-            // Delete old image if exists
-            if ($menuItem->image) {
+            // Delete old image if exists and it's a local file
+            if ($menuItem->image && !filter_var($menuItem->image, FILTER_VALIDATE_URL)) {
                 Storage::disk('public')->delete($menuItem->image);
             }
 
@@ -190,6 +198,13 @@ class MenuController extends Controller
             $imageName = time() . '.' . $image->getClientOriginalExtension();
             $imagePath = $image->storeAs('menu-images', $imageName, 'public');
             $data['image'] = $imagePath;
+        } elseif ($request->has('image_url') && $request->image_url) {
+            // Delete old image if exists and it's a local file
+            if ($menuItem->image && !filter_var($menuItem->image, FILTER_VALIDATE_URL)) {
+                Storage::disk('public')->delete($menuItem->image);
+            }
+            // Handle image URL directly
+            $data['image'] = $request->image_url;
         }
 
         $menuItem->update($data);

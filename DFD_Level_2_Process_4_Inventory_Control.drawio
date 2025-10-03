@@ -1,0 +1,166 @@
+<mxfile host="65bd71144e">
+    <diagram id="DFD_Level_2_Process_4" name="Level 2 DFD Process 4.0 (Inventory Control)">
+        <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                
+                <!-- Title -->
+                <mxCell id="title" value="Level 2 DFD Process 4.0 (Inventory Control):" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="30" y="30" width="400" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- External Entity -->
+                <mxCell id="admin" value="Admin" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="50" y="150" width="80" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Sub-processes -->
+                <mxCell id="process41" value="4.1&#xa;&#xa;Add&#xa;Inventory" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="100" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="process42" value="4.2&#xa;&#xa;Update&#xa;Stock" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="100" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="process43" value="4.3&#xa;&#xa;Check Stock&#xa;Levels" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="250" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="process44" value="4.4&#xa;&#xa;Generate&#xa;Alerts" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="250" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Store -->
+                <mxCell id="db1" value="DB" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="170" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="db1_label" value="Restaurant_Management" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="630" y="170" width="120" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Flows from Admin -->
+                <mxCell id="admin_to_add" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="admin" target="process41">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="admin_to_add_label" value="Inventory" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="120" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="admin_to_update" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="admin" target="process42">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="admin_to_update_label" value="Inventory" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="250" y="80" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="admin_to_check" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="admin" target="process43">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="admin_to_check_label" value="Inventory" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="200" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Process to Data Store Flows -->
+                <mxCell id="add_to_db" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="process41" target="db1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="add_to_db_label" value="Stock updates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="120" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="update_to_db" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="process42" target="db1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="update_to_db_label" value="Stock updates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="140" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Store to Process Flows -->
+                <mxCell id="db_to_check" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="db1" target="process43">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="db_to_check_label" value="Stock updates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="220" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="db_to_update" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="db1" target="process42">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="db_to_update_label" value="Stock updates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="80" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Inter-process flows -->
+                <mxCell id="check_to_alerts" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="process43" target="process44">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="check_to_alerts_label" value="Low stock info" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="270" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Return flows to Admin -->
+                <mxCell id="alerts_to_admin" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=1;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="process44" target="admin">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="alerts_to_admin_label" value="Stock alerts" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="250" y="220" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="check_to_admin" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="process43" target="admin">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="check_to_admin_label" value="Stock reports" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="90" y="220" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Output to Level 1 -->
+                <mxCell id="output_to_level1" value="To Process 5.0&#xa;(Analytics Reports)" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#e6f3ff;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="400" width="120" height="40" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="stock_to_output" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="process43" target="output_to_level1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="stock_to_output_label" value="Stock updates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="350" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

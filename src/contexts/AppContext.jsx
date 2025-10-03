@@ -1,1269 +1,204 @@
-import React, { useState, createContext, useContext, useEffect } from 'react';
-import { format } from 'date-fns';
-import { inventoryAPI, menuAPI } from '../services/api';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { format, subDays, subHours } from 'date-fns';
+import { menuAPI, inventoryAPI } from '../services/api';
+import settingsAPI from '../services/settingsAPI';
 
-// Create the context
 const AppContext = createContext();
 
-// Mock data
-const mockMenuItems = [
-  // Pizzas
-  {
-    id: '1',
-    name: 'Margherita Pizza',
-    description: 'Classic pizza with tomato sauce, mozzarella, and fresh basil',
-    price: 450.00,
-    category: 'Pizza',
-    image: 'https://images.pexels.com/photos/315755/pexels-photo-315755.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Tomato sauce', 'Mozzarella', 'Basil'],
-    preparationTime: 15
-  },
-  {
-    id: '2',
-    name: 'Pepperoni Pizza',
-    description: 'Spicy pepperoni with mozzarella cheese and tomato sauce',
-    price: 520.00,
-    category: 'Pizza',
-    image: 'https://images.pexels.com/photos/708587/pexels-photo-708587.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Tomato sauce', 'Mozzarella', 'Pepperoni'],
-    preparationTime: 18
-  },
-  {
-    id: '3',
-    name: 'BBQ Chicken Pizza',
-    description: 'Grilled chicken with BBQ sauce, red onions, and cilantro',
-    price: 680.00,
-    category: 'Pizza',
-    image: 'https://images.pexels.com/photos/1146760/pexels-photo-1146760.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['BBQ sauce', 'Grilled chicken', 'Red onions', 'Cilantro', 'Mozzarella'],
-    preparationTime: 20
-  },
-  {
-    id: '4',
-    name: 'Vegetarian Supreme',
-    description: 'Bell peppers, mushrooms, onions, olives, and tomatoes',
-    price: 580.00,
-    category: 'Pizza',
-    image: 'https://images.pexels.com/photos/1653877/pexels-photo-1653877.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Bell peppers', 'Mushrooms', 'Onions', 'Olives', 'Tomatoes', 'Mozzarella'],
-    preparationTime: 17
-  },
-
-  // Burgers
-  {
-    id: '5',
-    name: 'Classic Beef Burger',
-    description: 'Juicy beef patty with lettuce, tomato, onion, and special sauce',
-    price: 420.00,
-    category: 'Burgers',
-    image: 'https://images.pexels.com/photos/1639557/pexels-photo-1639557.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Beef patty', 'Lettuce', 'Tomato', 'Onion', 'Special sauce', 'Sesame bun'],
-    preparationTime: 12
-  },
-  {
-    id: '6',
-    name: 'Chicken Burger',
-    description: 'Grilled chicken breast with avocado and honey mustard',
-    price: 380.00,
-    category: 'Burgers',
-    image: 'https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Chicken breast', 'Avocado', 'Honey mustard', 'Lettuce', 'Brioche bun'],
-    preparationTime: 14
-  },
-  {
-    id: '7',
-    name: 'Mushroom Swiss Burger',
-    description: 'Beef patty with sautéed mushrooms and Swiss cheese',
-    price: 480.00,
-    category: 'Burgers',
-    image: 'https://images.pexels.com/photos/2762942/pexels-photo-2762942.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Beef patty', 'Sautéed mushrooms', 'Swiss cheese', 'Caramelized onions'],
-    preparationTime: 15
-  },
-  {
-    id: '8',
-    name: 'Fish Burger',
-    description: 'Crispy fish fillet with tartar sauce and coleslaw',
-    price: 450.00,
-    category: 'Burgers',
-    image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Fish fillet', 'Tartar sauce', 'Coleslaw', 'Lettuce', 'Potato bun'],
-    preparationTime: 16
-  },
-
-  // Pasta
-  {
-    id: '9',
-    name: 'Spaghetti Carbonara',
-    description: 'Creamy pasta with bacon, eggs, and parmesan cheese',
-    price: 520.00,
-    category: 'Pasta',
-    image: 'https://images.pexels.com/photos/1279330/pexels-photo-1279330.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Spaghetti', 'Bacon', 'Eggs', 'Parmesan', 'Black pepper'],
-    preparationTime: 18
-  },
-  {
-    id: '10',
-    name: 'Chicken Alfredo',
-    description: 'Fettuccine pasta with grilled chicken in creamy alfredo sauce',
-    price: 580.00,
-    category: 'Pasta',
-    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Fettuccine', 'Grilled chicken', 'Alfredo sauce', 'Parmesan', 'Garlic'],
-    preparationTime: 20
-  },
-  {
-    id: '11',
-    name: 'Penne Arrabbiata',
-    description: 'Spicy tomato sauce with garlic, chili, and fresh herbs',
-    price: 420.00,
-    category: 'Pasta',
-    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Penne pasta', 'Spicy tomato sauce', 'Garlic', 'Chili', 'Basil'],
-    preparationTime: 15
-  },
-  {
-    id: '12',
-    name: 'Seafood Linguine',
-    description: 'Linguine with mixed seafood in white wine sauce',
-    price: 750.00,
-    category: 'Pasta',
-    image: 'https://images.pexels.com/photos/1438672/pexels-photo-1438672.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Linguine', 'Shrimp', 'Mussels', 'Calamari', 'White wine sauce'],
-    preparationTime: 25
-  },
-
-  // Salads
-  {
-    id: '13',
-    name: 'Caesar Salad',
-    description: 'Crisp romaine lettuce with caesar dressing and croutons',
-    price: 320.00,
-    category: 'Salads',
-    image: 'https://images.pexels.com/photos/2116094/pexels-photo-2116094.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Romaine lettuce', 'Caesar dressing', 'Croutons', 'Parmesan', 'Anchovies'],
-    preparationTime: 8
-  },
-  {
-    id: '14',
-    name: 'Greek Salad',
-    description: 'Fresh vegetables with feta cheese and olive oil dressing',
-    price: 380.00,
-    category: 'Salads',
-    image: 'https://images.pexels.com/photos/1213710/pexels-photo-1213710.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Tomatoes', 'Cucumber', 'Feta cheese', 'Olives', 'Red onion', 'Olive oil'],
-    preparationTime: 10
-  },
-  {
-    id: '15',
-    name: 'Grilled Chicken Salad',
-    description: 'Mixed greens with grilled chicken and balsamic vinaigrette',
-    price: 450.00,
-    category: 'Salads',
-    image: 'https://images.pexels.com/photos/1640777/pexels-photo-1640777.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Mixed greens', 'Grilled chicken', 'Cherry tomatoes', 'Balsamic vinaigrette'],
-    preparationTime: 12
-  },
-
-  // Asian Dishes
-  {
-    id: '16',
-    name: 'Chicken Fried Rice',
-    description: 'Wok-fried rice with chicken, vegetables, and soy sauce',
-    price: 380.00,
-    category: 'Asian',
-    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Jasmine rice', 'Chicken', 'Mixed vegetables', 'Soy sauce', 'Eggs'],
-    preparationTime: 15
-  },
-  {
-    id: '17',
-    name: 'Beef Stir Fry',
-    description: 'Tender beef strips with vegetables in savory sauce',
-    price: 520.00,
-    category: 'Asian',
-    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Beef strips', 'Bell peppers', 'Broccoli', 'Oyster sauce', 'Garlic'],
-    preparationTime: 18
-  },
-  {
-    id: '18',
-    name: 'Pad Thai',
-    description: 'Traditional Thai noodles with shrimp, tofu, and peanuts',
-    price: 480.00,
-    category: 'Asian',
-    image: 'https://images.pexels.com/photos/1410236/pexels-photo-1410236.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Rice noodles', 'Shrimp', 'Tofu', 'Bean sprouts', 'Peanuts', 'Lime'],
-    preparationTime: 16
-  },
-  {
-    id: '19',
-    name: 'Sweet and Sour Chicken',
-    description: 'Crispy chicken with pineapple and bell peppers',
-    price: 420.00,
-    category: 'Asian',
-    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Chicken', 'Pineapple', 'Bell peppers', 'Sweet and sour sauce'],
-    preparationTime: 20
-  },
-
-  // Seafood
-  {
-    id: '20',
-    name: 'Grilled Salmon',
-    description: 'Fresh salmon fillet with lemon herb seasoning',
-    price: 850.00,
-    category: 'Seafood',
-    image: 'https://images.pexels.com/photos/3655957/pexels-photo-3655957.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Salmon fillet', 'Lemon', 'Herbs', 'Olive oil', 'Asparagus'],
-    preparationTime: 22
-  },
-  {
-    id: '21',
-    name: 'Fish and Chips',
-    description: 'Beer-battered fish with crispy fries and mushy peas',
-    price: 650.00,
-    category: 'Seafood',
-    image: 'https://images.pexels.com/photos/1633525/pexels-photo-1633525.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['White fish', 'Beer batter', 'Potatoes', 'Mushy peas', 'Tartar sauce'],
-    preparationTime: 25
-  },
-  {
-    id: '22',
-    name: 'Shrimp Scampi',
-    description: 'Garlic butter shrimp served over pasta',
-    price: 720.00,
-    category: 'Seafood',
-    image: 'https://images.pexels.com/photos/3655957/pexels-photo-3655957.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Shrimp', 'Garlic', 'Butter', 'White wine', 'Parsley', 'Linguine'],
-    preparationTime: 18
-  },
-
-  // Indian Dishes
-  {
-    id: '23',
-    name: 'Chicken Biryani',
-    description: 'Aromatic basmati rice with spiced chicken and herbs',
-    price: 480.00,
-    category: 'Indian',
-    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Basmati rice', 'Chicken', 'Saffron', 'Yogurt', 'Spices', 'Mint'],
-    preparationTime: 35
-  },
-  {
-    id: '24',
-    name: 'Butter Chicken',
-    description: 'Creamy tomato curry with tender chicken pieces',
-    price: 520.00,
-    category: 'Indian',
-    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Chicken', 'Tomato sauce', 'Cream', 'Butter', 'Garam masala'],
-    preparationTime: 28
-  },
-  {
-    id: '25',
-    name: 'Vegetable Curry',
-    description: 'Mixed vegetables in aromatic curry sauce',
-    price: 380.00,
-    category: 'Indian',
-    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Mixed vegetables', 'Curry sauce', 'Coconut milk', 'Turmeric', 'Coriander'],
-    preparationTime: 25
-  },
-  {
-    id: '26',
-    name: 'Lamb Korma',
-    description: 'Tender lamb in mild creamy curry with almonds',
-    price: 680.00,
-    category: 'Indian',
-    image: 'https://images.pexels.com/photos/2641886/pexels-photo-2641886.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Lamb', 'Yogurt', 'Almonds', 'Cream', 'Cardamom', 'Cinnamon'],
-    preparationTime: 40
-  },
-
-  // Appetizers
-  {
-    id: '27',
-    name: 'Mozzarella Sticks',
-    description: 'Crispy breaded mozzarella with marinara sauce',
-    price: 280.00,
-    category: 'Appetizers',
-    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Mozzarella', 'Breadcrumbs', 'Marinara sauce'],
-    preparationTime: 8
-  },
-  {
-    id: '28',
-    name: 'Buffalo Wings',
-    description: 'Spicy chicken wings with blue cheese dip',
-    price: 420.00,
-    category: 'Appetizers',
-    image: 'https://images.pexels.com/photos/1633578/pexels-photo-1633578.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Chicken wings', 'Buffalo sauce', 'Blue cheese dip', 'Celery'],
-    preparationTime: 15
-  },
-  {
-    id: '29',
-    name: 'Garlic Bread',
-    description: 'Toasted bread with garlic butter and herbs',
-    price: 180.00,
-    category: 'Appetizers',
-    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Bread', 'Garlic', 'Butter', 'Parsley'],
-    preparationTime: 6
-  },
-  {
-    id: '30',
-    name: 'Nachos Supreme',
-    description: 'Tortilla chips with cheese, jalapeños, and toppings',
-    price: 380.00,
-    category: 'Appetizers',
-    image: 'https://images.pexels.com/photos/1410235/pexels-photo-1410235.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Tortilla chips', 'Cheese sauce', 'Jalapeños', 'Sour cream', 'Guacamole'],
-    preparationTime: 10
-  },
-
-  // Desserts
-  {
-    id: '31',
-    name: 'Chocolate Lava Cake',
-    description: 'Warm chocolate cake with molten chocolate center',
-    price: 320.00,
-    category: 'Desserts',
-    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Dark chocolate', 'Butter', 'Eggs', 'Flour', 'Vanilla ice cream'],
-    preparationTime: 12
-  },
-  {
-    id: '32',
-    name: 'Tiramisu',
-    description: 'Classic Italian dessert with coffee and mascarpone',
-    price: 280.00,
-    category: 'Desserts',
-    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Ladyfingers', 'Mascarpone', 'Coffee', 'Cocoa powder', 'Rum'],
-    preparationTime: 5
-  },
-  {
-    id: '33',
-    name: 'Cheesecake',
-    description: 'New York style cheesecake with berry compote',
-    price: 350.00,
-    category: 'Desserts',
-    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Cream cheese', 'Graham crackers', 'Mixed berries', 'Sugar'],
-    preparationTime: 8
-  },
-  {
-    id: '34',
-    name: 'Ice Cream Sundae',
-    description: 'Three scoops with chocolate sauce and whipped cream',
-    price: 220.00,
-    category: 'Desserts',
-    image: 'https://images.pexels.com/photos/1437267/pexels-photo-1437267.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Vanilla ice cream', 'Chocolate sauce', 'Whipped cream', 'Cherry'],
-    preparationTime: 3
-  },
-
-  // Beverages
-  {
-    id: '35',
-    name: 'Fresh Orange Juice',
-    description: 'Freshly squeezed orange juice',
-    price: 120.00,
-    category: 'Beverages',
-    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Fresh oranges'],
-    preparationTime: 2
-  },
-  {
-    id: '36',
-    name: 'Iced Coffee',
-    description: 'Cold brew coffee with ice and cream',
-    price: 150.00,
-    category: 'Beverages',
-    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: true,
-    ingredients: ['Coffee beans', 'Ice', 'Cream', 'Sugar'],
-    preparationTime: 3
-  },
-  {
-    id: '37',
-    name: 'Mango Lassi',
-    description: 'Traditional Indian yogurt drink with mango',
-    price: 180.00,
-    category: 'Beverages',
-    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Mango', 'Yogurt', 'Sugar', 'Cardamom'],
-    preparationTime: 4
-  },
-  {
-    id: '38',
-    name: 'Green Tea',
-    description: 'Traditional green tea with honey',
-    price: 80.00,
-    category: 'Beverages',
-    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Green tea leaves', 'Honey'],
-    preparationTime: 5
-  },
-  {
-    id: '39',
-    name: 'Coca Cola',
-    description: 'Chilled soft drink',
-    price: 60.00,
-    category: 'Beverages',
-    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Coca Cola'],
-    preparationTime: 1
-  },
-  {
-    id: '40',
-    name: 'Sparkling Water',
-    description: 'Refreshing sparkling water with lemon',
-    price: 80.00,
-    category: 'Beverages',
-    image: 'https://images.pexels.com/photos/96974/pexels-photo-96974.jpeg?auto=compress&cs=tinysrgb&w=500',
-    available: true,
-    featured: false,
-    ingredients: ['Sparkling water', 'Lemon'],
-    preparationTime: 1
+export const useApp = () => {
+  const context = useContext(AppContext);
+  if (!context) {
+    throw new Error('useApp must be used within an AppProvider');
   }
-];
+  return context;
+};
 
+// Mock Orders Data
 const mockOrders = [
   {
-    id: '1',
-    customerId: '4',
-    customerName: 'Customer Jane',
-    orderType: 'dine-in', // dine-in or pickup
-    customerPhone: '+880-1234567890',
-    customerEmail: 'jane@email.com',
-    items: [{ menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 1, price: 18.99 }],
-    totalAmount: 18.99,
-    status: 'preparing',
-    tableNumber: 5, // Only for dine-in orders
-    pickupTime: null, // Only for pickup orders
-    createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-    estimatedTime: 15
-  },
-  // Pending Orders
-  {
-    id: '2',
-    customerId: '5',
-    customerName: 'Mike Johnson',
-    orderType: 'pickup',
-    customerPhone: '+880-9876543210',
-    customerEmail: 'mike@email.com',
-    items: [
-      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 },
-      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 2, price: 8.99 }
-    ],
-    totalAmount: 34.97,
-    status: 'pending',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() + 25 * 60 * 1000), // 25 minutes from now
-    createdAt: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    estimatedTime: 20,
-    specialInstructions: 'Extra dressing on the side, please'
-  },
-  {
-    id: '3',
-    customerId: '6',
-    customerName: 'Sarah Wilson',
-    orderType: 'dine-in',
-    customerPhone: '+880-5555666677',
-    customerEmail: 'sarah@email.com',
-    items: [
-      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 2, price: 22.99 },
-      { menuItemId: '7', menuItemName: 'French Fries', quantity: 2, price: 9.99 }
-    ],
-    totalAmount: 65.96,
-    status: 'pending',
-    tableNumber: 8,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 2 * 60 * 1000), // 2 minutes ago
-    estimatedTime: 25,
-    specialInstructions: 'Medium well burgers, extra crispy fries'
-  },
-  {
-    id: '4',
-    customerId: '7',
-    customerName: 'David Chen',
-    orderType: 'pickup',
-    customerPhone: '+880-9999888877',
-    customerEmail: 'david@email.com',
-    items: [
-      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 1, price: 19.99 }
-    ],
-    totalAmount: 19.99,
-    status: 'pending',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes from now
-    createdAt: new Date(Date.now() - 1 * 60 * 1000), // 1 minute ago
-    estimatedTime: 18
-  },
-  // Served Orders
-  {
-    id: '5',
-    customerId: '8',
-    customerName: 'Emma Brown',
-    orderType: 'dine-in',
-    customerPhone: '+880-7777888899',
-    customerEmail: 'emma@email.com',
-    items: [
-      { menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 1, price: 18.99 },
-      { menuItemId: '9', menuItemName: 'Chocolate Cake', quantity: 1, price: 12.99 }
-    ],
-    totalAmount: 31.98,
-    status: 'served',
-    tableNumber: 6,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 90 * 60 * 1000), // 1.5 hours ago
-    estimatedTime: 15
-  },
-  {
-    id: '6',
-    customerId: '9',
-    customerName: 'Robert Taylor',
-    orderType: 'pickup',
-    customerPhone: '+880-6666777788',
-    customerEmail: 'robert@email.com',
-    items: [
-      { menuItemId: '5', menuItemName: 'Fish & Chips', quantity: 1, price: 21.99 },
-      { menuItemId: '10', menuItemName: 'Iced Tea', quantity: 2, price: 4.99 }
-    ],
-    totalAmount: 31.97,
-    status: 'served',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() - 100 * 60 * 1000), // Was picked up 100 minutes ago
-    createdAt: new Date(Date.now() - 120 * 60 * 1000), // 2 hours ago
-    estimatedTime: 22
-  },
-  {
-    id: '7',
-    customerId: '10',
-    customerName: 'Lisa Anderson',
-    orderType: 'dine-in',
-    customerPhone: '+880-4444555566',
-    customerEmail: 'lisa@email.com',
-    items: [
-      { menuItemId: '6', menuItemName: 'Vegetable Stir Fry', quantity: 1, price: 17.99 },
-      { menuItemId: '11', menuItemName: 'Fresh Juice', quantity: 1, price: 6.99 }
-    ],
-    totalAmount: 24.98,
-    status: 'served',
-    tableNumber: 4,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 150 * 60 * 1000), // 2.5 hours ago
-    estimatedTime: 16
-  },
-  // Cancelled Orders
-  {
-    id: '8',
-    customerId: '11',
-    customerName: 'Tom Wilson',
-    orderType: 'dine-in',
-    customerPhone: '+880-3333444455',
-    customerEmail: 'tom@email.com',
-    items: [
-      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 3, price: 22.99 },
-      { menuItemId: '7', menuItemName: 'French Fries', quantity: 3, price: 9.99 }
-    ],
-    totalAmount: 98.94,
-    status: 'cancelled',
-    tableNumber: 2,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-    estimatedTime: 25,
-    specialInstructions: 'Customer left due to long wait time'
-  },
-  {
-    id: '9',
-    customerId: '12',
-    customerName: 'Anna Garcia',
-    orderType: 'pickup',
-    customerPhone: '+880-2222333344',
-    customerEmail: 'anna@email.com',
-    items: [
-      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 }
-    ],
-    totalAmount: 16.99,
-    status: 'cancelled',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() - 55 * 60 * 1000), // Was supposed to pickup 55 minutes ago
-    createdAt: new Date(Date.now() - 75 * 60 * 1000), // 1.25 hours ago
-    estimatedTime: 20,
-    specialInstructions: 'Customer allergic to croutons - cancelled after ordering'
-  },
-  // Ready Orders
-  {
-    id: '10',
-    customerId: '13',
-    customerName: 'Chris Martinez',
-    orderType: 'dine-in',
-    customerPhone: '+880-1111222233',
-    customerEmail: 'chris@email.com',
-    items: [
-      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 2, price: 19.99 },
-      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 1, price: 8.99 }
-    ],
-    totalAmount: 48.97,
-    status: 'ready',
-    tableNumber: 7,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 20 * 60 * 1000), // 20 minutes ago
-    estimatedTime: 18
-  },
-  // Additional Historical Orders for Better Analytics
-  {
-    id: '10',
-    customerId: '13',
-    customerName: 'Alice Johnson',
-    orderType: 'dine-in',
-    customerPhone: '+880-2222333344',
-    customerEmail: 'alice@email.com',
-    items: [
-      { menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 2, price: 18.99 },
-      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 }
-    ],
-    totalAmount: 54.97,
-    status: 'served',
-    tableNumber: 3,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    estimatedTime: 20
-  },
-  {
-    id: '11',
-    customerId: '14',
-    customerName: 'Bob Smith',
-    orderType: 'pickup',
-    customerPhone: '+880-1111222233',
-    customerEmail: 'bob@email.com',
-    items: [
-      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 3, price: 19.99 },
-      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 3, price: 8.99 }
-    ],
-    totalAmount: 86.94,
-    status: 'served',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000 + 30 * 60 * 1000),
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    estimatedTime: 25
-  },
-  {
-    id: '12',
-    customerId: '15',
-    customerName: 'Carol White',
-    orderType: 'dine-in',
-    customerPhone: '+880-9999000011',
-    customerEmail: 'carol@email.com',
-    items: [
-      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 1, price: 22.99 },
-      { menuItemId: '7', menuItemName: 'French Fries', quantity: 1, price: 9.99 },
-      { menuItemId: '10', menuItemName: 'Iced Tea', quantity: 2, price: 4.99 }
-    ],
-    totalAmount: 42.96,
-    status: 'served',
-    tableNumber: 9,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    estimatedTime: 18
-  },
-  {
-    id: '13',
-    customerId: '16',
-    customerName: 'David Lee',
-    orderType: 'pickup',
-    customerPhone: '+880-8888999900',
-    customerEmail: 'david.lee@email.com',
-    items: [
-      { menuItemId: '5', menuItemName: 'Fish & Chips', quantity: 2, price: 21.99 },
-      { menuItemId: '11', menuItemName: 'Fresh Juice', quantity: 2, price: 6.99 }
-    ],
-    totalAmount: 57.96,
-    status: 'served',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 45 * 60 * 1000),
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-    estimatedTime: 22
-  },
-  {
-    id: '14',
-    customerId: '17',
-    customerName: 'Eva Green',
-    orderType: 'dine-in',
-    customerPhone: '+880-7777666655',
-    customerEmail: 'eva@email.com',
-    items: [
-      { menuItemId: '6', menuItemName: 'Vegetable Stir Fry', quantity: 1, price: 17.99 },
-      { menuItemId: '9', menuItemName: 'Chocolate Cake', quantity: 2, price: 12.99 }
-    ],
-    totalAmount: 43.97,
-    status: 'served',
-    tableNumber: 11,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-    estimatedTime: 16
-  },
-  {
-    id: '15',
-    customerId: '18',
-    customerName: 'Frank Miller',
-    orderType: 'pickup',
-    customerPhone: '+880-6666555544',
-    customerEmail: 'frank@email.com',
-    items: [
-      { menuItemId: '1', menuItemName: 'Margherita Pizza', quantity: 1, price: 18.99 },
-      { menuItemId: '2', menuItemName: 'Chicken Caesar Salad', quantity: 1, price: 16.99 },
-      { menuItemId: '10', menuItemName: 'Iced Tea', quantity: 1, price: 4.99 }
-    ],
-    totalAmount: 40.97,
-    status: 'served',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000 + 20 * 60 * 1000),
-    createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
-    estimatedTime: 15
-  },
-  {
-    id: '16',
-    customerId: '19',
-    customerName: 'Grace Davis',
-    orderType: 'dine-in',
-    customerPhone: '+880-5555444433',
-    customerEmail: 'grace@email.com',
-    items: [
-      { menuItemId: '3', menuItemName: 'Spaghetti Carbonara', quantity: 1, price: 19.99 },
-      { menuItemId: '8', menuItemName: 'Garlic Bread', quantity: 1, price: 8.99 },
-      { menuItemId: '11', menuItemName: 'Fresh Juice', quantity: 1, price: 6.99 }
-    ],
-    totalAmount: 35.97,
-    status: 'served',
-    tableNumber: 2,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-    estimatedTime: 20
-  },
-  {
-    id: '17',
-    customerId: '20',
-    customerName: 'Henry Wilson',
-    orderType: 'pickup',
-    customerPhone: '+880-4444333322',
-    customerEmail: 'henry@email.com',
-    items: [
-      { menuItemId: '4', menuItemName: 'Beef Burger', quantity: 2, price: 22.99 },
-      { menuItemId: '7', menuItemName: 'French Fries', quantity: 2, price: 9.99 }
-    ],
-    totalAmount: 65.96,
-    status: 'served',
-    tableNumber: null,
-    pickupTime: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000 + 35 * 60 * 1000),
-    createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
-    estimatedTime: 25
-  },
-  {
-    id: '18',
-    customerId: '21',
-    customerName: 'Ivy Brown',
-    orderType: 'dine-in',
-    customerPhone: '+880-3333222211',
-    customerEmail: 'ivy@email.com',
-    items: [
-      { menuItemId: '5', menuItemName: 'Fish & Chips', quantity: 1, price: 21.99 },
-      { menuItemId: '9', menuItemName: 'Chocolate Cake', quantity: 1, price: 12.99 }
-    ],
-    totalAmount: 34.98,
-    status: 'served',
-    tableNumber: 6,
-    pickupTime: null,
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
-    estimatedTime: 22
-  }
-];
-
-const mockReservations = [
-  {
-    id: '1',
+    id: 'ORD-001',
     customerName: 'John Doe',
-    email: 'john@email.com',
-    phone: '+880-1234567890',
-    date: format(new Date(Date.now() + 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-    time: '19:00',
-    guests: 4,
-    table: 'T12',
-    status: 'confirmed',
-    specialRequests: 'Window table if possible',
-    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
+    items: [
+      { name: 'Chicken Burger', price: 12.99, quantity: 2 },
+      { name: 'French Fries', price: 4.99, quantity: 1 },
+      { name: 'Coca Cola', price: 2.99, quantity: 2 }
+    ],
+    total: 33.96,
+    status: 'preparing',
+    orderTime: format(new Date(), 'HH:mm'),
+    estimatedTime: 15,
+    tableNumber: 'T-05',
+    paymentStatus: 'paid',
+    paymentMethod: 'card'
   },
   {
-    id: '2',
+    id: 'ORD-002',
     customerName: 'Sarah Wilson',
-    email: 'sarah.wilson@email.com',
-    phone: '+880-9876543210',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    time: '20:30',
-    guests: 2,
-    table: 'VIP1',
-    status: 'seated',
-    specialRequests: 'Anniversary dinner - need quiet table',
-    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString()
-  },
-  {
-    id: '3',
-    customerName: 'Mike Johnson',
-    email: 'mike.j@email.com',
-    phone: '+880-5556667777',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    time: '18:00',
-    guests: 6,
-    table: 'T8',
-    status: 'pending',
-    specialRequests: 'Family dinner with children',
-    createdAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '4',
-    customerName: 'Emma Brown',
-    email: 'emma.brown@email.com',
-    phone: '+880-1112223333',
-    date: format(new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-    time: '19:30',
-    guests: 8,
-    table: 'P1',
-    status: 'confirmed',
-    specialRequests: 'Business dinner - need private area',
-    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '5',
-    customerName: 'David Chen',
-    email: 'david.chen@email.com',
-    phone: '+880-4445556666',
-    date: format(new Date(Date.now() - 24 * 60 * 60 * 1000), 'yyyy-MM-dd'),
-    time: '20:00',
-    guests: 3,
-    table: 'T5',
+    items: [
+      { name: 'Caesar Salad', price: 8.99, quantity: 1 },
+      { name: 'Grilled Salmon', price: 18.99, quantity: 1 },
+      { name: 'Iced Tea', price: 3.49, quantity: 1 }
+    ],
+    total: 31.47,
     status: 'completed',
-    specialRequests: 'Vegetarian options required',
-    createdAt: new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: '6',
-    customerName: 'Lisa Anderson',
-    email: 'lisa.anderson@email.com',
-    phone: '+880-7778889999',
-    date: format(new Date(), 'yyyy-MM-dd'),
-    time: '21:00',
-    guests: 2,
-    table: 'VIP2',
-    status: 'cancelled',
-    specialRequests: 'Cancelled due to emergency',
-    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+    orderTime: format(subHours(new Date(), 1), 'HH:mm'),
+    estimatedTime: 20,
+    tableNumber: 'T-08',
+    paymentStatus: 'paid',
+    paymentMethod: 'cash'
   }
 ];
 
-const mockWasteLogs = [
+// Mock Menu Items
+const mockMenuItems = [
   {
-    id: '1',
-    itemName: 'Tomatoes',
-    quantity: 2,
-    unit: 'kg',
-    reason: 'Overripe',
-    cost: 8.50,
-    loggedBy: 'Chef Mario',
-    date: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    category: 'Vegetables'
+    id: 1,
+    name: 'Chicken Burger',
+    category: 'Burgers',
+    price: 12.99,
+    description: 'Grilled chicken breast with lettuce, tomato, and mayo',
+    image: '/api/placeholder/300/200',
+    available: true,
+    ingredients: ['chicken', 'bun', 'lettuce', 'tomato', 'mayo'],
+    allergens: ['gluten'],
+    preparationTime: 12
   },
   {
-    id: '2',
-    itemName: 'Lettuce',
-    quantity: 1.5,
-    unit: 'kg',
-    reason: 'Wilted',
-    cost: 4.50,
-    loggedBy: 'Chef Mario',
-    date: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-    category: 'Vegetables'
-  },
-  {
-    id: '3',
-    itemName: 'Chicken Breast',
-    quantity: 0.8,
-    unit: 'kg',
-    reason: 'Past expiry',
-    cost: 12.00,
-    loggedBy: 'Chef Antonio',
-    date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
-    category: 'Meat'
-  },
-  {
-    id: '4',
-    itemName: 'Mozzarella',
-    quantity: 0.5,
-    unit: 'kg',
-    reason: 'Moldy',
-    cost: 8.75,
-    loggedBy: 'Chef Mario',
-    date: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-    category: 'Dairy'
-  },
-  {
-    id: '5',
-    itemName: 'Basil',
-    quantity: 0.2,
-    unit: 'kg',
-    reason: 'Dried out',
-    cost: 6.20,
-    loggedBy: 'Chef Antonio',
-    date: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
-    category: 'Herbs'
-  },
-  {
-    id: '6',
-    itemName: 'Bread',
-    quantity: 2,
-    unit: 'loaves',
-    reason: 'Stale',
-    cost: 5.50,
-    loggedBy: 'Chef Mario',
-    date: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-    category: 'Bakery'
-  },
-  {
-    id: '7',
-    itemName: 'Salmon',
-    quantity: 1.2,
-    unit: 'kg',
-    reason: 'Overcooked',
-    cost: 28.50,
-    loggedBy: 'Chef Antonio',
-    date: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-    category: 'Fish'
-  },
-  {
-    id: '8',
-    itemName: 'Bell Peppers',
-    quantity: 0.6,
-    unit: 'kg',
-    reason: 'Soft spots',
-    cost: 3.60,
-    loggedBy: 'Chef Mario',
-    date: new Date(Date.now() - 5 * 60 * 60 * 1000), // 5 hours ago
-    category: 'Vegetables'
+    id: 2,
+    name: 'Caesar Salad',
+    category: 'Salads',
+    price: 8.99,
+    description: 'Fresh romaine lettuce with caesar dressing and croutons',
+    image: '/api/placeholder/300/200',
+    available: true,
+    ingredients: ['lettuce', 'dressing', 'croutons', 'parmesan'],
+    allergens: ['dairy'],
+    preparationTime: 8
   }
 ];
 
-const mockInventory = [
-  {
-    id: '1',
-    name: 'Tomatoes',
-    quantity: 8,
-    unit: 'kg',
-    category: 'Vegetables',
-    threshold: 10,
-    cost: 4.25,
-    lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    criticalLevel: 5
-  },
-  {
-    id: '2',
-    name: 'Lettuce',
-    quantity: 4,
-    unit: 'kg',
-    category: 'Vegetables',
-    threshold: 8,
-    cost: 3.00,
-    lastUpdated: new Date(Date.now() - 1 * 60 * 60 * 1000),
-    criticalLevel: 3
-  },
-  {
-    id: '3',
-    name: 'Chicken Breast',
-    quantity: 12,
-    unit: 'kg',
-    category: 'Meat',
-    threshold: 15,
-    cost: 15.00,
-    lastUpdated: new Date(Date.now() - 3 * 60 * 60 * 1000),
-    criticalLevel: 8
-  },
-  {
-    id: '4',
-    name: 'Mozzarella',
-    quantity: 6,
-    unit: 'kg',
-    category: 'Dairy',
-    threshold: 12,
-    cost: 17.50,
-    lastUpdated: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    criticalLevel: 4
-  },
-  {
-    id: '5',
-    name: 'Salmon',
-    quantity: 3,
-    unit: 'kg',
-    category: 'Fish',
-    threshold: 6,
-    cost: 23.75,
-    lastUpdated: new Date(Date.now() - 6 * 60 * 60 * 1000),
-    criticalLevel: 2
-  },
-  {
-    id: '6',
-    name: 'Basil',
-    quantity: 0.8,
-    unit: 'kg',
-    category: 'Herbs',
-    threshold: 2,
-    cost: 31.00,
-    lastUpdated: new Date(Date.now() - 1 * 60 * 60 * 1000),
-    criticalLevel: 0.5
-  },
-  {
-    id: '7',
-    name: 'Olive Oil',
-    quantity: 15,
-    unit: 'liters',
-    category: 'Oils',
-    threshold: 20,
-    cost: 8.50,
-    lastUpdated: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    criticalLevel: 10
-  },
-  {
-    id: '8',
-    name: 'Bell Peppers',
-    quantity: 2,
-    unit: 'kg',
-    category: 'Vegetables',
-    threshold: 5,
-    cost: 6.00,
-    lastUpdated: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    criticalLevel: 1
-  },
-  {
-    id: '9',
-    name: 'Flour',
-    quantity: 25,
-    unit: 'kg',
-    category: 'Bakery',
-    threshold: 30,
-    cost: 2.20,
-    lastUpdated: new Date(Date.now() - 8 * 60 * 60 * 1000),
-    criticalLevel: 15
-  },
-  {
-    id: '10',
-    name: 'Onions',
-    quantity: 18,
-    unit: 'kg',
-    category: 'Vegetables',
-    threshold: 25,
-    cost: 2.80,
-    lastUpdated: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    criticalLevel: 12
-  },
-  {
-    id: '11',
-    name: 'Rice',
-    quantity: 40,
-    unit: 'kg',
-    category: 'Grains',
-    threshold: 50,
-    cost: 3.50,
-    lastUpdated: new Date(Date.now() - 12 * 60 * 60 * 1000),
-    criticalLevel: 25
-  },
-  {
-    id: '12',
-    name: 'Parmesan',
-    quantity: 1.2,
-    unit: 'kg',
-    category: 'Dairy',
-    threshold: 3,
-    cost: 25.00,
-    lastUpdated: new Date(Date.now() - 1 * 60 * 60 * 1000),
-    criticalLevel: 1
-  }
-];
-
+// Simplified Analytics (no waste data)
 const mockAnalytics = {
-  totalSales: 15420.50,
-  totalOrders: 342,
-  totalWaste: 285.75,
-  avgOrderValue: 45.12,
-  salesTrend: [
-    { date: '2024-01-01', amount: 1200 },
-    // ...other trends...
+  totalRevenue: 15420.50,
+  totalOrders: 127,
+  avgOrderValue: 25.30,
+  totalCustomers: 89,
+  revenueTrend: [
+    { date: format(subDays(new Date(), 6), 'MM/dd'), value: 1200 },
+    { date: format(subDays(new Date(), 5), 'MM/dd'), value: 1450 },
+    { date: format(subDays(new Date(), 4), 'MM/dd'), value: 1320 },
+    { date: format(subDays(new Date(), 3), 'MM/dd'), value: 1680 },
+    { date: format(subDays(new Date(), 2), 'MM/dd'), value: 1890 },
+    { date: format(subDays(new Date(), 1), 'MM/dd'), value: 2100 },
+    { date: format(new Date(), 'MM/dd'), value: 2250 }
   ],
-  wasteTrend: [
-    { date: '2024-01-01', amount: 45 },
-    // ...other trends...
+  ordersTrend: [
+    { date: format(subDays(new Date(), 6), 'MM/dd'), value: 48 },
+    { date: format(subDays(new Date(), 5), 'MM/dd'), value: 52 },
+    { date: format(subDays(new Date(), 4), 'MM/dd'), value: 45 },
+    { date: format(subDays(new Date(), 3), 'MM/dd'), value: 67 },
+    { date: format(subDays(new Date(), 2), 'MM/dd'), value: 72 },
+    { date: format(subDays(new Date(), 1), 'MM/dd'), value: 78 },
+    { date: format(new Date(), 'MM/dd'), value: 85 }
   ],
-  topWastedItems: [
-    { item: 'Tomatoes', quantity: 15, cost: 63.75 },
-    // ...other items...
-  ],
-  popularItems: [
-    { item: 'Margherita Pizza', orders: 85 },
-    // ...other items...
+  topSellingItems: [
+    { name: 'Chicken Burger', sales: 45 },
+    { name: 'Caesar Salad', sales: 32 },
+    { name: 'French Fries', sales: 67 },
+    { name: 'Coca Cola', sales: 89 }
   ]
 };
 
-// Enhanced user data with more detailed information
-const mockAppUsers = [
-  {
-    id: '1',
-    name: 'Admin User',
-    email: 'admin@restaurant.com',
-    phone: '+1234567890',
-    role: 'admin',
-    status: 'active',
-    joinedDate: new Date('2023-01-15'),
-    lastLogin: new Date(),
-    totalOrders: 0,
-    permissions: ['all'],
-    profileImage: null,
-    address: '123 Admin Street, City',
-    emergencyContact: '+1234567800',
-    notes: 'System administrator with full access'
+// Default settings structure
+const defaultSettings = {
+  general: {
+    restaurantName: 'My Restaurant',
+    restaurantPhone: '+880 1234567890',
+    restaurantEmail: 'info@myrestaurant.com',
+    restaurantAddress: '123 Main Street, Dhaka, Bangladesh',
+    currency: 'BDT',
+    timezone: 'Asia/Dhaka',
+    dateFormat: 'dd/MM/yyyy',
+    timeFormat: '24h'
   },
-  {
-    id: '2',
-    name: 'Chef Mario',
-    email: 'chef@restaurant.com',
-    phone: '+1234567891',
-    role: 'chef',
-    status: 'active',
-    joinedDate: new Date('2023-02-01'),
-    lastLogin: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    totalOrders: 0,
-    permissions: ['kitchen', 'menu', 'inventory'],
-    profileImage: null,
-    address: '456 Chef Avenue, City',
-    emergencyContact: '+1234567801',
-    notes: 'Head chef responsible for kitchen operations'
+  business: {
+    openingHours: {
+      monday: { open: '09:00', close: '22:00', closed: false },
+      tuesday: { open: '09:00', close: '22:00', closed: false },
+      wednesday: { open: '09:00', close: '22:00', closed: false },
+      thursday: { open: '09:00', close: '22:00', closed: false },
+      friday: { open: '09:00', close: '22:00', closed: false },
+      saturday: { open: '09:00', close: '23:00', closed: false },
+      sunday: { open: '10:00', close: '21:00', closed: false }
+    },
+    maxTableCapacity: 8,
+    reservationAdvanceDays: 30,
+    serviceCharge: 10,
+    vatRate: 8,
+    minimumOrderAmount: 100,
+    loyaltyPointsRate: 1
   },
-  {
-    id: '3',
-    name: 'Waiter John',
-    email: 'waiter@restaurant.com',
-    phone: '+1234567892',
-    role: 'waiter',
-    status: 'active',
-    joinedDate: new Date('2023-03-10'),
-    lastLogin: new Date(Date.now() - 4 * 60 * 60 * 1000),
-    totalOrders: 0,
-    permissions: ['orders', 'reservations'],
-    profileImage: null,
-    address: '789 Service Road, City',
-    emergencyContact: '+1234567802',
-    notes: 'Senior waiter with excellent customer service skills'
+  notifications: {
+    orderNotifications: true,
+    lowStockAlerts: true,
+    paymentAlerts: true,
+    customerFeedback: true,
+    systemUpdates: true,
+    emailNotifications: true,
+    smsNotifications: false,
+    pushNotifications: true
+  },
+  security: {
+    passwordMinLength: 8,
+    sessionTimeout: 60,
+    maxLoginAttempts: 5,
+    dataBackupFrequency: 'daily',
+    twoFactorAuth: false,
+    auditLogging: true,
+    encryptData: true
+  },
+  display: {
+    theme: 'light',
+    fontSize: 'medium',
+    brandColor: '#DC2626',
+    showAnimations: true,
+    compactMode: false,
+    showTooltips: true
+  },
+  payment: {
+    acceptCash: true,
+    acceptCard: true,
+    acceptMobile: true,
+    minimumCardAmount: 50,
+    refundPolicy: '7 days',
+    tipSuggestions: [10, 15, 20],
+    autoCalculateTip: false,
+    splitBillEnabled: true
+  },
+  inventory: {
+    lowStockThreshold: 10,
+    criticalStockThreshold: 5,
+    autoReorder: false,
+    trackExpiry: true,
+    wasteTracking: false
   }
-];
+};
 
 export function AppProvider({ children }) {
   const [orders, setOrders] = useState(mockOrders);
   const [menuItems, setMenuItems] = useState(mockMenuItems);
-  const [reservations, setReservations] = useState(mockReservations);
-  const [wasteLogs, setWasteLogs] = useState(mockWasteLogs);
   const [inventory, setInventory] = useState([]);
   const [inventoryLoading, setInventoryLoading] = useState(false);
   const [inventoryError, setInventoryError] = useState(null);
   const [analytics] = useState(mockAnalytics);
-  const [appUsers, setAppUsers] = useState(mockAppUsers);
   const [cart, setCart] = useState([]);
+  const [appSettings, setAppSettings] = useState(defaultSettings);
 
-  // Load inventory from API on component mount
+  // Load inventory and settings from API on component mount
   useEffect(() => {
     loadInventory();
     loadMenuItems();
+    loadSettings();
   }, []);
 
   const loadMenuItems = async () => {
@@ -1271,775 +206,394 @@ export function AppProvider({ children }) {
       const response = await menuAPI.getMenuItems();
       if (response.data && response.data.length > 0) {
         setMenuItems(response.data);
-      } else {
-        console.warn('No menu items returned from API, using mock data');
-        // Keep mock data if API returns empty
       }
     } catch (error) {
       console.error('Error loading menu items:', error);
-      // Keep mock data if API fails
+    }
+  };
+
+  // Menu Item Management Functions
+  const addMenuItem = async (itemData) => {
+    try {
+      const response = await menuAPI.createMenuItem(itemData);
+      if (response.data) {
+        setMenuItems(prev => [response.data, ...prev]);
+        return { success: true, data: response.data, message: response.message || 'Menu item created successfully' };
+      }
+      return { success: false, message: 'No data received from server' };
+    } catch (error) {
+      console.error('Error adding menu item:', error);
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.errors ?
+                          Object.values(error.response.data.errors).flat().join(', ') :
+                          'Failed to create menu item';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  };
+
+  const updateMenuItem = async (id, itemData) => {
+    try {
+      const response = await menuAPI.updateMenuItem(id, itemData);
+      if (response.data) {
+        setMenuItems(prev => prev.map(item =>
+          item.id === id ? response.data : item
+        ));
+        return { success: true, data: response.data, message: response.message || 'Menu item updated successfully' };
+      }
+      return { success: false, message: 'No data received from server' };
+    } catch (error) {
+      console.error('Error updating menu item:', error);
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.errors ?
+                          Object.values(error.response.data.errors).flat().join(', ') :
+                          'Failed to update menu item';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  };
+
+  const deleteMenuItem = async (id) => {
+    try {
+      const response = await menuAPI.deleteMenuItem(id);
+      setMenuItems(prev => prev.filter(item => item.id !== id));
+      return { success: true, message: response.message || 'Menu item deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting menu item:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to delete menu item';
+      return {
+        success: false,
+        message: errorMessage
+      };
     }
   };
 
   const loadInventory = async () => {
+    setInventoryLoading(true);
+    setInventoryError(null);
+
     try {
-      setInventoryLoading(true);
-      setInventoryError(null);
       const response = await inventoryAPI.getInventoryItems();
-      if (response.success) {
-        setInventory(response.data || []);
-      } else {
-        console.warn('Failed to load inventory:', response.message);
-        // Fallback to mock data if API fails
-        setInventory(mockInventory);
+      if (response.data) {
+        setInventory(response.data);
       }
     } catch (error) {
-      console.error('Error loading inventory:', error);
       setInventoryError(error.message);
-      // Fallback to mock data
-      setInventory(mockInventory);
+      console.error('Error loading inventory:', error);
     } finally {
       setInventoryLoading(false);
     }
   };
 
-  // Dynamic calculations for real-time analytics
-  const calculateLiveWasteAnalytics = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    const last7Days = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const last30Days = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-
-    // Calculate waste by time periods
-    const todayWaste = wasteLogs.filter(log => new Date(log.date) >= today);
-    const weekWaste = wasteLogs.filter(log => new Date(log.date) >= last7Days);
-    const monthWaste = wasteLogs.filter(log => new Date(log.date) >= last30Days);
-
-    // Calculate top wasted items with more detailed analysis
-    const wasteByItem = {};
-    monthWaste.forEach(log => {
-      if (!wasteByItem[log.itemName]) {
-        wasteByItem[log.itemName] = {
-          item: log.itemName,
-          quantity: 0,
-          cost: 0,
-          occurrences: 0,
-          category: log.category,
-          avgQuantityPerWaste: 0,
-          lastWasteDate: new Date(log.date),
-          reasons: {}
-        };
+  // Inventory Management Functions
+  const addInventoryItem = async (itemData) => {
+    try {
+      const response = await inventoryAPI.createInventoryItem(itemData);
+      if (response.data) {
+        setInventory(prev => [response.data, ...prev]);
+        return { success: true, data: response.data, message: response.message || 'Inventory item created successfully' };
       }
-      wasteByItem[log.itemName].quantity += log.quantity;
-      wasteByItem[log.itemName].cost += log.cost;
-      wasteByItem[log.itemName].occurrences += 1;
-      
-      // Track waste reasons
-      if (!wasteByItem[log.itemName].reasons[log.reason]) {
-        wasteByItem[log.itemName].reasons[log.reason] = 0;
-      }
-      wasteByItem[log.itemName].reasons[log.reason] += 1;
-
-      // Update last waste date if more recent
-      if (new Date(log.date) > wasteByItem[log.itemName].lastWasteDate) {
-        wasteByItem[log.itemName].lastWasteDate = new Date(log.date);
-      }
-    });
-
-    // Calculate averages and sort by cost impact
-    const topWastedItems = Object.values(wasteByItem)
-      .map(item => ({
-        ...item,
-        avgQuantityPerWaste: item.quantity / item.occurrences,
-        costImpactScore: item.cost + (item.occurrences * 2), // Factor in frequency
-        primaryReason: Object.keys(item.reasons).reduce((a, b) => 
-          item.reasons[a] > item.reasons[b] ? a : b
-        )
-      }))
-      .sort((a, b) => b.costImpactScore - a.costImpactScore)
-      .slice(0, 8);
-
-    return {
-      todayWaste: todayWaste.reduce((sum, log) => sum + log.cost, 0),
-      weekWaste: weekWaste.reduce((sum, log) => sum + log.cost, 0),
-      monthWaste: monthWaste.reduce((sum, log) => sum + log.cost, 0),
-      topWastedItems,
-      todayWasteCount: todayWaste.length,
-      wasteFrequency: weekWaste.length / 7, // daily average
-      mostWastedCategory: Object.values(wasteByItem)
-        .reduce((acc, item) => {
-          acc[item.category] = (acc[item.category] || 0) + item.cost;
-          return acc;
-        }, {})
-    };
-  };
-
-  const calculateLiveStockAnalytics = () => {
-    const now = Date.now();
-    
-    // Categorize inventory by stock levels
-    const stockAnalysis = inventory.map(item => {
-      const stockPercentage = (item.quantity / item.threshold) * 100;
-      const timeSinceUpdate = Math.floor((now - new Date(item.lastUpdated).getTime()) / (1000 * 60 * 60)); // hours
-      
-      let priority = 'normal';
-      let urgency = 1;
-      
-      if (item.quantity <= item.criticalLevel) {
-        priority = 'critical';
-        urgency = 5;
-      } else if (item.quantity <= item.threshold * 0.5) {
-        priority = 'high';
-        urgency = 4;
-      } else if (item.quantity <= item.threshold) {
-        priority = 'medium';
-        urgency = 3;
-      } else if (item.quantity <= item.threshold * 1.2) {
-        priority = 'low';
-        urgency = 2;
-      }
-
+      return { success: false, message: 'No data received from server' };
+    } catch (error) {
+      console.error('Error adding inventory item:', error);
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.errors ?
+                          Object.values(error.response.data.errors).flat().join(', ') :
+                          'Failed to create inventory item';
       return {
-        ...item,
-        stockPercentage,
-        priority,
-        urgency,
-        timeSinceUpdate,
-        estimatedDaysLeft: item.quantity > 0 ? Math.floor(item.quantity / 2) : 0, // Assuming 2 units consumed per day
-        totalValue: item.quantity * item.cost,
-        shouldReorder: item.quantity <= item.threshold
+        success: false,
+        message: errorMessage
       };
-    });
-
-    // Sort by urgency and then by cost impact
-    const lowStockItems = stockAnalysis
-      .filter(item => item.shouldReorder)
-      .sort((a, b) => {
-        if (a.urgency !== b.urgency) return b.urgency - a.urgency;
-        return b.totalValue - a.totalValue;
-      });
-
-    const criticalItems = stockAnalysis.filter(item => item.priority === 'critical');
-    const totalInventoryValue = stockAnalysis.reduce((sum, item) => sum + item.totalValue, 0);
-    
-    return {
-      lowStockItems,
-      criticalItems,
-      totalInventoryValue,
-      stockAlerts: {
-        critical: criticalItems.length,
-        high: stockAnalysis.filter(item => item.priority === 'high').length,
-        medium: stockAnalysis.filter(item => item.priority === 'medium').length,
-        total: lowStockItems.length
-      },
-      averageStockLevel: stockAnalysis.reduce((sum, item) => sum + item.stockPercentage, 0) / stockAnalysis.length
-    };
+    }
   };
 
-  // Live analytics that update based on current data
-  const getLiveAnalytics = () => {
-    const wasteAnalytics = calculateLiveWasteAnalytics();
-    const stockAnalytics = calculateLiveStockAnalytics();
-    
-    return {
-      ...analytics,
-      live: {
-        waste: wasteAnalytics,
-        stock: stockAnalytics,
-        lastUpdated: new Date()
+  const updateInventoryItem = async (id, itemData) => {
+    try {
+      const response = await inventoryAPI.updateInventoryItem(id, itemData);
+      if (response.data) {
+        setInventory(prev => prev.map(item =>
+          item.id === id ? response.data : item
+        ));
+        return { success: true, data: response.data, message: response.message || 'Inventory item updated successfully' };
       }
-    };
+      return { success: false, message: 'No data received from server' };
+    } catch (error) {
+      console.error('Error updating inventory item:', error);
+      const errorMessage = error.response?.data?.message ||
+                          error.response?.data?.errors ?
+                          Object.values(error.response.data.errors).flat().join(', ') :
+                          'Failed to update inventory item';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
   };
 
-  const addToCart = (menuItemId) => {
+  const deleteInventoryItem = async (id) => {
+    try {
+      const response = await inventoryAPI.deleteInventoryItem(id);
+      setInventory(prev => prev.filter(item => item.id !== id));
+      return { success: true, message: response.message || 'Inventory item deleted successfully' };
+    } catch (error) {
+      console.error('Error deleting inventory item:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to delete inventory item';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  };
+
+  const adjustInventoryStock = async (id, adjustment, reason = null) => {
+    try {
+      const response = await inventoryAPI.adjustStock(id, adjustment, reason);
+      if (response.data) {
+        setInventory(prev => prev.map(item =>
+          item.id === id ? { ...item, quantity: response.data.quantity } : item
+        ));
+        return { success: true, data: response.data, message: response.message || 'Stock adjusted successfully' };
+      }
+      return { success: false, message: 'No data received from server' };
+    } catch (error) {
+      console.error('Error adjusting stock:', error);
+      const errorMessage = error.response?.data?.message || 'Failed to adjust stock';
+      return {
+        success: false,
+        message: errorMessage
+      };
+    }
+  };
+
+  const refreshInventory = async () => {
+    await loadInventory();
+  };
+
+  // Load settings from API
+  const loadSettings = async () => {
+    try {
+      const result = await settingsAPI.getAllSettings();
+      if (result.success && result.data) {
+        // Transform API data to match expected structure
+        const transformedSettings = { ...defaultSettings };
+
+        // If API returns settings, merge them with defaults
+        if (typeof result.data === 'object') {
+          Object.keys(result.data).forEach(key => {
+            const category = settingsAPI.getCategoryFromKey(key);
+            const settingKey = key.replace(`${category}_`, '');
+
+            if (!transformedSettings[category]) {
+              transformedSettings[category] = {};
+            }
+            transformedSettings[category][settingKey] = result.data[key];
+          });
+        }
+
+        setAppSettings(transformedSettings);
+      } else {
+        // If no settings from API, use defaults
+        setAppSettings(defaultSettings);
+      }
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+      // Fallback to defaults on error
+      setAppSettings(defaultSettings);
+    }
+  };
+
+  // Settings Management Functions
+  const updateSettings = async (category, newSettings) => {
+    try {
+      // Convert settings to array format for batch update
+      const settingsArray = Object.entries(newSettings).map(([key, value]) => ({
+        key: `${category}_${key}`,
+        value,
+        type: settingsAPI.detectType(value),
+        category,
+        description: `${category} setting: ${key}`,
+        is_public: false
+      }));
+
+      const result = await settingsAPI.updateBatchSettings(settingsArray);
+      if (result.success) {
+        // Update local state
+        setAppSettings(prev => ({
+          ...prev,
+          [category]: {
+            ...prev[category],
+            ...newSettings
+          }
+        }));
+        return { success: true, message: 'Settings updated successfully' };
+      } else {
+        return result;
+      }
+    } catch (error) {
+      console.error('Failed to update settings:', error);
+      return { success: false, error: 'Failed to update settings' };
+    }
+  };
+
+  const resetSettings = async () => {
+    try {
+      setAppSettings(defaultSettings);
+      // You could also implement a backend reset endpoint here
+      return { success: true, message: 'Settings reset to defaults' };
+    } catch (error) {
+      console.error('Failed to reset settings:', error);
+      return { success: false, error: 'Failed to reset settings' };
+    }
+  };
+
+  const exportSettings = async () => {
+    try {
+      const result = await settingsAPI.exportSettings();
+      return result;
+    } catch (error) {
+      console.error('Failed to export settings:', error);
+      return { success: false, error: 'Failed to export settings' };
+    }
+  };
+
+  const importSettings = async (file) => {
+    try {
+      const result = await settingsAPI.importSettings(file);
+      if (result.success) {
+        // Reload settings after import
+        await loadSettings();
+      }
+      return result;
+    } catch (error) {
+      console.error('Failed to import settings:', error);
+      return { success: false, error: 'Failed to import settings' };
+    }
+  };
+
+  const generateSettingsPDF = async () => {
+    try {
+      const result = await settingsAPI.generateSettingsPDF();
+      return result;
+    } catch (error) {
+      console.error('Failed to generate settings PDF:', error);
+      return { success: false, error: 'Failed to generate settings PDF' };
+    }
+  };
+
+  // Order functions
+  const addOrder = (order) => {
+    const newOrder = {
+      ...order,
+      id: `ORD-${String(orders.length + 1).padStart(3, '0')}`,
+      orderTime: format(new Date(), 'HH:mm'),
+      status: 'pending'
+    };
+    setOrders(prev => [newOrder, ...prev]);
+    return newOrder;
+  };
+
+  const updateOrder = (orderId, updates) => {
+    setOrders(prev => prev.map(order =>
+      order.id === orderId ? { ...order, ...updates } : order
+    ));
+  };
+
+  const deleteOrder = (orderId) => {
+    setOrders(prev => prev.filter(order => order.id !== orderId));
+  };
+
+  // Cart functions
+  const addToCart = (item) => {
     setCart(prev => {
-      const existing = prev.find(item => item.menuItemId === menuItemId);
+      const existing = prev.find(cartItem => cartItem.id === item.id);
       if (existing) {
-        return prev.map(item =>
-          item.menuItemId === menuItemId
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+        return prev.map(cartItem =>
+          cartItem.id === item.id
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
         );
       }
-      return [...prev, { menuItemId, quantity: 1 }];
+      return [...prev, { ...item, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (menuItemId) => {
-    setCart(prev => prev.filter(item => item.menuItemId !== menuItemId));
+  const removeFromCart = (itemId) => {
+    setCart(prev => prev.filter(item => item.id !== itemId));
   };
 
-  const updateCartQuantity = (menuItemId, quantity) => {
+  const updateCartItemQuantity = (itemId, quantity) => {
     if (quantity <= 0) {
-      removeFromCart(menuItemId);
-    } else {
-      setCart(prev => 
-        prev.map(item => 
-          item.menuItemId === menuItemId 
-            ? { ...item, quantity } 
-            : item
-        )
-      );
+      removeFromCart(itemId);
+      return;
     }
+    setCart(prev => prev.map(item =>
+      item.id === itemId ? { ...item, quantity } : item
+    ));
   };
 
   const clearCart = () => {
     setCart([]);
   };
 
-  const placeOrder = (order) => {
-    const newOrder = {
-      ...order,
-      id: Date.now().toString(),
-      createdAt: new Date(),
-      // Set defaults based on order type
-      tableNumber: order.orderType === 'dine-in' ? order.tableNumber : null,
-      pickupTime: order.orderType === 'pickup' ? order.pickupTime : null,
-      // Ensure required contact info for pickup orders
-      customerPhone: order.customerPhone || '',
-      customerEmail: order.customerEmail || '',
-      orderType: order.orderType || 'dine-in' // default to dine-in
-    };
-    setOrders(prev => [newOrder, ...prev]);
-    clearCart();
+  const getCartTotal = () => {
+    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
   };
 
-  const updateOrderStatus = (orderId, status) => {
-    setOrders(prev =>
-      prev.map(order =>
-        order.id === orderId ? { ...order, status } : order
-      )
-    );
-  };
+  const value = {
+    // State
+    orders,
+    menuItems,
+    inventory,
+    inventoryLoading,
+    inventoryError,
+    analytics,
+    cart,
+    appSettings,
 
-  const removeItemFromOrder = (orderId, itemIndex) => {
-    setOrders(prev =>
-      prev.map(order => {
-        if (order.id === orderId) {
-          const newItems = order.items.filter((_, index) => index !== itemIndex);
-          // Recalculate total amount
-          const newTotalAmount = newItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-          return {
-            ...order,
-            items: newItems,
-            totalAmount: newTotalAmount
-          };
-        }
-        return order;
-      })
-    );
-  };
+    // Order functions
+    addOrder,
+    updateOrder,
+    deleteOrder,
 
-  const addReservation = (reservation) => {
-    const newReservation = {
-      ...reservation,
-      id: Date.now().toString()
-    };
-    setReservations(prev => [newReservation, ...prev]);
-  };
+    // Menu functions
+    addMenuItem,
+    updateMenuItem,
+    deleteMenuItem,
 
-  const updateReservation = (reservation) => {
-    setReservations(prev =>
-      prev.map(r => r.id === reservation.id ? reservation : r)
-    );
-  };
+    // Inventory functions
+    addInventoryItem,
+    updateInventoryItem,
+    deleteInventoryItem,
+    adjustInventoryStock,
+    refreshInventory,
 
-  const deleteReservation = (reservationId) => {
-    setReservations(prev => prev.filter(r => r.id !== reservationId));
-  };
+    // Settings functions
+    updateSettings,
+    resetSettings,
+    exportSettings,
+    importSettings,
+    generateSettingsPDF,
+    loadSettings,
 
-  const logWaste = (waste) => {
-    const newWaste = {
-      ...waste,
-      id: Date.now().toString(),
-      date: new Date()
-    };
-    setWasteLogs(prev => [newWaste, ...prev]);
-  };
+    // Cart functions
+    addToCart,
+    removeFromCart,
+    updateCartItemQuantity,
+    clearCart,
+    getCartTotal,
 
-  const updateWasteLog = (wasteId, updates) => {
-    setWasteLogs(prev =>
-      prev.map(waste =>
-        waste.id === wasteId ? { ...waste, ...updates } : waste
-      )
-    );
-  };
-
-  const deleteWasteLog = (wasteId) => {
-    setWasteLogs(prev => prev.filter(waste => waste.id !== wasteId));
-  };
-
-  const updateInventory = async (itemId, quantity) => {
-    try {
-      const response = await inventoryAPI.updateInventoryItem(itemId, { quantity });
-      if (response.success) {
-        setInventory(prev =>
-          prev.map(item =>
-            item.id === itemId
-              ? { ...item, quantity, updated_at: new Date().toISOString() }
-              : item
-          )
-        );
-        return { success: true, data: response.data };
-      } else {
-        console.error('Failed to update inventory:', response.message);
-        return { success: false, error: response.message };
-      }
-    } catch (error) {
-      console.error('Error updating inventory:', error);
-      // Fallback to local update
-      setInventory(prev =>
-        prev.map(item =>
-          item.id === itemId
-            ? { ...item, quantity, updated_at: new Date().toISOString() }
-            : item
-        )
-      );
-      return { success: false, error: error.message };
-    }
-  };
-
-  const addInventoryItem = async (item) => {
-    try {
-      const response = await inventoryAPI.createInventoryItem(item);
-      if (response.success) {
-        setInventory(prev => [response.data, ...prev]);
-        return { success: true, data: response.data };
-      } else {
-        console.error('Failed to add inventory item:', response.message);
-        return { success: false, error: response.message };
-      }
-    } catch (error) {
-      console.error('Error adding inventory item:', error);
-      // Fallback to local add
-      const newItem = {
-        ...item,
-        id: Date.now().toString(),
-        updated_at: new Date().toISOString(),
-        created_at: new Date().toISOString()
-      };
-      setInventory(prev => [newItem, ...prev]);
-      return { success: false, error: error.message };
-    }
-  };
-
-  const updateInventoryItem = async (itemId, updates) => {
-    try {
-      const response = await inventoryAPI.updateInventoryItem(itemId, updates);
-      if (response.success) {
-        setInventory(prev =>
-          prev.map(item =>
-            item.id === itemId ? response.data : item
-          )
-        );
-        return { success: true, data: response.data };
-      } else {
-        console.error('Failed to update inventory item:', response.message);
-        return { success: false, error: response.message };
-      }
-    } catch (error) {
-      console.error('Error updating inventory item:', error);
-      // Fallback to local update
-      setInventory(prev =>
-        prev.map(item =>
-          item.id === itemId
-            ? { ...item, ...updates, updated_at: new Date().toISOString() }
-            : item
-        )
-      );
-      return { success: false, error: error.message };
-    }
-  };
-
-  const deleteInventoryItem = async (itemId) => {
-    try {
-      const response = await inventoryAPI.deleteInventoryItem(itemId);
-      if (response.success) {
-        setInventory(prev => prev.filter(item => item.id !== itemId));
-        return { success: true };
-      } else {
-        console.error('Failed to delete inventory item:', response.message);
-        return { success: false, error: response.message };
-      }
-    } catch (error) {
-      console.error('Error deleting inventory item:', error);
-      // Fallback to local delete
-      setInventory(prev => prev.filter(item => item.id !== itemId));
-      return { success: false, error: error.message };
-    }
-  };
-
-  const adjustInventoryStock = async (itemId, adjustment, reason = 'Manual adjustment') => {
-    try {
-      const response = await inventoryAPI.adjustStock(itemId, adjustment, reason);
-      if (response.success) {
-        setInventory(prev =>
-          prev.map(item =>
-            item.id === itemId ? response.data : item
-          )
-        );
-        return { success: true, data: response.data };
-      } else {
-        console.error('Failed to adjust inventory stock:', response.message);
-        return { success: false, error: response.message };
-      }
-    } catch (error) {
-      console.error('Error adjusting inventory stock:', error);
-      // Fallback to local adjustment
-      setInventory(prev =>
-        prev.map(item => {
-          if (item.id === itemId) {
-            const newQuantity = Math.max(0, item.quantity + adjustment);
-            return {
-              ...item,
-              quantity: newQuantity,
-              updated_at: new Date().toISOString()
-            };
-          }
-          return item;
-        })
-      );
-      return { success: false, error: error.message };
-    }
-  };
-
-  const refreshInventory = () => {
-    loadInventory();
-  };
-
-  // Settings data
-  const mockAppSettings = {
-    // General Settings
-    general: {
-      restaurantName: 'Spice & Dine Restaurant',
-      restaurantAddress: '123 Main Street, Dhaka, Bangladesh',
-      restaurantPhone: '+880-1234-567890',
-      restaurantEmail: 'info@spiceanddine.com',
-      currency: 'BDT',
-      timezone: 'Asia/Dhaka',
-      language: 'en',
-      dateFormat: 'dd/MM/yyyy',
-      timeFormat: '24h'
-    },
-    
-    // Business Settings
-    business: {
-      openingHours: {
-        monday: { open: '10:00', close: '22:00', closed: false },
-        tuesday: { open: '10:00', close: '22:00', closed: false },
-        wednesday: { open: '10:00', close: '22:00', closed: false },
-        thursday: { open: '10:00', close: '22:00', closed: false },
-        friday: { open: '10:00', close: '23:00', closed: false },
-        saturday: { open: '10:00', close: '23:00', closed: false },
-        sunday: { open: '11:00', close: '21:00', closed: false }
-      },
-      maxTableCapacity: 8,
-      reservationAdvanceDays: 30,
-      cancellationPolicy: '24 hours',
-      serviceCharge: 10,
-      vatRate: 15,
-      loyaltyPointsRate: 1, // 1 point per 100 BDT
-      minimumOrderAmount: 200
-    },
-    
-    // Notification Settings
-    notifications: {
-      emailNotifications: true,
-      smsNotifications: true,
-      pushNotifications: true,
-      orderNotifications: true,
-      reservationNotifications: true,
-      inventoryAlerts: true,
-      lowStockAlerts: true,
-      wasteAlerts: true,
-      dailyReports: true,
-      weeklyReports: true,
-      monthlyReports: false
-    },
-    
-    // Security Settings
-    security: {
-      passwordMinLength: 8,
-      passwordRequireSpecialChars: true,
-      passwordRequireNumbers: true,
-      sessionTimeout: 60, // minutes
-      maxLoginAttempts: 5,
-      twoFactorAuth: false,
-      autoLogout: true,
-      dataBackupFrequency: 'daily',
-      auditLogging: true
-    },
-    
-    // Display Settings
-    display: {
-      theme: 'light',
-      brandColor: '#DC2626',
-      secondaryColor: '#6B0000',
-      showImages: true,
-      compactMode: false,
-      animationsEnabled: true,
-      soundEnabled: true,
-      highContrast: false,
-      fontSize: 'medium'
-    },
-    
-    // Payment Settings
-    payment: {
-      acceptCash: true,
-      acceptCard: true,
-      acceptMobile: true,
-      acceptOnline: true,
-      minimumCardAmount: 100,
-      tipSuggestions: [10, 15, 20],
-      autoCalculateTip: true,
-      splitBillEnabled: true,
-      refundPolicy: '7 days'
-    },
-    
-    // Inventory Settings
-    inventory: {
-      lowStockThreshold: 10,
-      criticalStockThreshold: 5,
-      autoReorderEnabled: false,
-      wasteTrackingEnabled: true,
-      expirationAlerts: true,
-      costTrackingEnabled: true,
-      supplierNotifications: true
-    }
-  };
-
-  const [appSettings, setAppSettings] = useState(mockAppSettings);
-
-  // Settings Management Functions
-  const updateSettings = (category, settings) => {
-    setAppSettings(prev => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        ...settings
-      }
-    }));
-  };
-
-  const resetSettings = (category) => {
-    if (category) {
-      setAppSettings(prev => ({
-        ...prev,
-        [category]: mockAppSettings[category]
-      }));
-    } else {
-      setAppSettings(mockAppSettings);
-    }
-  };
-
-  const exportSettings = () => {
-    const dataStr = JSON.stringify(appSettings, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `restaurant-settings-${format(new Date(), 'yyyy-MM-dd')}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  };
-
-  const importSettings = (settingsData) => {
-    try {
-      const parsedSettings = typeof settingsData === 'string' 
-        ? JSON.parse(settingsData) 
-        : settingsData;
-      setAppSettings(parsedSettings);
-      return { success: true, message: 'Settings imported successfully' };
-    } catch {
-      return { success: false, message: 'Invalid settings file format' };
-    }
-  };
-
-  // User Management Functions
-  const addUser = (userData) => {
-    const newUser = {
-      ...userData,
-      id: Date.now().toString(),
-      status: 'active',
-      joinedDate: new Date(),
-      lastLogin: null,
-      totalOrders: 0,
-      points: userData.role === 'customer' ? 0 : undefined,
-      loyaltyTier: userData.role === 'customer' ? 'Bronze' : undefined
-    };
-    setAppUsers(prev => [newUser, ...prev]);
-    return newUser;
-  };
-
-  const updateUser = (userId, updates) => {
-    setAppUsers(prev =>
-      prev.map(user =>
-        user.id === userId ? { ...user, ...updates } : user
-      )
-    );
-  };
-
-  const deleteUser = (userId) => {
-    setAppUsers(prev => prev.filter(user => user.id !== userId));
-  };
-
-  const updateUserStatus = (userId, status, reason = '') => {
-    setAppUsers(prev =>
-      prev.map(user =>
-        user.id === userId 
-          ? { 
-              ...user, 
-              status, 
-              suspensionReason: status === 'suspended' ? reason : undefined 
-            } 
-          : user
-      )
-    );
-  };
-
-  const updateUserPoints = (userId, pointsChange) => {
-    setAppUsers(prev =>
-      prev.map(user => {
-        if (user.id === userId && user.role === 'customer') {
-          const newPoints = Math.max(0, (user.points || 0) + pointsChange);
-          let loyaltyTier = 'Bronze';
-          if (newPoints >= 500) loyaltyTier = 'Platinum';
-          else if (newPoints >= 300) loyaltyTier = 'Gold';
-          else if (newPoints >= 150) loyaltyTier = 'Silver';
-          
-          return {
-            ...user,
-            points: newPoints,
-            loyaltyTier
-          };
-        }
-        return user;
-      })
-    );
-  };
-
-  const addMenuItem = async (item) => {
-    try {
-      // Call API to save to database
-      const response = await menuAPI.createMenuItem(item);
-      const newItem = response.data;
-      
-      // Update local state with the item from database (includes ID)
-      setMenuItems(prev => [newItem, ...prev]);
-      return newItem;
-    } catch (error) {
-      console.error('Error adding menu item:', error);
-      // Fallback to local state if API fails
-      const newItem = {
-        ...item,
-        id: Date.now().toString()
-      };
-      setMenuItems(prev => [newItem, ...prev]);
-      return newItem;
-    }
-  };
-
-  const updateMenuItem = async (itemId, updates) => {
-    try {
-      // Call API to update in database
-      const response = await menuAPI.updateMenuItem(itemId, updates);
-      const updatedItem = response.data;
-      
-      // Update local state
-      setMenuItems(prev =>
-        prev.map(item =>
-          item.id == itemId ? updatedItem : item
-        )
-      );
-      return updatedItem;
-    } catch (error) {
-      console.error('Error updating menu item:', error);
-      // Fallback to local state if API fails
-      setMenuItems(prev =>
-        prev.map(item =>
-          item.id === itemId ? { ...item, ...updates } : item
-        )
-      );
-    }
-  };
-
-  const deleteMenuItem = async (itemId) => {
-    try {
-      // Call API to delete from database
-      await menuAPI.deleteMenuItem(itemId);
-      
-      // Update local state
-      setMenuItems(prev => prev.filter(item => item.id != itemId));
-    } catch (error) {
-      console.error('Error deleting menu item:', error);
-      // Fallback to local state if API fails
-      setMenuItems(prev => prev.filter(item => item.id !== itemId));
-    }
+    // Utility functions
+    loadInventory,
+    loadMenuItems
   };
 
   return (
-    <AppContext.Provider value={{
-      orders,
-      menuItems,
-      reservations,
-      wasteLogs,
-      inventory,
-      inventoryLoading,
-      inventoryError,
-      appUsers,
-      analytics,
-      cart,
-      addToCart,
-      removeFromCart,
-      updateCartQuantity,
-      clearCart,
-      placeOrder,
-      updateOrderStatus,
-      removeItemFromOrder,
-      addReservation,
-      updateReservation,
-      deleteReservation,
-      logWaste,
-      updateWasteLog,
-      deleteWasteLog,
-      updateInventory,
-      addInventoryItem,
-      updateInventoryItem,
-      deleteInventoryItem,
-      adjustInventoryStock,
-      refreshInventory,
-      addUser,
-      updateUser,
-      deleteUser,
-      updateUserStatus,
-      updateUserPoints,
-      addMenuItem,
-      updateMenuItem,
-      deleteMenuItem,
-      getLiveAnalytics,
-      calculateLiveWasteAnalytics,
-      calculateLiveStockAnalytics,
-      
-      // Settings
-      appSettings,
-      updateSettings,
-      resetSettings,
-      exportSettings,
-      importSettings
-    }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );
-}
-
-// useApp hook
-export function useApp() {
-  const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useApp must be used within an AppProvider');
-  }
-  return context;
 }

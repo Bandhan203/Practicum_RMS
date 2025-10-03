@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  Settings, 
+import {
+  Settings,
   Bell,
   Shield,
   Menu,
@@ -12,9 +12,11 @@ import {
   X
 } from 'lucide-react';
 import { RestaurantLogo } from '../common/RestaurantLogo';
+import { useSettings } from '../../contexts/SettingsContext';
 
 export function Header({ toggleSidebar }) {
   const navigate = useNavigate();
+  const { getSetting } = useSettings();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showFullNotifications, setShowFullNotifications] = useState(false);
   const notificationRef = useRef(null);
@@ -47,15 +49,6 @@ export function Header({ toggleSidebar }) {
       time: '1 hour ago',
       read: true,
       icon: 'success'
-    },
-    {
-      id: 4,
-      type: 'reservation',
-      title: 'New Reservation',
-      message: 'Table for 4 booked for tonight at 7:00 PM',
-      time: '2 hours ago',
-      read: true,
-      icon: 'clock'
     }
   ]);
 
@@ -89,9 +82,9 @@ export function Header({ toggleSidebar }) {
   };
 
   const markAsRead = (id) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id
           ? { ...notification, read: true }
           : notification
       )
@@ -99,7 +92,7 @@ export function Header({ toggleSidebar }) {
   };
 
   const markAllAsRead = () => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(notification => ({ ...notification, read: true }))
     );
   };
@@ -143,7 +136,9 @@ export function Header({ toggleSidebar }) {
             {/* Logo and Brand Name */}
             <div className="flex items-center space-x-3">
               <RestaurantLogo className="w-8 h-8" />
-              <h1 className="text-xl font-bold text-brand-dark hidden sm:block">RMS</h1>
+              <h1 className="text-xl font-bold text-brand-dark hidden sm:block">
+                {getSetting('restaurant_name', 'Smart Dine')} POS
+              </h1>
             </div>
           </div>
 
@@ -169,7 +164,7 @@ export function Header({ toggleSidebar }) {
             <div className="flex items-center space-x-3">
               {/* Notifications */}
               <div className="relative" ref={notificationRef}>
-                <button 
+                <button
                   onClick={handleNotificationClick}
                   className="p-2 text-gray-500 hover:text-brand-light transition-colors rounded-xl hover:bg-gray-50 relative"
                 >
@@ -260,7 +255,7 @@ export function Header({ toggleSidebar }) {
                     {/* Footer */}
                     {notifications.length > 0 && (
                       <div className="p-3 border-t border-gray-200 bg-gray-50">
-                        <button 
+                        <button
                           onClick={handleViewAllNotifications}
                           className="w-full text-center text-sm text-brand-light hover:text-brand-dark transition-colors font-medium"
                         >
@@ -288,7 +283,7 @@ export function Header({ toggleSidebar }) {
                 </button>
 
                 {/* Logout Button */}
-                <button 
+                <button
                   onClick={handleLogout}
                   className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50"
                   title="Logout"
@@ -365,7 +360,7 @@ export function Header({ toggleSidebar }) {
                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                   notification.type === 'order' ? 'bg-blue-100 text-blue-800' :
                                   notification.type === 'inventory' ? 'bg-yellow-100 text-yellow-800' :
-                                  notification.type === 'reservation' ? 'bg-green-100 text-green-800' :
+                                  notification.type === 'billing' ? 'bg-green-100 text-green-800' :
                                   'bg-gray-100 text-gray-800'
                                 }`}>
                                   {notification.type}

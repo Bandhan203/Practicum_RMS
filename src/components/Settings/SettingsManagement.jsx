@@ -1,23 +1,23 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../../contexts/AppContext';
-import { 
-  Settings, 
-  User, 
-  Bell, 
-  Shield, 
-  Palette, 
-  Globe, 
-  Database, 
-  Mail, 
-  Smartphone, 
-  Clock, 
-  DollarSign, 
-  Percent, 
-  Save, 
-  RefreshCw, 
-  Eye, 
-  EyeOff, 
-  Check, 
+import {
+  Settings,
+  User,
+  Bell,
+  Shield,
+  Palette,
+  Globe,
+  Database,
+  Mail,
+  Smartphone,
+  Clock,
+  DollarSign,
+  Percent,
+  Save,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  Check,
   X,
   Download,
   Upload,
@@ -40,7 +40,90 @@ import {
 
 export function SettingsManagement() {
   const { appSettings, updateSettings, resetSettings, exportSettings, importSettings } = useApp();
-  
+
+  // Ensure appSettings has all required sections with defaults
+  const safeSettings = {
+    general: {
+      restaurantName: 'My Restaurant',
+      restaurantPhone: '+880 1234567890',
+      restaurantEmail: 'info@myrestaurant.com',
+      restaurantAddress: '123 Main Street, Dhaka, Bangladesh',
+      currency: 'BDT',
+      timezone: 'Asia/Dhaka',
+      dateFormat: 'DD/MM/YYYY',
+      timeFormat: '24h',
+      ...appSettings?.general
+    },
+    business: {
+      openingHours: {
+        monday: { open: '09:00', close: '22:00', closed: false },
+        tuesday: { open: '09:00', close: '22:00', closed: false },
+        wednesday: { open: '09:00', close: '22:00', closed: false },
+        thursday: { open: '09:00', close: '22:00', closed: false },
+        friday: { open: '09:00', close: '22:00', closed: false },
+        saturday: { open: '09:00', close: '22:00', closed: false },
+        sunday: { open: '09:00', close: '22:00', closed: false }
+      },
+      maxTableCapacity: 50,
+      reservationAdvanceDays: 30,
+      serviceCharge: 10,
+      vatRate: 15,
+      minimumOrderAmount: 100,
+      loyaltyPointsRate: 5,
+      ...appSettings?.business
+    },
+    notifications: {
+      emailNotifications: true,
+      smsNotifications: false,
+      pushNotifications: true,
+      orderAlerts: true,
+      inventoryAlerts: true,
+      paymentAlerts: true,
+      systemAlerts: true,
+      marketingEmails: false,
+      weeklyReports: true,
+      ...appSettings?.notifications
+    },
+    security: {
+      passwordMinLength: 8,
+      sessionTimeout: 30,
+      maxLoginAttempts: 5,
+      dataBackupFrequency: 'daily',
+      twoFactorAuth: false,
+      ipWhitelist: false,
+      auditLogging: true,
+      ...appSettings?.security
+    },
+    display: {
+      theme: 'light',
+      fontSize: 'medium',
+      brandColor: '#dc2626',
+      showAnimations: true,
+      compactMode: false,
+      showTooltips: true,
+      ...appSettings?.display
+    },
+    payment: {
+      acceptCash: true,
+      acceptCard: true,
+      acceptMobile: true,
+      minimumCardAmount: 50,
+      refundPolicy: 'full',
+      tipSuggestions: [10, 15, 20],
+      autoCalculateTip: false,
+      splitBillEnabled: true,
+      ...appSettings?.payment
+    },
+    inventory: {
+      lowStockThreshold: 10,
+      criticalStockThreshold: 5,
+      autoReorder: false,
+      trackExpiry: true,
+      batchTracking: false,
+      ...appSettings?.inventory
+    }
+  };
+
   const [activeTab, setActiveTab] = useState('general');
   const [expandedSections, setExpandedSections] = useState({
     general: true,
@@ -90,12 +173,50 @@ export function SettingsManagement() {
   const handleSaveSettings = async () => {
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      setSaveMessage('Settings saved successfully!');
+      // Prepare settings data for API
+      const settingsToSave = [];
+
+      // Convert current settings to API format
+      Object.entries(settings).forEach(([category, categorySettings]) => {
+        Object.entries(categorySettings).forEach(([key, value]) => {
+          settingsToSave.push({
+            key: `${category}_${key}`,
+            value: String(value),
+            type: typeof value === 'boolean' ? 'boolean' : typeof value === 'number' ? 'number' : 'string',
+            category: category,
+            description: `${key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}`,
+            is_public: category === 'general' // Make general settings public
+          });
+        });
+      });
+
+      // Save to backend
+      const response = await fetch('http://localhost:8000/api/settings/batch', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ settings: settingsToSave })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save settings');
+      }
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSaveMessage('Settings saved successfully to database!');
+        // Update context with saved settings
+        updateSettings(settings);
+      } else {
+        throw new Error(result.message || 'Failed to save settings');
+      }
+
       setTimeout(() => setSaveMessage(''), 3000);
     } catch (error) {
-      setSaveMessage('Error saving settings. Please try again.');
+      console.error('Settings save error:', error);
+      setSaveMessage('Error saving settings to database. Please try again.');
       setTimeout(() => setSaveMessage(''), 3000);
     } finally {
       setIsLoading(false);
@@ -165,36 +286,36 @@ export function SettingsManagement() {
             </label>
             <input
               type="text"
-              value={appSettings.general.restaurantName}
+              value={safeSettings.general.restaurantName}
               onChange={(e) => handleSettingChange('general', 'restaurantName', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Phone Number
             </label>
             <input
               type="tel"
-              value={appSettings.general.restaurantPhone}
+              value={safeSettings.general.restaurantPhone}
               onChange={(e) => handleSettingChange('general', 'restaurantPhone', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Email Address
             </label>
             <input
               type="email"
-              value={appSettings.general.restaurantEmail}
+              value={safeSettings.general.restaurantEmail}
               onChange={(e) => handleSettingChange('general', 'restaurantEmail', e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Currency
@@ -210,7 +331,7 @@ export function SettingsManagement() {
               <option value="GBP">GBP (£)</option>
             </select>
           </div>
-          
+
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Address
@@ -224,7 +345,7 @@ export function SettingsManagement() {
           </div>
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Regional Settings</h3>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -243,7 +364,7 @@ export function SettingsManagement() {
               <option value="Europe/London">Europe/London</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Date Format
@@ -258,7 +379,7 @@ export function SettingsManagement() {
               <option value="yyyy-MM-dd">YYYY-MM-DD</option>
             </select>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Time Format
@@ -287,7 +408,7 @@ export function SettingsManagement() {
               <div className="w-20">
                 <span className="text-sm font-medium text-gray-900 capitalize">{day}</span>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <label className="flex items-center">
                   <input
@@ -302,7 +423,7 @@ export function SettingsManagement() {
                   <span className="ml-2 text-sm text-gray-700">Open</span>
                 </label>
               </div>
-              
+
               {!hours.closed && (
                 <>
                   <div>
@@ -316,9 +437,9 @@ export function SettingsManagement() {
                       className="px-3 py-1 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   <span className="text-gray-500">to</span>
-                  
+
                   <div>
                     <input
                       type="time"
@@ -332,7 +453,7 @@ export function SettingsManagement() {
                   </div>
                 </>
               )}
-              
+
               {hours.closed && (
                 <span className="text-gray-500 italic">Closed</span>
               )}
@@ -340,7 +461,7 @@ export function SettingsManagement() {
           ))}
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Business Rules</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -357,7 +478,7 @@ export function SettingsManagement() {
               max="20"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Reservation Advance Days
@@ -371,7 +492,7 @@ export function SettingsManagement() {
               max="365"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Service Charge (%)
@@ -386,7 +507,7 @@ export function SettingsManagement() {
               step="0.1"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               VAT Rate (%)
@@ -401,7 +522,7 @@ export function SettingsManagement() {
               step="0.1"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Minimum Order Amount (৳)
@@ -414,7 +535,7 @@ export function SettingsManagement() {
               min="0"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Loyalty Points Rate
@@ -462,7 +583,7 @@ export function SettingsManagement() {
           ))}
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Event Notifications</h3>
         <div className="space-y-4">
@@ -488,7 +609,7 @@ export function SettingsManagement() {
           ))}
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Report Notifications</h3>
         <div className="space-y-4">
@@ -536,7 +657,7 @@ export function SettingsManagement() {
               max="20"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Session Timeout (minutes)
@@ -550,7 +671,7 @@ export function SettingsManagement() {
               max="480"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Max Login Attempts
@@ -564,7 +685,7 @@ export function SettingsManagement() {
               max="10"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Data Backup Frequency
@@ -581,7 +702,7 @@ export function SettingsManagement() {
           </div>
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Security Features</h3>
         <div className="space-y-4">
@@ -642,7 +763,7 @@ export function SettingsManagement() {
               ))}
             </div>
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Font Size
@@ -657,7 +778,7 @@ export function SettingsManagement() {
               <option value="large">Large</option>
             </select>
           </div>
-          
+
           <div className="lg:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Brand Color
@@ -680,7 +801,7 @@ export function SettingsManagement() {
           </div>
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Interface Settings</h3>
         <div className="space-y-4">
@@ -741,7 +862,7 @@ export function SettingsManagement() {
           ))}
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Payment Rules</h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -757,7 +878,7 @@ export function SettingsManagement() {
               min="0"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Refund Policy (days)
@@ -775,7 +896,7 @@ export function SettingsManagement() {
           </div>
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Tip Settings</h3>
         <div className="space-y-4">
@@ -801,7 +922,7 @@ export function SettingsManagement() {
               ))}
             </div>
           </div>
-          
+
           <div className="space-y-4">
             {[
               { key: 'autoCalculateTip', label: 'Auto Calculate Tip', desc: 'Automatically calculate tip suggestions' },
@@ -846,7 +967,7 @@ export function SettingsManagement() {
               min="1"
             />
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Critical Stock Threshold
@@ -861,7 +982,7 @@ export function SettingsManagement() {
           </div>
         </div>
       </div>
-      
+
       <div>
         <h3 className="text-lg font-medium text-gray-900 mb-4">Inventory Features</h3>
         <div className="space-y-4">
@@ -1003,7 +1124,7 @@ export function SettingsManagement() {
               <RefreshCw className="w-4 h-4" />
               <span>Reset {settingsTabs.find(tab => tab.id === activeTab)?.label} Settings</span>
             </button>
-            
+
             <div className="flex space-x-3">
               <button
                 onClick={handleSaveSettings}

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class BillController extends Controller
@@ -262,13 +263,15 @@ class BillController extends Controller
             $bill = Bill::findOrFail($id);
 
             $validatedData = $request->validate([
-                'paid_amount' => 'required|numeric|min:0',
-                'payment_method' => 'required|in:cash,card,digital,bank_transfer',
+                'paid_amount' => 'required|numeric|min:0.01',
+                'payment_method' => 'required|string|max:50',
                 'payment_reference' => 'nullable|string|max:255'
             ]);
 
             $paidAmount = $validatedData['paid_amount'];
             $totalAmount = $bill->total_amount;
+            $previouslyPaid = $bill->paid_amount ?? 0;
+            $remainingAmount = $totalAmount - $previouslyPaid;
 
             // Validate payment amount
             if ($paidAmount <= 0) {
@@ -278,43 +281,77 @@ class BillController extends Controller
                 ], 400);
             }
 
-            // Calculate change
-            $changeAmount = max(0, $paidAmount - $totalAmount);
+            // Calculate new totals
+            $newTotalPaid = $previouslyPaid + $paidAmount;
+            $changeAmount = max(0, $newTotalPaid - $totalAmount);
 
             // Determine payment status
-            $paymentStatus = $paidAmount >= $totalAmount ? 'paid' : 'partially_paid';
+            $paymentStatus = $newTotalPaid >= $totalAmount ? 'paid' : 'partially_paid';
 
             // Update bill
             $bill->update([
-                'paid_amount' => $bill->paid_amount + $paidAmount,
+                'paid_amount' => $newTotalPaid,
                 'payment_method' => $validatedData['payment_method'],
                 'payment_status' => $paymentStatus,
                 'payment_date' => now(),
-                'payment_reference' => $validatedData['payment_reference'],
+                'payment_reference' => $validatedData['payment_reference'] ?? null,
                 'change_amount' => $changeAmount,
                 'status' => $paymentStatus === 'paid' ? 'paid' : 'generated'
             ]);
 
             $bill->load(['order.items.menuItem', 'createdBy']);
 
+            // Log the payment processing
+            Log::info('Payment processed successfully', [
+                'bill_id' => $bill->id,
+                'bill_number' => $bill->bill_number,
+                'paid_amount' => $paidAmount,
+                'total_amount' => $totalAmount,
+                'change_amount' => $changeAmount,
+                'payment_status' => $paymentStatus,
+                'payment_method' => $validatedData['payment_method']
+            ]);
+
             return response()->json([
                 'success' => true,
                 'data' => $bill,
                 'message' => 'Payment processed successfully',
-                'change_amount' => $changeAmount
+                'change_amount' => $changeAmount,
+                'payment_details' => [
+                    'amount_paid' => $paidAmount,
+                    'total_bill' => $totalAmount,
+                    'previous_payments' => $previouslyPaid,
+                    'total_paid' => $newTotalPaid,
+                    'change_due' => $changeAmount,
+                    'payment_status' => $paymentStatus
+                ]
             ]);
 
         } catch (ValidationException $e) {
+            Log::error('Payment validation failed', [
+                'bill_id' => $id,
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Validation failed',
                 'errors' => $e->errors()
             ], 422);
         } catch (\Exception $e) {
+            Log::error('Payment processing failed', [
+                'bill_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->all()
+            ]);
+
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to process payment',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'details' => $e->getTraceAsString()
             ], 500);
         }
     }

@@ -81,29 +81,13 @@ export function SignupForm() {
     const result = await signup(formData);
     
     if (result.success) {
-      // Redirect based on user role
-      const { role } = result.user;
-      
-      switch (role) {
-        case 'admin':
-        case 'chef':
-        case 'waiter':
-          navigate('/dashboard');
-          break;
-        case 'customer':
-          navigate('/customer/dashboard');
-          break;
-        default:
-          navigate('/');
-      }
+      // All users are admins in this simplified POS system
+      navigate('/dashboard');
     }
   };
 
   const roles = [
-    { value: 'customer', label: 'Customer', description: 'Browse menu and place orders' },
-    { value: 'waiter', label: 'Waiter', description: 'Manage orders and serve customers' },
-    { value: 'chef', label: 'Chef', description: 'Manage kitchen and menu items' },
-    { value: 'admin', label: 'Admin', description: 'Full restaurant management access' }
+    { value: 'admin', label: 'Admin', description: 'Full restaurant POS system access' }
   ];
 
   const getPasswordStrength = (password) => {

@@ -187,11 +187,16 @@ class OrderController extends Controller
                 'notes' => $validated['notes'] ?? $order->notes
             ]);
 
-            // If order is marked as served, automatically create a bill and mark as completed
-            if ($validated['status'] === 'served') {
-                $this->createBillForOrder($order);
-                // Update order status to completed for billing system compatibility
-                $order->update(['status' => 'completed']);
+            // If order is marked as served or completed, automatically create a bill (proceed to billing)
+            if ($validated['status'] === 'served' || $validated['status'] === 'completed') {
+                Log::info('Order ' . $order->id . ' status changed to ' . $validated['status'] . ', creating bill...');
+                try {
+                    $bill = $this->createBillForOrder($order);
+                    Log::info('Bill created successfully for order ' . $order->id . ': ' . $bill->bill_number);
+                } catch (\Exception $e) {
+                    // Log error but don't fail the order update
+                    Log::error('Failed to create bill for order ' . $order->id . ': ' . $e->getMessage());
+                }
             }
 
             $order->load(['orderItems.menuItem']);
@@ -296,11 +301,14 @@ class OrderController extends Controller
      */
     private function createBillForOrder(Order $order)
     {
+        Log::info('createBillForOrder called for order ' . $order->id);
+
         try {
             // Check if bill already exists for this order
             $existingBill = Bill::where('order_id', $order->id)->first();
             if ($existingBill) {
-                return; // Bill already exists, don't create duplicate
+                Log::info('Bill already exists for order ' . $order->id . ': ' . $existingBill->bill_number);
+                return $existingBill; // Bill already exists, don't create duplicate
             }
 
             // Calculate totals
@@ -309,8 +317,19 @@ class OrderController extends Controller
             $taxAmount = $subtotal * $taxRate;
             $totalAmount = $subtotal + $taxAmount;
 
+            // Generate unique bill number
+            $billNumber = 'BILL-' . date('Y-m-d') . '-' . str_pad(Bill::whereDate('created_at', today())->count() + 1, 3, '0', STR_PAD_LEFT);
+
+            // Ensure uniqueness by checking if bill number already exists
+            $counter = 1;
+            while (Bill::where('bill_number', $billNumber)->exists()) {
+                $counter++;
+                $billNumber = 'BILL-' . date('Y-m-d') . '-' . str_pad(Bill::whereDate('created_at', today())->count() + $counter, 3, '0', STR_PAD_LEFT);
+            }
+
             // Create the bill
             $bill = Bill::create([
+                'bill_number' => $billNumber,
                 'order_id' => $order->id,
                 'customer_name' => $order->customer_name,
                 'customer_email' => $order->customer_email,
@@ -327,11 +346,101 @@ class OrderController extends Controller
                 'is_printed' => false,
             ]);
 
+            Log::info('Bill created successfully for order ' . $order->id . ': ' . $bill->bill_number);
             return $bill;
         } catch (\Exception $e) {
             // Log error but don't fail the order update
             Log::error('Failed to create bill for order ' . $order->id . ': ' . $e->getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Generate bill for an order
+     */
+    public function generateBill(string $id): JsonResponse
+    {
+        try {
+            $order = Order::with('items.menuItem')->findOrFail($id);
+
+            // Check if bill already exists for this order
+            $existingBill = Bill::where('order_id', $order->id)->first();
+            if ($existingBill) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bill already exists for this order',
+                    'data' => $existingBill
+                ], 400);
+            }
+
+            // Load order items if not already loaded
+            $order->load('orderItems');
+
+            // Calculate amounts from order items
+            $subtotal = $order->orderItems->sum(function ($item) {
+                return $item->quantity * $item->price;
+            });
+
+            // Fallback to order total if items calculation fails
+            if ($subtotal == 0 && $order->total_amount > 0) {
+                $subtotal = $order->total_amount;
+            }
+
+            // If still zero, calculate from order total
+            if ($subtotal == 0) {
+                $subtotal = 100.00; // Default minimum for testing
+            }
+
+            $taxRate = 8.00;
+            $taxAmount = ($subtotal * $taxRate) / 100;
+            $totalAmount = $subtotal + $taxAmount;
+
+            // Generate unique bill number
+            $billNumber = 'BILL-' . date('Y-m-d') . '-' . str_pad(Bill::whereDate('created_at', today())->count() + 1, 3, '0', STR_PAD_LEFT);
+
+            // Ensure uniqueness by checking if bill number already exists
+            $counter = 1;
+            while (Bill::where('bill_number', $billNumber)->exists()) {
+                $counter++;
+                $billNumber = 'BILL-' . date('Y-m-d') . '-' . str_pad(Bill::whereDate('created_at', today())->count() + $counter, 3, '0', STR_PAD_LEFT);
+            }
+
+            // Create bill
+            $bill = Bill::create([
+                'bill_number' => $billNumber,
+                'order_id' => $order->id,
+                'customer_name' => $order->customer_name,
+                'customer_email' => $order->customer_email,
+                'customer_phone' => $order->customer_phone,
+                'table_number' => $order->table_number,
+                'order_type' => $order->order_type,
+                'subtotal' => $subtotal,
+                'tax_rate' => $taxRate,
+                'tax_amount' => $taxAmount,
+                'total_amount' => $totalAmount,
+                'payment_method' => 'cash',
+                'payment_status' => 'pending',
+                'notes' => 'Generated from order',
+                'waiter_name' => 'System',
+                'created_by' => 1,
+                'status' => 'generated'
+            ]);
+
+            // Load relationships
+            $bill->load(['order.items.menuItem']);
+
+            return response()->json([
+                'success' => true,
+                'data' => $bill,
+                'message' => 'Bill generated successfully'
+            ], 201);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate bill',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }

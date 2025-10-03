@@ -45,7 +45,7 @@ class UnifiedPOSAPI {
   async createMenuItem(itemData) {
     try {
       const formData = new FormData();
-      
+
       // Handle file upload
       Object.keys(itemData).forEach(key => {
         if (key === 'ingredients' && Array.isArray(itemData[key])) {
@@ -78,7 +78,7 @@ class UnifiedPOSAPI {
   async updateMenuItem(id, itemData) {
     try {
       const formData = new FormData();
-      
+
       Object.keys(itemData).forEach(key => {
         if (key === 'ingredients' && Array.isArray(itemData[key])) {
           formData.append(key, JSON.stringify(itemData[key]));
@@ -486,7 +486,7 @@ class UnifiedPOSAPI {
   // ========== ANALYTICS API (Enhanced) ==========
   async getDashboardStats(period = 'today') {
     try {
-      const response = await api.get('/analytics/dashboard-stats', {
+      const response = await api.get('/simple-analytics/dashboard-stats', {
         params: { period }
       });
       return {
@@ -599,10 +599,10 @@ class UnifiedPOSAPI {
       ]);
 
       // Get recent orders
-      const recentOrders = await this.getOrders({ 
-        limit: 10, 
+      const recentOrders = await this.getOrders({
+        limit: 10,
         sort: 'created_at',
-        order: 'desc' 
+        order: 'desc'
       });
 
       return {
@@ -688,14 +688,14 @@ class UnifiedPOSAPI {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
+
       const filename = `${type}_${format}_${this.formatDate(new Date())}.${format}`;
       link.setAttribute('download', filename);
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       window.URL.revokeObjectURL(url);
 
       return {

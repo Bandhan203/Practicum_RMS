@@ -2,11 +2,11 @@
 // Connected to Order Management and Real-Time Data Context
 
 import React, { useState, useEffect } from 'react';
-import { 
-  DollarSign, 
-  CreditCard, 
-  Clock, 
-  CheckCircle, 
+import {
+  DollarSign,
+  CreditCard,
+  Clock,
+  CheckCircle,
   AlertCircle,
   Printer,
   RefreshCw,
@@ -21,7 +21,7 @@ import {
 } from 'lucide-react';
 import billingAPI from '../../services/billingAPI';
 import { useRealTimeData } from '../../contexts/RealTimeDataContext';
-import { generateBillReceipt, downloadBillReceipt, printBillReceipt } from '../common/pdfGenerator';
+import { generateBillReceipt, downloadBillReceipt, printBillReceipt, printInvoice } from '../common/pdfGenerator';
 
 function BillCard({ bill, onView, onPayment, onPrint, onDelete }) {
   const getStatusColor = (status) => {
@@ -92,7 +92,7 @@ function BillCard({ bill, onView, onPayment, onPrint, onDelete }) {
           <Eye className="w-4 h-4 mr-1" />
           View
         </button>
-        
+
         {bill.payment_status === 'pending' && (
           <button
             onClick={() => onPayment(bill)}
@@ -102,7 +102,7 @@ function BillCard({ bill, onView, onPayment, onPrint, onDelete }) {
             Pay
           </button>
         )}
-        
+
         <button
           onClick={() => onPrint(bill)}
           className="bg-green-600 text-white py-2 px-3 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center"
@@ -129,7 +129,7 @@ function OrderCard({ order, onGenerateBill, isSelected }) {
   };
 
   return (
-    <div 
+    <div
       className={`bg-white border rounded-lg p-4 cursor-pointer hover:shadow-md transition-all ${
         isSelected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200'
       }`}
@@ -149,7 +149,7 @@ function OrderCard({ order, onGenerateBill, isSelected }) {
           {order.status}
         </span>
       </div>
-      
+
       <div className="text-xs text-gray-500 mb-3">
         Created: {new Date(order.created_at).toLocaleString()}
       </div>
@@ -301,32 +301,73 @@ export function RealTimeBillingSystem() {
   const submitPayment = async () => {
     if (!selectedBill) return;
 
+    // Validate payment amount
+    const paidAmount = parseFloat(paymentForm.amount);
+    if (isNaN(paidAmount) || paidAmount <= 0) {
+      alert('Please enter a valid payment amount');
+      return;
+    }
+
     setLoading(true);
+    setError(null);
+
     try {
       const paymentData = {
-        paid_amount: parseFloat(paymentForm.amount),
+        paid_amount: paidAmount,
         payment_method: paymentForm.method,
-        payment_reference: paymentForm.reference
+        payment_reference: paymentForm.reference || ''
       };
 
+      console.log('Processing payment:', paymentData);
+      console.log('For bill:', selectedBill);
+
       const result = await billingAPI.processPayment(selectedBill.id, paymentData);
+      console.log('Payment result:', result);
+
       if (result.success) {
         await loadBills();
         setShowPaymentModal(false);
         setSelectedBill(null);
-        
-        if (result.changeAmount > 0) {
-          alert(`Payment processed! Change: $${result.changeAmount.toFixed(2)}`);
+
+        const changeAmount = result.changeAmount || 0;
+
+        // Generate and print invoice
+        await generateInvoice(result.data);
+
+        if (changeAmount > 0) {
+          alert(`✅ Payment processed successfully!\n💰 Change: $${changeAmount.toFixed(2)}\n📄 Invoice generated and ready to print!`);
         } else {
-          alert('Payment processed successfully!');
+          alert('✅ Payment processed successfully!\n📄 Invoice generated and ready to print!');
         }
       } else {
-        alert(`Payment failed: ${result.error}`);
+        console.error('Payment failed:', result);
+        setError(result.error || 'Payment processing failed');
+        alert(`❌ Payment failed: ${result.error || 'Unknown error'}`);
       }
     } catch (err) {
-      alert('Failed to process payment');
+      console.error('Payment processing error:', err);
+      setError('Failed to process payment');
+      alert(`❌ Failed to process payment: ${err.message || 'Network error'}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Generate Invoice
+  const generateInvoice = async (bill) => {
+    try {
+      // Find the related order for the bill
+      const relatedOrder = completedOrders.find(order => order.id === bill.order_id);
+
+      // Generate and print invoice
+      printInvoice(bill, relatedOrder);
+
+      // Mark bill as printed
+      await billingAPI.markBillAsPrinted(bill.id);
+
+    } catch (error) {
+      console.error('Failed to generate invoice:', error);
+      alert('Failed to generate invoice');
     }
   };
 
@@ -335,10 +376,10 @@ export function RealTimeBillingSystem() {
     try {
       // Find the related order for the bill
       const relatedOrder = completedOrders.find(order => order.id === bill.order_id);
-      
+
       // Print the bill receipt
       printBillReceipt(bill, relatedOrder);
-      
+
       // Mark as printed
       await billingAPI.markBillAsPrinted(bill.id);
       await loadBills();
@@ -603,21 +644,44 @@ export function RealTimeBillingSystem() {
             <p className="text-gray-600 mb-4">
               Bill: {selectedBill.bill_number} - ${selectedBill.total_amount}
             </p>
-            
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Amount</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={paymentForm.amount}
-                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
-                />
+              {/* Bill Summary */}
+              <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-gray-700">Bill Amount:</span>
+                  <span className="text-lg font-bold text-gray-900">${selectedBill.total_amount}</span>
+                </div>
+                {selectedBill.paid_amount > 0 && (
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-sm text-gray-600">Already Paid:</span>
+                    <span className="text-sm text-gray-600">${selectedBill.paid_amount}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center mt-1 pt-1 border-t border-gray-300">
+                  <span className="text-sm font-medium text-gray-700">Amount Due:</span>
+                  <span className="text-lg font-bold text-red-600">${(selectedBill.total_amount - (selectedBill.paid_amount || 0)).toFixed(2)}</span>
+                </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Method</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Amount Paid</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={paymentForm.amount}
+                  onChange={(e) => setPaymentForm({...paymentForm, amount: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter amount received"
+                />
+                {parseFloat(paymentForm.amount) > 0 && parseFloat(paymentForm.amount) < (selectedBill.total_amount - (selectedBill.paid_amount || 0)) && (
+                  <p className="text-yellow-600 text-sm mt-1">⚠️ Partial payment - remaining balance will be due</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
                 <select
                   value={paymentForm.method}
                   onChange={(e) => setPaymentForm({...paymentForm, method: e.target.value})}
@@ -625,7 +689,7 @@ export function RealTimeBillingSystem() {
                 >
                   <option value="cash">Cash</option>
                   <option value="card">Card</option>
-                  <option value="digital">Digital</option>
+                  <option value="digital">Digital Wallet</option>
                   <option value="bank_transfer">Bank Transfer</option>
                 </select>
               </div>
@@ -641,11 +705,22 @@ export function RealTimeBillingSystem() {
                 />
               </div>
 
-              {parseFloat(paymentForm.amount) > selectedBill.total_amount && (
+              {/* Change Calculation */}
+              {parseFloat(paymentForm.amount) > (selectedBill.total_amount - (selectedBill.paid_amount || 0)) && (
                 <div className="bg-green-50 border border-green-200 rounded p-3">
-                  <p className="text-green-800 text-sm">
-                    Change: ${(parseFloat(paymentForm.amount) - selectedBill.total_amount).toFixed(2)}
-                  </p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-green-800 font-medium">💰 Change to Return:</span>
+                    <span className="text-green-800 font-bold text-lg">
+                      ${(parseFloat(paymentForm.amount) - (selectedBill.total_amount - (selectedBill.paid_amount || 0))).toFixed(2)}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded p-3">
+                  <p className="text-red-800 text-sm">❌ {error}</p>
                 </div>
               )}
             </div>

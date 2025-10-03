@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend-Backend Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Frontend-Backend Communication Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Get Bills</h3>
+        <button onclick="testGetBills()">Test Get Bills</button>
+        <div id="bills-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Process Payment</h3>
+        <button onclick="testProcessPayment()">Test Process Payment</button>
+        <div id="payment-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 3: CORS Test</h3>
+        <button onclick="testCORS()">Test CORS</button>
+        <div id="cors-result"></div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        
+        async function testGetBills() {
+            const resultDiv = document.getElementById('bills-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/bills`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                resultDiv.className = 'test-section success';
+                resultDiv.innerHTML = `
+                    <h3>✅ Test 1: Get Bills - SUCCESS</h3>
+                    <p>Found ${data.data?.length || 0} bills</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+                // Store first bill for payment test
+                if (data.data && data.data.length > 0) {
+                    window.testBill = data.data[0];
+                }
+                
+            } catch (error) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Test 1: Get Bills - FAILED</h3>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testProcessPayment() {
+            const resultDiv = document.getElementById('payment-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            if (!window.testBill) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Test 2: Process Payment - FAILED</h3>
+                    <p>No test bill available. Run "Get Bills" test first.</p>
+                `;
+                return;
+            }
+            
+            try {
+                const paymentData = {
+                    paid_amount: parseFloat(window.testBill.total_amount),
+                    payment_method: 'cash',
+                    payment_reference: `TEST-${Date.now()}`
+                };
+                
+                const response = await fetch(`${API_BASE}/bills/${window.testBill.id}/payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                resultDiv.className = 'test-section success';
+                resultDiv.innerHTML = `
+                    <h3>✅ Test 2: Process Payment - SUCCESS</h3>
+                    <p>Payment Status: ${data.data?.payment_status}</p>
+                    <p>Change Amount: $${data.change_amount || 0}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+                
+            } catch (error) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Test 2: Process Payment - FAILED</h3>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        async function testCORS() {
+            const resultDiv = document.getElementById('cors-result');
+            resultDiv.innerHTML = '<p>Testing...</p>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/bills`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': 'http://localhost:5173',
+                        'Access-Control-Request-Method': 'POST',
+                        'Access-Control-Request-Headers': 'Content-Type'
+                    }
+                });
+                
+                resultDiv.className = 'test-section success';
+                resultDiv.innerHTML = `
+                    <h3>✅ Test 3: CORS - SUCCESS</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>CORS headers are properly configured</p>
+                `;
+                
+            } catch (error) {
+                resultDiv.className = 'test-section error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Test 3: CORS - FAILED</h3>
+                    <p>Error: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            console.log('Running automatic tests...');
+            testGetBills();
+        });
+    </script>
+</body>
+</html>

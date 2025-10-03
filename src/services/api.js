@@ -16,9 +16,6 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = Cookies.get('authToken');
-    if (!token && config.url.includes('menu-items')) {
-      console.warn('API Request: No auth token found for menu-items request:', config.url);
-    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -116,9 +113,7 @@ export const userAPI = {
 // Menu API calls
 export const menuAPI = {
   getMenuItems: async (filters = {}) => {
-    console.log('menuAPI.getMenuItems: Making API request...');
     const response = await api.get('/menu-items', { params: filters });
-    console.log('menuAPI.getMenuItems: Success, response status:', response.status);
     return response.data;
   },
 
@@ -212,8 +207,8 @@ export const analyticsAPI = {
   },
 
   getSalesReport: async (startDate, endDate) => {
-    const response = await api.get('/analytics/sales', { 
-      params: { startDate, endDate } 
+    const response = await api.get('/analytics/sales', {
+      params: { startDate, endDate }
     });
     return response.data;
   },
@@ -319,6 +314,29 @@ export const inventoryAPI = {
 
   restockItem: async (id, amount, reason = 'Restocking') => {
     return inventoryAPI.adjustStock(id, Math.abs(amount), reason);
+  }
+};
+
+// Settings API calls
+export const settingsAPI = {
+  getAll: async () => {
+    const response = await api.get('/settings');
+    return response.data;
+  },
+
+  getByCategory: async (category) => {
+    const response = await api.get(`/settings/category/${category}`);
+    return response.data;
+  },
+
+  updateBatch: async (settings) => {
+    const response = await api.post('/settings/batch', settings);
+    return response.data;
+  },
+
+  updateSingle: async (key, data) => {
+    const response = await api.put(`/settings/${key}`, data);
+    return response.data;
   }
 };
 

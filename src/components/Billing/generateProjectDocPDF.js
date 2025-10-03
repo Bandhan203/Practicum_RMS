@@ -4,12 +4,12 @@ export function generateProjectDocPDF() {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   let y = 40;
   doc.setFontSize(18);
-  doc.text('My_RMS (Restaurant Management System) – Project Documentation', 40, y);
+  doc.text('Smart Dine POS (Point of Sale System) – Project Documentation', 40, y);
   y += 30;
   doc.setFontSize(12);
   doc.text('Overview:', 40, y);
   y += 18;
-  doc.text('My_RMS is a full-stack Restaurant Management System designed to streamline restaurant operations. The project features a modern React frontend and is ready for integration with a PHP Laravel backend. It supports role-based access, order management, menu management, billing (with invoice PDF generation), analytics, inventory, reservations, and more.', 40, y, { maxWidth: 520 });
+  doc.text('Smart Dine POS is a modern Point of Sale System designed to streamline restaurant operations. The project features a modern React frontend and is ready for integration with a PHP Laravel backend. It supports role-based access, order management, menu management, billing (with invoice PDF generation), analytics, inventory, reservations, and more.', 40, y, { maxWidth: 520 });
   y += 60;
   doc.text('Frontend:', 40, y);
   y += 18;

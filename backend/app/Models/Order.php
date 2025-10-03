@@ -11,6 +11,7 @@ use Carbon\Carbon;
 class Order extends Model
 {
     protected $fillable = [
+        'order_number',
         'customer_name',
         'customer_email',
         'customer_phone',
@@ -152,5 +153,39 @@ class Order extends Model
     public function scopePickup($query)
     {
         return $query->where('order_type', 'pickup');
+    }
+
+    /**
+     * Boot method to generate order number automatically
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($order) {
+            if (empty($order->order_number)) {
+                $order->order_number = self::generateOrderNumber();
+            }
+        });
+    }
+
+    /**
+     * Generate unique order number
+     */
+    public static function generateOrderNumber(): string
+    {
+        $date = now()->format('Ymd');
+        $lastOrder = self::where('order_number', 'like', "ORD-{$date}-%")
+                        ->orderBy('order_number', 'desc')
+                        ->first();
+
+        if ($lastOrder) {
+            $lastNumber = (int) substr($lastOrder->order_number, -4);
+            $newNumber = $lastNumber + 1;
+        } else {
+            $newNumber = 1;
+        }
+
+        return "ORD-{$date}-" . str_pad($newNumber, 4, '0', STR_PAD_LEFT);
     }
 }

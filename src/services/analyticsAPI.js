@@ -51,7 +51,7 @@ class AnalyticsAPI {
   // Get sales report
   async getSalesReport(startDate, endDate) {
     try {
-      const response = await api.get('/analytics/sales-report', {
+      const response = await api.get('/simple-analytics/orders-report', {
         params: {
           start_date: this.formatDate(startDate),
           end_date: this.formatDate(endDate)
@@ -67,7 +67,7 @@ class AnalyticsAPI {
   // Get inventory report
   async getInventoryReport() {
     try {
-      const response = await api.get('/analytics/inventory-report');
+      const response = await api.get('/simple-analytics/inventory-report');
       return response.data;
     } catch (error) {
       console.error('Failed to fetch inventory report:', error);
@@ -82,7 +82,7 @@ class AnalyticsAPI {
       if (startDate) params.start_date = this.formatDate(startDate);
       if (endDate) params.end_date = this.formatDate(endDate);
 
-      const response = await api.get('/analytics/menu-report', { params });
+      const response = await api.get('/simple-analytics/menu-report', { params });
       return response.data;
     } catch (error) {
       console.error('Failed to fetch menu report:', error);
@@ -217,7 +217,7 @@ class AnalyticsAPI {
         start_date: startDate,
         end_date: endDate
       };
-      
+
       if (waiterId) {
         params.waiter_id = waiterId;
       }
@@ -244,21 +244,21 @@ class AnalyticsAPI {
         },
         responseType: 'blob'
       });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
+
       const filename = `${reportType}_report_${startDate}_to_${endDate}.csv`;
       link.setAttribute('download', filename);
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       window.URL.revokeObjectURL(url);
-      
+
       return { success: true, filename };
     } catch (error) {
       console.error('Failed to export CSV:', error);
@@ -278,21 +278,21 @@ class AnalyticsAPI {
         },
         responseType: 'blob'
       });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
+
       const filename = `${reportType}_report_${startDate}_to_${endDate}.xlsx`;
       link.setAttribute('download', filename);
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       window.URL.revokeObjectURL(url);
-      
+
       return { success: true, filename };
     } catch (error) {
       console.error('Failed to export XLSX:', error);
@@ -311,21 +311,21 @@ class AnalyticsAPI {
         },
         responseType: 'blob'
       });
-      
+
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;
-      
+
       const filename = `${reportType}_report_${startDate}_to_${endDate}.pdf`;
       link.setAttribute('download', filename);
-      
+
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       window.URL.revokeObjectURL(url);
-      
+
       return { success: true, filename };
     } catch (error) {
       console.error('Failed to export PDF:', error);

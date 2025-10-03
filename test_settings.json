@@ -1,0 +1,12 @@
+{
+  "settings": [
+    {
+      "key": "test_restaurant_name",
+      "value": "Final Exam Restaurant",
+      "type": "string",
+      "category": "general",
+      "description": "Restaurant name for final exam",
+      "is_public": false
+    }
+  ]
+}

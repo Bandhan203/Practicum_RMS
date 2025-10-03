@@ -1,0 +1,12 @@
+{
+  "name": "Test Ingredient",
+  "quantity": 50,
+  "unit": "kg",
+  "category": "Raw Materials",
+  "threshold": 10,
+  "critical_level": 5,
+  "cost": 25.50,
+  "description": "Test ingredient for cooking",
+  "supplier": "Test Supplier",
+  "expiry_date": "2025-12-31"
+}

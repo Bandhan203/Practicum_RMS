@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Smart Dine - Complete Restaurant Management System with React.js",
+  "description": "Smart Dine - Modern Point of Sale System for Restaurants with React.js",
   "scripts": {
     "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && vite",
     "build": "vite build",
@@ -21,6 +21,7 @@
     "lucide-react": "^0.525.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hot-toast": "^2.6.0",
     "react-redux": "^9.2.0",
     "react-router-dom": "^7.8.0",
     "recharts": "^3.0.2"

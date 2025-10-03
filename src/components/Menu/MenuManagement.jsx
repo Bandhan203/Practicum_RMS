@@ -172,7 +172,7 @@ export function MenuManagement({ readOnly = false }) {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-500">Avg Price</p>
               <p className="text-2xl font-bold text-gray-900">
-                ৳{(menuItems.reduce((sum, item) => sum + item.price, 0) / menuItems.length || 0).toFixed(2)}
+                ৳{(menuItems.reduce((sum, item) => sum + parseFloat(item.price || 0), 0) / menuItems.length || 0).toFixed(2)}
               </p>
             </div>
           </div>
@@ -422,11 +422,11 @@ export function MenuManagement({ readOnly = false }) {
           <div className="space-y-4">
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
               <span className="text-gray-600 font-medium">Most Expensive Item:</span>
-              <span className="font-bold text-brand-dark">৳{Math.max(...menuItems.map(item => item.price)).toFixed(2)}</span>
+              <span className="font-bold text-brand-dark">৳{Math.max(...menuItems.map(item => parseFloat(item.price || 0))).toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
               <span className="text-gray-600 font-medium">Least Expensive Item:</span>
-              <span className="font-bold text-green-600">৳{Math.min(...menuItems.map(item => item.price)).toFixed(2)}</span>
+              <span className="font-bold text-green-600">৳{Math.min(...menuItems.map(item => parseFloat(item.price || 0))).toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
               <span className="text-gray-600 font-medium">Longest Prep Time:</span>
@@ -482,6 +482,62 @@ export function MenuManagement({ readOnly = false }) {
       preparationTime: item?.preparationTime || '',
       ingredients: item?.ingredients?.join(', ') || ''
     });
+    const [imageFile, setImageFile] = useState(null);
+    const [imagePreview, setImagePreview] = useState(item?.image || '');
+    const [dragActive, setDragActive] = useState(false);
+
+    // Handle image file selection
+    const handleImageChange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        handleImageFile(file);
+      }
+    };
+
+    const handleImageFile = (file) => {
+      if (file && file.type.startsWith('image/')) {
+        // Check file size (5MB limit)
+        if (file.size > 5 * 1024 * 1024) {
+          alert('Image size must be less than 5MB');
+          return;
+        }
+        
+        setImageFile(file);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageUrl = e.target.result;
+          setImagePreview(imageUrl);
+          setFormData({...formData, image: imageUrl});
+        };
+        reader.onerror = (e) => {
+          console.error('FileReader error:', e);
+          alert('Error reading file');
+        };
+        reader.readAsDataURL(file);
+      } else {
+        alert('Please select an image file');
+      }
+    };
+
+    // Handle drag and drop
+    const handleDrag = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.type === "dragenter" || e.type === "dragover") {
+        setDragActive(true);
+      } else if (e.type === "dragleave") {
+        setDragActive(false);
+      }
+    };
+
+    const handleDrop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragActive(false);
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleImageFile(e.dataTransfer.files[0]);
+      }
+    };
 
     const handleSubmit = (e) => {
       e.preventDefault();
@@ -549,14 +605,79 @@ export function MenuManagement({ readOnly = false }) {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Image URL</label>
-              <input
-                type="url"
-                required
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-dark focus:border-transparent transition-all"
-                value={formData.image}
-                onChange={(e) => setFormData({...formData, image: e.target.value})}
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Image</label>
+              
+              {/* Image Upload Area */}
+              <div
+                className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-300 ${
+                  dragActive 
+                    ? 'border-brand-dark bg-brand-light/10' 
+                    : 'border-gray-300 hover:border-brand-dark hover:bg-gray-50'
+                }`}
+                onDragEnter={handleDrag}
+                onDragLeave={handleDrag}
+                onDragOver={handleDrag}
+                onDrop={handleDrop}
+              >
+                {imagePreview ? (
+                  <div className="relative">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-full h-48 object-cover rounded-lg mx-auto"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setImagePreview('');
+                        setImageFile(null);
+                        setFormData({...formData, image: ''});
+                      }}
+                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="mx-auto w-12 h-12 text-gray-400">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        <span className="font-medium text-brand-dark cursor-pointer hover:underline">Click to upload</span> or drag and drop
+                      </p>
+                      <p className="text-xs text-gray-500">PNG, JPG, JPEG (MAX. 5MB)</p>
+                    </div>
+                  </div>
+                )}
+                
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                />
+              </div>
+              
+              {/* Alternative: Image URL Input */}
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">Or enter image URL</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-dark focus:border-transparent transition-all"
+                  value={formData.image.startsWith('data:') ? '' : formData.image}
+                  onChange={(e) => {
+                    const url = e.target.value;
+                    setFormData({...formData, image: url});
+                    setImagePreview(url);
+                    setImageFile(null);
+                  }}
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Ingredients (comma-separated)</label>
@@ -704,9 +825,14 @@ export function MenuManagement({ readOnly = false }) {
               >
                 <div className="relative flex-shrink-0 overflow-hidden">
                   <img
-                    src={item.image}
+                    src={item.image || '/api/placeholder/300/200'}
                     alt={item.name}
                     className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    onError={(e) => {
+                      if (e.target.src !== '/api/placeholder/300/200') {
+                        e.target.src = '/api/placeholder/300/200';
+                      }
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <div className="absolute top-3 right-3 flex items-center space-x-2 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
@@ -726,7 +852,7 @@ export function MenuManagement({ readOnly = false }) {
                 <div className="p-6 flex flex-col flex-1">
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="font-semibold text-gray-900 text-lg flex-1 min-w-0 truncate pr-2">{item.name}</h3>
-                    <span className="text-xl font-bold text-brand-dark whitespace-nowrap">৳{item.price.toFixed(2)}</span>
+                    <span className="text-xl font-bold text-brand-dark whitespace-nowrap">৳{parseFloat(item.price || 0).toFixed(2)}</span>
                   </div>
                   <p className="text-sm text-gray-600 mb-4 line-clamp-2 flex-1">{item.description}</p>
                   

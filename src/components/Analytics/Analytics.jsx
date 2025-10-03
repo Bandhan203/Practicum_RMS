@@ -4,77 +4,78 @@ import './Analytics.css';
 
 const Analytics = () => {
   const { api } = useApiApp();
-  const [reportData, setReportData] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
+  const [ordersData, setOrdersData] = useState(null);
+  const [menuData, setMenuData] = useState(null);
+  const [inventoryData, setInventoryData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [dateRange, setDateRange] = useState({
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days ago
-    endDate: new Date().toISOString().split('T')[0] // today
-  });
+  const [selectedPeriod, setSelectedPeriod] = useState('month');
   const [activeTab, setActiveTab] = useState('overview');
+  const [refreshing, setRefreshing] = useState(false);
+  const [customDateRange, setCustomDateRange] = useState({
+    start: '',
+    end: '',
+    enabled: false
+  });
 
-  // Fetch comprehensive report data
-  const fetchReportData = async () => {
+  // Period options for the dropdown
+  const periodOptions = [
+    { value: 'today', label: 'Today' },
+    { value: '7days', label: 'Last 7 Days' },
+    { value: 'month', label: 'Last 30 Days' },
+    { value: 'year', label: 'Last Year' },
+    { value: 'all', label: 'All Time' },
+    { value: 'custom', label: 'Custom Range' }
+  ];
+
+  // Fetch dashboard data
+  const fetchDashboardData = async (period = selectedPeriod, customStart = null, customEnd = null) => {
     try {
-      setLoading(true);
+      if (refreshing) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
       setError(null);
       
-      // Use the working simple analytics endpoint
-      const response = await api.get('/simple-analytics/dashboard-stats', {
-        params: {
-          period: 'month' // Use a simple period instead of date range
-        }
-      });
+      let params = { period };
+      
+      // If custom date range is enabled, add start and end dates
+      if (period === 'custom' && customStart && customEnd) {
+        params.start_date = customStart;
+        params.end_date = customEnd;
+      }
+      
+      const response = await api.get('/simple-analytics/dashboard-stats', { params });
       
       if (response.success) {
-        // Transform the data to match expected format
-        const data = response.data;
-        const transformedData = {
-          overview: {
-            revenue: {
-              total: data.kpis.total_revenue,
-              formatted: '$' + new Intl.NumberFormat().format(data.kpis.total_revenue)
-            },
-            orders: {
-              total: data.kpis.total_orders,
-              completed: data.kpis.total_orders
-            },
-            menu: {
-              total: data.kpis.total_menu_items,
-              available: data.kpis.available_menu_items
-            },
-            inventory: {
-              total: data.kpis.total_inventory_items,
-              low_stock: data.kpis.low_stock_items
-            }
-          },
-          summary_cards: data.summary_cards,
-          period: data.period,
-          date_range: data.date_range
-        };
-        
-        setReportData(transformedData);
+        setDashboardData(response.data);
+        console.log('Dashboard data fetched:', response.data);
       } else {
-        throw new Error(response.message || 'Failed to fetch report data');
+        throw new Error(response.message || 'Failed to fetch dashboard stats');
       }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
-      setError(err.message || 'Failed to fetch report data');
+      setError(err.message || 'Failed to fetch analytics data');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  // Load data on component mount and date range change
-  useEffect(() => {
-    fetchReportData();
-  }, [dateRange]);
-
-  // Fetch data for specific tabs
-  const fetchTabData = async (tab) => {
+  // Fetch tab-specific data
+  const fetchTabData = async (tab, period = selectedPeriod) => {
     try {
       setLoading(true);
-      let endpoint;
+      let endpoint = '';
+      let params = { period };
+      
+      // Add custom date range if applicable
+      if (period === 'custom' && customDateRange.start && customDateRange.end) {
+        params.start_date = customDateRange.start;
+        params.end_date = customDateRange.end;
+      }
       
       switch(tab) {
         case 'orders':
@@ -90,44 +91,104 @@ const Analytics = () => {
           return;
       }
       
-      const response = await api.get(endpoint, {
-        params: { period: 'month' }
-      });
+      const response = await api.get(endpoint, { params });
       
       if (response.success) {
-        // Update reportData with the new tab data
-        setReportData(prev => ({
-          ...prev,
-          [tab]: response.data
-        }));
+        switch(tab) {
+          case 'orders':
+            setOrdersData(response.data);
+            break;
+          case 'menu':
+            setMenuData(response.data);
+            break;
+          case 'inventory':
+            setInventoryData(response.data);
+            break;
+        }
+        console.log(`${tab} data fetched:`, response.data);
+      } else {
+        throw new Error(response.message || `Failed to fetch ${tab} data`);
       }
     } catch (err) {
       console.error(`Error fetching ${tab} data:`, err);
+      setError(`Failed to fetch ${tab} data`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Load data on component mount and period change
+  useEffect(() => {
+    if (selectedPeriod === 'custom' && customDateRange.enabled && customDateRange.start && customDateRange.end) {
+      fetchDashboardData(selectedPeriod, customDateRange.start, customDateRange.end);
+    } else if (selectedPeriod !== 'custom') {
+      fetchDashboardData(selectedPeriod);
+    }
+  }, [selectedPeriod, customDateRange]);
+
+  // Handle period change
+  const handlePeriodChange = (period) => {
+    console.log('Period changed to:', period);
+    setSelectedPeriod(period);
+    
+    if (period === 'custom') {
+      setCustomDateRange(prev => ({ ...prev, enabled: true }));
+    } else {
+      setCustomDateRange(prev => ({ ...prev, enabled: false }));
+      // Reset tab data when period changes
+      setOrdersData(null);
+      setMenuData(null);
+      setInventoryData(null);
+    }
+  };
+
+  // Handle custom date range change
+  const handleCustomDateChange = (field, value) => {
+    setCustomDateRange(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // Apply custom date range
+  const applyCustomDateRange = () => {
+    if (customDateRange.start && customDateRange.end) {
+      console.log('Applying custom date range:', customDateRange.start, 'to', customDateRange.end);
+      fetchDashboardData('custom', customDateRange.start, customDateRange.end);
     }
   };
 
   // Handle tab changes and load data if needed
   const handleTabChange = (tab) => {
     setActiveTab(tab);
-    // Only fetch if we don't already have the data
-    if (tab !== 'overview' && reportData && !reportData[tab]) {
-      fetchTabData(tab);
+    
+    // Load tab-specific data if not already loaded or if we need fresh data
+    if (tab !== 'overview') {
+      const currentPeriod = selectedPeriod === 'custom' && customDateRange.enabled ? 'custom' : selectedPeriod;
+      fetchTabData(tab, currentPeriod);
     }
   };
 
-  const handleDateRangeChange = (field, value) => {
-    setDateRange(prev => ({
-      ...prev,
-      [field]: value
-    }));
+  // Manual refresh
+  const handleRefresh = () => {
+    setRefreshing(true);
+    
+    if (activeTab === 'overview') {
+      if (selectedPeriod === 'custom' && customDateRange.enabled) {
+        fetchDashboardData('custom', customDateRange.start, customDateRange.end);
+      } else {
+        fetchDashboardData(selectedPeriod);
+      }
+    } else {
+      const currentPeriod = selectedPeriod === 'custom' && customDateRange.enabled ? 'custom' : selectedPeriod;
+      fetchTabData(activeTab, currentPeriod);
+    }
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+    return '৳' + new Intl.NumberFormat('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount || 0);
   };
 
@@ -139,24 +200,37 @@ const Analytics = () => {
     });
   };
 
-  if (loading) {
+  // Get icon for summary cards
+  const getIconForCard = (iconName) => {
+    const icons = {
+      'dollar-sign': '💰',
+      'shopping-cart': '🛒',
+      'target': '🎯',
+      'alert-triangle': '⚠️',
+      'menu': '📋',
+      'users': '👥'
+    };
+    return icons[iconName] || '📊';
+  };
+
+  if (loading && !dashboardData) {
     return (
       <div className="analytics-container">
         <div className="loading-spinner">
           <div className="spinner"></div>
-          <p>Loading comprehensive report...</p>
+          <p>Loading analytics data...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !dashboardData) {
     return (
       <div className="analytics-container">
         <div className="error-message">
-          <h3>Error Loading Report</h3>
+          <h3>Error Loading Analytics</h3>
           <p>{error}</p>
-          <button onClick={fetchReportData} className="retry-button">
+          <button onClick={() => fetchDashboardData()} className="retry-button">
             Try Again
           </button>
         </div>
@@ -168,73 +242,116 @@ const Analytics = () => {
     <div className="analytics-container">
       {/* Header */}
       <div className="analytics-header">
-        <h1>Business Intelligence Dashboard</h1>
-        <p>Comprehensive insights into orders, menu, and inventory performance</p>
-        
-        {/* Date Range Selector */}
-        <div className="date-range-selector">
-          <div className="date-input-group">
-            <label>From:</label>
-            <input
-              type="date"
-              value={dateRange.startDate}
-              onChange={(e) => handleDateRangeChange('startDate', e.target.value)}
-              className="date-input"
-            />
+        <div className="header-content">
+          <div className="header-text">
+            <h1>📊 Analytics & Reports</h1>
+            <p>Real-time Business Analytics and Custom Report System</p>
           </div>
-          <div className="date-input-group">
-            <label>To:</label>
-            <input
-              type="date"
-              value={dateRange.endDate}
-              onChange={(e) => handleDateRangeChange('endDate', e.target.value)}
-              className="date-input"
-            />
+          
+          {/* Period Selector and Controls */}
+          <div className="header-controls">
+            <div className="period-selector">
+              <label htmlFor="period-select">Select Period:</label>
+              <select 
+                id="period-select"
+                value={selectedPeriod} 
+                onChange={(e) => handlePeriodChange(e.target.value)}
+                className="period-select"
+              >
+                {periodOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <button 
+              onClick={handleRefresh} 
+              className="refresh-button"
+              disabled={refreshing}
+            >
+              {refreshing ? '🔄' : '↻'} Refresh
+            </button>
           </div>
-          <button onClick={fetchReportData} className="refresh-button">
-            Refresh Data
-          </button>
         </div>
+        
+        {/* Custom Date Range Picker */}
+        {selectedPeriod === 'custom' && (
+          <div className="custom-date-range">
+            <div className="date-inputs">
+              <div className="date-input-group">
+                <label>Start Date:</label>
+                <input
+                  type="date"
+                  value={customDateRange.start}
+                  onChange={(e) => handleCustomDateChange('start', e.target.value)}
+                  className="date-input"
+                />
+              </div>
+              <div className="date-input-group">
+                <label>End Date:</label>
+                <input
+                  type="date"
+                  value={customDateRange.end}
+                  onChange={(e) => handleCustomDateChange('end', e.target.value)}
+                  className="date-input"
+                />
+              </div>
+              <button 
+                onClick={applyCustomDateRange}
+                className="apply-date-button"
+                disabled={!customDateRange.start || !customDateRange.end}
+              >
+                Apply Range
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Date Range Display */}
+        {dashboardData?.date_range && (
+          <div className="date-range-display">
+            <span>📅 Report Period: {formatDate(dashboardData.date_range.start)} to {formatDate(dashboardData.date_range.end)}</span>
+          </div>
+        )}
       </div>
 
       {/* Summary Cards */}
-      {reportData?.summary && (
+      {dashboardData?.summary_cards && (
         <div className="summary-cards">
-          <div className="summary-card">
-            <div className="card-icon orders-icon">📦</div>
-            <div className="card-content">
-              <h3>{reportData.summary.total_orders}</h3>
-              <p>Total Orders</p>
-              <small>{reportData.summary.completed_orders} completed</small>
+          {dashboardData.summary_cards.map((card, index) => (
+            <div key={index} className={`summary-card ${card.color}`}>
+              <div className="card-icon">
+                {getIconForCard(card.icon)}
+              </div>
+              <div className="card-content">
+                <h3>{card.value}</h3>
+                <p>{card.title}</p>
+                {card.change && (
+                  <small>{card.change}</small>
+                )}
+              </div>
             </div>
-          </div>
-          
-          <div className="summary-card">
-            <div className="card-icon revenue-icon">💰</div>
-            <div className="card-content">
-              <h3>{formatCurrency(reportData.summary.total_revenue)}</h3>
-              <p>Total Revenue</p>
-              <small>Avg: {formatCurrency(reportData.summary.average_order_value)}</small>
-            </div>
-          </div>
-          
-          <div className="summary-card">
-            <div className="card-icon menu-icon">🍽️</div>
-            <div className="card-content">
-              <h3>{reportData.summary.active_menu_items}</h3>
-              <p>Active Menu Items</p>
-              <small>Available items</small>
-            </div>
-          </div>
-          
-          <div className="summary-card">
-            <div className="card-icon inventory-icon">📊</div>
-            <div className="card-content">
-              <h3>{reportData.summary.low_stock_alerts}</h3>
-              <p>Stock Alerts</p>
-              <small>Items need attention</small>
-            </div>
-          </div>
+          ))}
+        </div>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Updating data...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="error-state">
+          <p>❌ {error}</p>
+          <button onClick={handleRefresh} className="retry-button">
+            Try Again
+          </button>
         </div>
       )}
 
@@ -244,41 +361,58 @@ const Analytics = () => {
           className={`tab-button ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => handleTabChange('overview')}
         >
-          Overview
+          📊 Overview
         </button>
         <button
           className={`tab-button ${activeTab === 'orders' ? 'active' : ''}`}
           onClick={() => handleTabChange('orders')}
         >
-          Orders Analysis
+          📈 Orders Analysis
         </button>
         <button
           className={`tab-button ${activeTab === 'menu' ? 'active' : ''}`}
           onClick={() => handleTabChange('menu')}
         >
-          Menu Performance
+          🍽️ Menu Performance
         </button>
         <button
           className={`tab-button ${activeTab === 'inventory' ? 'active' : ''}`}
           onClick={() => handleTabChange('inventory')}
         >
-          Inventory Status
+          📦 Inventory Status
         </button>
       </div>
 
       {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'overview' && (
-          <OverviewTab reportData={reportData} formatCurrency={formatCurrency} formatDate={formatDate} />
+          <OverviewTab 
+            dashboardData={dashboardData} 
+            formatCurrency={formatCurrency} 
+            formatDate={formatDate} 
+          />
         )}
         {activeTab === 'orders' && (
-          <OrdersTab reportData={reportData} formatCurrency={formatCurrency} formatDate={formatDate} />
+          <OrdersTab 
+            ordersData={ordersData} 
+            formatCurrency={formatCurrency} 
+            formatDate={formatDate}
+            loading={loading}
+          />
         )}
         {activeTab === 'menu' && (
-          <MenuTab reportData={reportData} formatCurrency={formatCurrency} />
+          <MenuTab 
+            menuData={menuData} 
+            formatCurrency={formatCurrency} 
+            loading={loading}
+          />
         )}
         {activeTab === 'inventory' && (
-          <InventoryTab reportData={reportData} formatCurrency={formatCurrency} />
+          <InventoryTab 
+            inventoryData={inventoryData} 
+            formatCurrency={formatCurrency} 
+            loading={loading}
+          />
         )}
       </div>
     </div>
@@ -286,43 +420,97 @@ const Analytics = () => {
 };
 
 // Overview Tab Component
-const OverviewTab = ({ reportData, formatCurrency, formatDate }) => (
+const OverviewTab = ({ dashboardData, formatCurrency, formatDate }) => (
   <div className="overview-tab">
     <div className="overview-grid">
-      {/* Daily Revenue Chart */}
+      {/* Revenue Trend Chart */}
       <div className="chart-card">
-        <h3>Daily Revenue Trend</h3>
+        <h3>💰 Revenue Trend</h3>
         <div className="chart-container">
-          {reportData.charts?.daily_stats && (
+          {dashboardData?.charts?.revenue_trend && dashboardData.charts.revenue_trend.length > 0 ? (
             <div className="simple-bar-chart">
-              {reportData.charts.daily_stats.slice(-7).map((day, index) => (
-                <div key={index} className="bar-item">
-                  <div 
-                    className="bar" 
-                    style={{ height: `${Math.max((day.revenue / Math.max(...reportData.charts.daily_stats.map(d => d.revenue))) * 100, 5)}%` }}
-                  ></div>
-                  <span className="bar-label">{formatDate(day.date)}</span>
-                  <span className="bar-value">{formatCurrency(day.revenue)}</span>
-                </div>
-              ))}
+              {dashboardData.charts.revenue_trend.slice(-10).map((item, index) => {
+                const maxRevenue = Math.max(...dashboardData.charts.revenue_trend.map(d => d.revenue));
+                const height = maxRevenue > 0 ? Math.max((item.revenue / maxRevenue) * 100, 5) : 5;
+                
+                return (
+                  <div key={index} className="bar-item">
+                    <div 
+                      className="bar" 
+                      style={{ height: `${height}%` }}
+                      title={`${formatDate(item.date)}: ${formatCurrency(item.revenue)}`}
+                    ></div>
+                    <span className="bar-label">{formatDate(item.date)}</span>
+                    <span className="bar-value">৳{item.revenue}</span>
+                  </div>
+                );
+              })}
             </div>
+          ) : (
+            <div className="no-chart-data">No revenue data available for this period</div>
           )}
         </div>
       </div>
 
       {/* Order Type Distribution */}
       <div className="chart-card">
-        <h3>Order Type Distribution</h3>
+        <h3>🍽️ Order Type Distribution</h3>
         <div className="pie-chart-container">
-          {reportData.charts?.order_type_distribution && (
+          {dashboardData?.charts?.order_type_distribution && dashboardData.charts.order_type_distribution.length > 0 ? (
             <div className="pie-chart-legend">
-              {reportData.charts.order_type_distribution.map((type, index) => (
-                <div key={index} className="legend-item">
-                  <span className="legend-color" style={{ backgroundColor: `hsl(${index * 120}, 70%, 60%)` }}></span>
-                  <span>{type.order_type}: {type.count}</span>
-                </div>
-              ))}
+              {dashboardData.charts.order_type_distribution.map((type, index) => {
+                const colors = ['#4F46E5', '#059669', '#DC2626', '#7C2D12'];
+                const total = dashboardData.charts.order_type_distribution.reduce((sum, item) => sum + item.count, 0);
+                const percentage = total > 0 ? Math.round((type.count / total) * 100) : 0;
+                
+                return (
+                  <div key={index} className="legend-item">
+                    <span 
+                      className="legend-color" 
+                      style={{ backgroundColor: colors[index] || '#6B7280' }}
+                    ></span>
+                    <span>{type.type}: {type.count} orders ({percentage}%)</span>
+                  </div>
+                );
+              })}
             </div>
+          ) : (
+            <div className="no-chart-data">Order type data not available</div>
+          )}
+        </div>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="data-card full-width">
+        <h3>📊 Key Performance Indicators (KPIs)</h3>
+        <div className="performance-stats">
+          {dashboardData?.kpis && (
+            <>
+              <div className="stat-item">
+                <span className="stat-label">Total Revenue:</span>
+                <span className="stat-value">{formatCurrency(dashboardData.kpis.total_revenue)}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Total Orders:</span>
+                <span className="stat-value">{dashboardData.kpis.total_orders}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Avg Order Value:</span>
+                <span className="stat-value">{formatCurrency(dashboardData.kpis.average_order_value)}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Menu Items:</span>
+                <span className="stat-value">{dashboardData.kpis.available_menu_items}/{dashboardData.kpis.total_menu_items}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Inventory Items:</span>
+                <span className="stat-value">{dashboardData.kpis.total_inventory_items}</span>
+              </div>
+              <div className="stat-item">
+                <span className="stat-label">Stock Alerts:</span>
+                <span className="stat-value critical">{dashboardData.kpis.low_stock_items} Low Stock</span>
+              </div>
+            </>
           )}
         </div>
       </div>
@@ -331,245 +519,370 @@ const OverviewTab = ({ reportData, formatCurrency, formatDate }) => (
 );
 
 // Orders Tab Component
-const OrdersTab = ({ reportData, formatCurrency, formatDate }) => (
-  <div className="orders-tab">
-    <div className="section-grid">
-      {/* Order Status Breakdown */}
-      <div className="data-card">
-        <h3>Order Status Breakdown</h3>
-        <div className="status-grid">
-          {reportData.orders?.status_breakdown && reportData.orders.status_breakdown.map((statusItem, index) => (
-            <div key={index} className="status-item">
-              <span className={`status-badge ${statusItem.status}`}>{statusItem.status}</span>
-              <span className="status-count">{statusItem.count} orders</span>
-              <span className="status-total">{formatCurrency(statusItem.total)}</span>
-            </div>
-          ))}
-        </div>
+const OrdersTab = ({ ordersData, formatCurrency, formatDate, loading }) => {
+  if (loading) {
+    return (
+      <div className="loading-state">
+        <div className="spinner"></div>
+        <p>Loading orders data...</p>
       </div>
+    );
+  }
 
-      {/* Recent Orders */}
-      <div className="data-card full-width">
-        <h3>Recent Orders</h3>
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Type</th>
-                <th>Status</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Items</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.orders?.orders && reportData.orders.orders.slice(0, 10).map((order) => (
-                <tr key={order.id}>
-                  <td>#{order.id}</td>
-                  <td>{order.customer_name || 'Walk-in'}</td>
-                  <td>{order.order_type}</td>
-                  <td>
-                    <span className={`status-badge ${order.status}`}>{order.status}</span>
-                  </td>
-                  <td>{formatCurrency(order.total_amount)}</td>
-                  <td>{formatDate(order.created_at)}</td>
-                  <td>-</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+  if (!ordersData) {
+    return (
+      <div className="error-state">
+        <p>Orders data not available</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="orders-tab">
+      <div className="section-grid">
+        {/* Order Status Breakdown */}
+        <div className="data-card">
+          <h3>📊 Order Status Breakdown</h3>
+          <div className="status-grid">
+            {ordersData.status_breakdown && ordersData.status_breakdown.map((statusItem, index) => (
+              <div key={index} className="status-item">
+                <span className={`status-badge ${statusItem.status}`}>{statusItem.status}</span>
+                <div className="status-details">
+                  <span className="status-count">{statusItem.count} orders</span>
+                  <span className="status-total">{formatCurrency(statusItem.total)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Order Type Breakdown */}
+        <div className="data-card">
+          <h3>🍽️ Order Type Analysis</h3>
+          <div className="payment-methods">
+            {ordersData.type_breakdown && ordersData.type_breakdown.map((typeItem, index) => (
+              <div key={index} className="payment-item">
+                <span className="payment-method">{typeItem.type}</span>
+                <div className="payment-stats">
+                  <span>{typeItem.count} orders</span>
+                  <span>{formatCurrency(typeItem.total)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Peak Hours */}
+        <div className="data-card">
+          <h3>⏰ Peak Hours</h3>
+          <div className="category-list">
+            {ordersData.peak_hours && ordersData.peak_hours.slice(0, 5).map((hour, index) => (
+              <div key={index} className="category-item">
+                <span className="category-name">{hour.hour}:00</span>
+                <div className="category-stats">
+                  <span>{hour.orders} orders</span>
+                  <span>{formatCurrency(hour.revenue)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Recent Orders */}
+        <div className="data-card full-width">
+          <h3>📋 Recent Orders</h3>
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Amount</th>
+                  <th>Date</th>
+                  <th>Items</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ordersData.orders && ordersData.orders.slice(0, 15).map((order) => (
+                  <tr key={order.id}>
+                    <td>#{order.id}</td>
+                    <td>{order.customer_name || 'Walk-in'}</td>
+                    <td>
+                      <span className={`status-badge ${order.order_type}`}>
+                        {order.order_type === 'dine-in' ? 'Dine-in' : 'Pickup'}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge ${order.status}`}>{order.status}</span>
+                    </td>
+                    <td>{formatCurrency(order.total_amount)}</td>
+                    <td>{formatDate(order.created_at)}</td>
+                    <td>{order.order_items?.length || '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Daily Trend Chart */}
+        {ordersData.daily_trend && ordersData.daily_trend.length > 0 && (
+          <div className="data-card full-width">
+            <h3>📈 Daily Order Trend</h3>
+            <div className="trend-chart">
+              {ordersData.daily_trend.slice(-14).map((day, index) => {
+                const maxOrders = Math.max(...ordersData.daily_trend.map(d => d.orders));
+                const height = maxOrders > 0 ? Math.max((day.orders / maxOrders) * 100, 5) : 5;
+                
+                return (
+                  <div key={index} className="trend-item">
+                    <div className="trend-bar">
+                      <div 
+                        className="trend-fill" 
+                        style={{ height: `${height}%` }}
+                      ></div>
+                    </div>
+                    <div className="trend-label">{formatDate(day.date)}</div>
+                    <div className="trend-value">{day.orders} orders</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Menu Tab Component
-const MenuTab = ({ reportData, formatCurrency }) => (
-  <div className="menu-tab">
-    <div className="section-grid">
-      {/* Category Breakdown */}
-      <div className="data-card">
-        <h3>Menu Categories</h3>
-        <div className="category-list">
-          {reportData.menu?.category_breakdown && reportData.menu.category_breakdown.map((categoryItem, index) => (
-            <div key={index} className="category-item">
-              <span className="category-name">{categoryItem.category}</span>
-              <span className="category-count">{categoryItem.count} items</span>
-              <span className="category-price">Avg: {formatCurrency(categoryItem.avg_price)}</span>
-            </div>
-          ))}
-        </div>
+const MenuTab = ({ menuData, formatCurrency, loading }) => {
+  if (loading) {
+    return (
+      <div className="loading-state">
+        <div className="spinner"></div>
+        <p>Loading menu data...</p>
       </div>
+    );
+  }
 
-      {/* Menu Performance */}
-      <div className="data-card">
-        <h3>Menu Performance</h3>
-        <div className="performance-stats">
-          {reportData.menu?.menu_performance && (
-            <>
-              <div className="stat-item">
-                <span className="stat-label">Total Items:</span>
-                <span className="stat-value">{reportData.menu.menu_performance.total_items}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Available:</span>
-                <span className="stat-value">{reportData.menu.menu_performance.available_items}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Featured:</span>
-                <span className="stat-value">{reportData.menu.menu_performance.featured_items}</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-label">Categories:</span>
-                <span className="stat-value">{reportData.menu.menu_performance.categories}</span>
-              </div>
-            </>
-          )}
-        </div>
+  if (!menuData) {
+    return (
+      <div className="error-state">
+        <p>Menu data not available</p>
       </div>
+    );
+  }
 
-      {/* Top Selling Items */}
-      <div className="data-card full-width">
-        <h3>Top Selling Items</h3>
-        <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Item Name</th>
-                <th>Category</th>
-                <th>Price</th>
-                <th>Quantity Sold</th>
-                <th>Total Revenue</th>
-              </tr>
-            </thead>
-            <tbody>
-              {reportData.menu?.top_selling_items && reportData.menu.top_selling_items.map((item, index) => (
-                <tr key={index}>
-                  <td>{item.name}</td>
-                  <td>{item.category}</td>
-                  <td>{formatCurrency(item.price)}</td>
-                  <td>{item.total_sold}</td>
-                  <td>{formatCurrency(item.total_revenue)}</td>
+  return (
+    <div className="menu-tab">
+      <div className="section-grid">
+        {/* Category Breakdown */}
+        <div className="data-card">
+          <h3>🍽️ Menu Categories</h3>
+          <div className="category-list">
+            {menuData.category_breakdown && menuData.category_breakdown.map((categoryItem, index) => (
+              <div key={index} className="category-item">
+                <span className="category-name">{categoryItem.category}</span>
+                <div className="category-stats">
+                  <span>{categoryItem.count} items</span>
+                  <span>Avg: {formatCurrency(categoryItem.avg_price)}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Menu Performance */}
+        <div className="data-card">
+          <h3>📈 Menu Performance</h3>
+          <div className="performance-stats">
+            {menuData.summary && (
+              <>
+                <div className="stat-item">
+                  <span className="stat-label">Total Items:</span>
+                  <span className="stat-value">{menuData.summary.total_items}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Available:</span>
+                  <span className="stat-value">{menuData.summary.available_items}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Categories:</span>
+                  <span className="stat-value">{menuData.summary.categories}</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-label">Avg Price:</span>
+                  <span className="stat-value">{formatCurrency(menuData.summary.avg_price)}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Top Selling Items */}
+        <div className="data-card full-width">
+          <h3>🏆 Popular Menu Items</h3>
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Item Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Quantity Sold</th>
+                  <th>Total Revenue</th>
+                  <th>Order Count</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {menuData.popular_items && menuData.popular_items.map((item, index) => (
+                  <tr key={index}>
+                    <td>{item.name}</td>
+                    <td>{item.category}</td>
+                    <td>{formatCurrency(item.price)}</td>
+                    <td>{item.total_sold}</td>
+                    <td>{formatCurrency(item.total_revenue)}</td>
+                    <td>{item.order_count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 // Inventory Tab Component
-const InventoryTab = ({ reportData, formatCurrency }) => (
-  <div className="inventory-tab">
-    <div className="section-grid">
-      {/* Stock Status */}
-      <div className="data-card">
-        <h3>Stock Status Overview</h3>
-        <div className="stock-status">
-          <div className="status-item critical">
-            <span className="status-label">Critical Stock Items:</span>
-            <span className="status-value">{reportData.inventory?.alerts?.critical_stock?.length || 0}</span>
-          </div>
-          <div className="status-item low">
-            <span className="status-label">Low Stock Items:</span>
-            <span className="status-value">{reportData.inventory?.alerts?.low_stock?.length || 0}</span>
-          </div>
-          <div className="status-item adequate">
-            <span className="status-label">Total Items:</span>
-            <span className="status-value">{reportData.inventory?.total_items || 0}</span>
-          </div>
-        </div>
-        <div className="inventory-value">
-          <strong>Total Value: {formatCurrency(reportData.inventory?.total_value)}</strong>
-        </div>
+const InventoryTab = ({ inventoryData, formatCurrency, loading }) => {
+  if (loading) {
+    return (
+      <div className="loading-state">
+        <div className="spinner"></div>
+        <p>Loading inventory data...</p>
       </div>
+    );
+  }
 
-      {/* Category Breakdown */}
-      <div className="data-card">
-        <h3>Inventory by Category</h3>
-        <div className="category-breakdown">
-          {reportData.inventory?.category_breakdown && reportData.inventory.category_breakdown.map((categoryItem, index) => (
-            <div key={index} className="category-row">
-              <span className="category-name">{categoryItem.category}</span>
-              <div className="category-stats">
-                <span>{categoryItem.count} items</span>
-                <span>{formatCurrency(categoryItem.total_value)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+  if (!inventoryData) {
+    return (
+      <div className="error-state">
+        <p>Inventory data not available</p>
       </div>
+    );
+  }
 
-      {/* Critical Items */}
-      <div className="data-card full-width">
-        <h3>Items Requiring Attention</h3>
-        <div className="alert-sections">
-          {/* Critical Stock */}
-          {reportData.inventory?.alerts?.critical_stock && reportData.inventory.alerts.critical_stock.length > 0 && (
-            <div className="alert-section critical">
-              <h4>🚨 Critical Stock</h4>
-              <div className="table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th>Current Stock</th>
-                      <th>Category</th>
-                      <th>Cost</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.inventory.alerts.critical_stock.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.name}</td>
-                        <td className="critical-quantity">{item.quantity}</td>
-                        <td>{item.category}</td>
-                        <td>{formatCurrency(item.cost)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+  return (
+    <div className="inventory-tab">
+      <div className="section-grid">
+        {/* Stock Status */}
+        <div className="data-card">
+          <h3>📦 Stock Status Overview</h3>
+          <div className="stock-status">
+            <div className="status-item critical">
+              <span className="stat-label">Critical Stock:</span>
+              <span className="stat-value">{inventoryData.alerts?.critical_stock?.length || 0}</span>
             </div>
-          )}
+            <div className="status-item low">
+              <span className="stat-label">Low Stock:</span>
+              <span className="stat-value">{inventoryData.alerts?.low_stock?.length || 0}</span>
+            </div>
+            <div className="status-item adequate">
+              <span className="stat-label">Total Items:</span>
+              <span className="stat-value">{inventoryData.summary?.total_items || 0}</span>
+            </div>
+          </div>
+          <div className="inventory-value">
+            <strong>Total Value: {formatCurrency(inventoryData.summary?.total_value || 0)}</strong>
+          </div>
+        </div>
 
-          {/* Low Stock */}
-          {reportData.inventory?.alerts?.low_stock && reportData.inventory.alerts.low_stock.length > 0 && (
-            <div className="alert-section low">
-              <h4>⚠️ Low Stock</h4>
-              <div className="table-container">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Item</th>
-                      <th>Current Stock</th>
-                      <th>Category</th>
-                      <th>Cost</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.inventory.alerts.low_stock.map((item, index) => (
-                      <tr key={index}>
-                        <td>{item.name}</td>
-                        <td className="low-quantity">{item.quantity}</td>
-                        <td>{item.category}</td>
-                        <td>{formatCurrency(item.cost)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        {/* Category Breakdown */}
+        <div className="data-card">
+          <h3>📊 Inventory by Category</h3>
+          <div className="category-breakdown">
+            {inventoryData.category_breakdown && inventoryData.category_breakdown.map((categoryItem, index) => (
+              <div key={index} className="category-row">
+                <span className="category-name">{categoryItem.category}</span>
+                <div className="category-stats">
+                  <span>{categoryItem.count} items</span>
+                  <span>{formatCurrency(categoryItem.total_value)}</span>
+                </div>
               </div>
-            </div>
-          )}
+            ))}
+          </div>
+        </div>
+
+        {/* Critical Items */}
+        <div className="data-card full-width">
+          <h3>⚠️ Items Requiring Attention</h3>
+          <div className="alert-sections">
+            {/* Critical Stock */}
+            {inventoryData.alerts?.critical_stock && inventoryData.alerts.critical_stock.length > 0 && (
+              <div className="alert-section critical">
+                <h4>🚨 Critical Stock</h4>
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Current Stock</th>
+                        <th>Category</th>
+                        <th>Unit Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inventoryData.alerts.critical_stock.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.name}</td>
+                          <td className="critical-quantity">{item.quantity} {item.unit}</td>
+                          <td>{item.category}</td>
+                          <td>{formatCurrency(item.cost_per_unit)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Low Stock */}
+            {inventoryData.alerts?.low_stock && inventoryData.alerts.low_stock.length > 0 && (
+              <div className="alert-section low">
+                <h4>⚠️ Low Stock</h4>
+                <div className="table-container">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Current Stock</th>
+                        <th>Category</th>
+                        <th>Unit Cost</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inventoryData.alerts.low_stock.map((item, index) => (
+                        <tr key={index}>
+                          <td>{item.name}</td>
+                          <td className="low-quantity">{item.quantity} {item.unit}</td>
+                          <td>{item.category}</td>
+                          <td>{formatCurrency(item.cost_per_unit)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Analytics;

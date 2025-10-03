@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .upload-area:hover {
+            border-color: #666;
+            background-color: #f9f9f9;
+        }
+        .upload-area.drag-over {
+            border-color: #007bff;
+            background-color: #e3f2fd;
+        }
+        .preview {
+            max-width: 400px;
+            max-height: 300px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .info {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🖼️ Image Upload Test</h1>
+    
+    <div class="info">
+        <h3>How to test:</h3>
+        <ol>
+            <li>Click on the upload area OR drag an image file and drop it</li>
+            <li>Select an image file (PNG, JPG, JPEG)</li>
+            <li>Check if preview shows up</li>
+            <li>Check browser console for any errors</li>
+        </ol>
+    </div>
+
+    <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+        <div id="uploadText">
+            <h3>📁 Click to upload or drag & drop</h3>
+            <p>PNG, JPG, JPEG files supported</p>
+        </div>
+        <img id="preview" class="preview hidden" alt="Preview">
+    </div>
+
+    <input type="file" id="fileInput" accept="image/*" class="hidden">
+
+    <div id="fileInfo"></div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const uploadText = document.getElementById('uploadText');
+        const fileInfo = document.getElementById('fileInfo');
+
+        // File input change handler
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // Drag and drop handlers
+        uploadArea.addEventListener('dragenter', handleDragEnter);
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                console.log('📁 File selected via input:', file.name, file.type, file.size);
+                processFile(file);
+            }
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                console.log('📁 File dropped:', file.name, file.type, file.size);
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            // Check file type
+            if (!file.type.startsWith('image/')) {
+                alert('❌ Please select an image file');
+                console.error('❌ Invalid file type:', file.type);
+                return;
+            }
+
+            // Check file size (5MB limit)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('❌ File size must be less than 5MB');
+                console.error('❌ File too large:', file.size);
+                return;
+            }
+
+            console.log('✅ File validation passed');
+            
+            // Show file info
+            fileInfo.innerHTML = `
+                <div style="background: #e8f5e8; padding: 10px; border-radius: 8px; margin: 10px 0;">
+                    <strong>File Info:</strong><br>
+                    📝 Name: ${file.name}<br>
+                    📊 Type: ${file.type}<br>
+                    📏 Size: ${(file.size / 1024).toFixed(2)} KB<br>
+                    🕒 Modified: ${new Date(file.lastModified).toLocaleString()}
+                </div>
+            `;
+
+            // Create FileReader for preview
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                console.log('✅ FileReader onload triggered');
+                preview.src = e.target.result;
+                preview.classList.remove('hidden');
+                uploadText.style.display = 'none';
+                console.log('✅ Preview image set successfully');
+            };
+
+            reader.onerror = function(e) {
+                console.error('❌ FileReader error:', e);
+                alert('❌ Error reading file');
+            };
+
+            reader.onloadstart = function() {
+                console.log('📖 FileReader started reading...');
+            };
+
+            reader.onloadend = function() {
+                console.log('📖 FileReader finished reading');
+            };
+
+            console.log('📖 Starting FileReader.readAsDataURL...');
+            reader.readAsDataURL(file);
+        }
+
+        // Reset function
+        function resetUpload() {
+            preview.classList.add('hidden');
+            uploadText.style.display = 'block';
+            fileInfo.innerHTML = '';
+            fileInput.value = '';
+        }
+
+        // Add reset button
+        document.body.innerHTML += `
+            <button onclick="resetUpload()" style="
+                background: #ff6b6b; 
+                color: white; 
+                padding: 10px 20px; 
+                border: none; 
+                border-radius: 5px; 
+                cursor: pointer;
+                margin: 20px 0;
+            ">🔄 Reset</button>
+        `;
+
+        console.log('🚀 Image upload test page loaded successfully');
+    </script>
+</body>
+</html>

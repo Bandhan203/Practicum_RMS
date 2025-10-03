@@ -481,7 +481,7 @@ export function OrderManagement({ readOnly = false }) {
                     >
                       {action === 'preparing' && 'Start Preparing'}
                       {action === 'ready' && 'Mark Ready'}
-                      {action === 'served' && 'Mark Served'}
+                      {action === 'served' && 'Proceed to Billing'}
                       {action === 'cancelled' && 'Cancel'}
                     </button>
                   ))}

@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\SimpleAnalyticsController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\BillController;
+use App\Http\Controllers\Api\SettingController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,12 +40,15 @@ Route::prefix('bills')->group(function () {
     Route::get('/{id}', [BillController::class, 'show']);
     Route::put('/{id}', [BillController::class, 'update']);
     Route::delete('/{id}', [BillController::class, 'destroy']);
-    Route::post('/{id}/payment', [BillController::class, 'processPayment']);
-    Route::post('/{id}/mark-printed', [BillController::class, 'markPrinted']);
 });
+
+// Additional bill routes for testing
+Route::post('/bills/{id}/payment', [\App\Http\Controllers\Api\BillController::class, 'processPayment']);
+Route::post('/bills/{id}/mark-printed', [\App\Http\Controllers\Api\BillController::class, 'markPrinted']);
 
 // Temporary public order routes for testing
 Route::apiResource('orders', OrderController::class);
+Route::post('/orders/{id}/generate-bill', [OrderController::class, 'generateBill']);
 Route::get('/orders-statistics', [OrderController::class, 'statistics']);
 
 // Temporary public menu routes for testing
@@ -53,6 +57,15 @@ Route::get('/menu-categories', [MenuController::class, 'categories']);
 
 // Temporary public inventory routes for testing
 Route::apiResource('inventory', InventoryController::class);
+Route::post('/inventory/{id}/adjust-stock', [InventoryController::class, 'adjustStock']);
+Route::get('/inventory-stats', [InventoryController::class, 'stats']);
+Route::get('/inventory-alerts', [InventoryController::class, 'alerts']);
+
+// Temporary public settings routes for testing
+Route::get('/settings', [SettingController::class, 'index']);
+Route::get('/settings/category/{category}', [SettingController::class, 'getByCategory']);
+Route::post('/settings/batch', [SettingController::class, 'updateSettings']);
+Route::put('/settings/{key}', [SettingController::class, 'updateSetting']);
 
 // Temporary public report routes for testing
 Route::prefix('public-reports')->group(function () {
@@ -76,13 +89,19 @@ Route::get('/test-report', function() {
 });
 Route::get('/test-report-controller', [ReportController::class, 'test']);
 
+// Public analytics route for testing
+Route::get('/analytics', [\App\Http\Controllers\AnalyticsController::class, 'getAnalytics']);
+
+// Public settings routes for testing
+Route::post('/settings/batch-alt', [\App\Http\Controllers\Api\SettingController::class, 'updateSettings']);
+
 // Simple analytics test
 Route::get('/test-analytics-simple', function() {
     try {
         $orderCount = \App\Models\Order::count();
         $menuCount = \App\Models\MenuItem::count();
         $inventoryCount = \App\Models\Inventory::count();
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -105,10 +124,10 @@ Route::get('/test-analytics-model', function() {
         // First test individual components
         $totalRevenue = \App\Models\Order::where('status', 'completed')->sum('total_amount');
         $totalOrders = \App\Models\Order::where('status', 'completed')->count();
-        
+
         // Test inventory scopes
         $lowStockItems = \App\Models\Inventory::where('quantity', '<=', 10)->count(); // Simplified test
-        
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -130,10 +149,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
 
-    // Inventory routes
-    Route::post('/inventory/{id}/adjust-stock', [InventoryController::class, 'adjustStock']);
-    Route::get('/inventory-stats', [InventoryController::class, 'stats']);
-    Route::get('/inventory-alerts', [InventoryController::class, 'alerts']);
+    // Inventory routes (moved to public for testing)
 
     // Analytics routes
     Route::prefix('analytics')->group(function () {
@@ -171,7 +187,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('reports')->group(function () {
         // Comprehensive dashboard report
         Route::get('/dashboard', [ReportController::class, 'getDashboardReport']);
-        
+
         // Individual section reports
         Route::get('/orders', [ReportController::class, 'getOrdersReportOnly']);
         Route::get('/menu', [ReportController::class, 'getMenuReportOnly']);

@@ -2,12 +2,12 @@ import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { ShoppingCart, Trash2, Plus, Minus, X } from '../common/Icons';
 import { OrderTypeModal } from '../Orders/OrderTypeModal';
-import { 
-  selectCart, 
-  selectCartTotal, 
-  removeFromCart, 
-  updateCartItemQuantity, 
-  createOrder 
+import {
+  selectCart,
+  selectCartTotal,
+  removeFromCart,
+  updateCartItemQuantity,
+  createOrder
 } from '../../store/features/orderSlice';
 import { selectMenuItems } from '../../store/features/menuSlice';
 
@@ -88,10 +88,15 @@ export function CartCheckout({ isOpen, onClose }) {
                   {cartWithDetails.map((item) => (
                     <div key={item.menuItemId} className="bg-gray-50 rounded-lg p-4">
                       <div className="flex items-start space-x-3">
-                        <img 
-                          src={item.menuItem.image} 
+                        <img
+                          src={item.menuItem.image?.startsWith('storage/')
+                            ? `http://localhost:8000/${item.menuItem.image}`
+                            : item.menuItem.image || '/api/placeholder/100/100'}
                           alt={item.menuItem.name}
                           className="w-16 h-16 object-cover rounded-md"
+                          onError={(e) => {
+                            e.target.src = '/api/placeholder/100/100';
+                          }}
                         />
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-medium text-gray-900 truncate">

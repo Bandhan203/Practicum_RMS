@@ -1,0 +1,18 @@
+{
+  "customerName": "Test Customer",
+  "customerEmail": "test@example.com",
+  "customerPhone": "01234567890",
+  "orderType": "dine-in",
+  "tableNumber": 5,
+  "items": [
+    {
+      "id": 1,
+      "quantity": 2
+    },
+    {
+      "id": 3,
+      "quantity": 1
+    }
+  ],
+  "notes": "Test order creation"
+}

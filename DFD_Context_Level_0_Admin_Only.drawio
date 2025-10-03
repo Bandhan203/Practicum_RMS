@@ -1,0 +1,55 @@
+<mxfile host="65bd71144e">
+    <diagram id="DFD_Context_Level_0" name="Context Level DFD">
+        <mxGraphModel dx="723" dy="406" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" value="Context Diagram for Restaurant POS System:" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="80" width="400" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="central_system" value="0&#xa;&#xa;Restaurant&#xa;POS&#xa;System" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="200" width="120" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="admin" value="Admin" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="210" width="80" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="admin_to_system" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.25;exitDx=0;exitDy=0;" parent="1" source="admin" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="350" y="220" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="admin_to_system_label" value="Login credentials &amp; management commands" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="170" width="120" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="system_to_admin" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="central_system" target="admin" edge="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="system_to_admin_label" value="Dashboard access &amp; reports" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="110" y="180" width="120" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="customer_to_system_label" value="Orders &amp; payments" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="260" y="240" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="system_to_customer_label" value="Bills &amp; receipts" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="260" y="280" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="supplier_to_system_label" value="Inventory updates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="150" y="240" width="100" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="system_to_supplier_label" value="Stock alerts" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="270" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" value="" style="endArrow=none;html=1;exitX=0.002;exitY=0.352;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1.002;entryY=0.361;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="central_system" target="central_system">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="350.00000000000006" y="232.39999999999998" as="sourcePoint"/>
+                        <mxPoint x="471.8" y="247.5" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

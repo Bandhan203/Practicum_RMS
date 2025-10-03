@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { selectMenuItems, selectMenuLoading, selectMenuError, fetchMenuItems } from '../../store/features/menuSlice';
 import { useAuth } from '../../contexts/AuthContext';
 import { X, Trash2 } from '../common/Icons';
 import Cookies from 'js-cookie';
+import { menuAPI } from '../../services/api';
+import { useDebounce } from '../../hooks/useDebounce';
 
 export function AddOrderModal({ 
   showModal, 
@@ -22,6 +24,15 @@ export function AddOrderModal({
   const [directMenuItems, setDirectMenuItems] = useState([]);
   const [directLoading, setDirectLoading] = useState(false);
   const [directError, setDirectError] = useState(null);
+
+  // Autocomplete state
+  const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearch = useDebounce(searchTerm, 300);
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestLoading, setSuggestLoading] = useState(false);
+  const [suggestError, setSuggestError] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const inputRef = useRef(null);
 
   // Direct API fetch method using GET request
   const fetchMenuItemsDirect = async () => {
@@ -106,6 +117,44 @@ export function AddOrderModal({
     });
   }, [menuItems, menuLoading, menuError, directMenuItems, directLoading, directError, isAuthenticated, user]);
 
+  // Fetch suggestions when user types in search
+  useEffect(() => {
+    let active = true;
+
+    async function fetchSuggestions() {
+      if (!debouncedSearch || debouncedSearch.trim().length === 0) {
+        setSuggestions([]);
+        setSuggestError(null);
+        setSuggestLoading(false);
+        return;
+      }
+
+      try {
+        setSuggestLoading(true);
+        setSuggestError(null);
+        const res = await menuAPI.getMenuItems({ search: debouncedSearch, available: true });
+        // res is the backend response data wrapper
+        const items = Array.isArray(res?.data) ? res.data : (res?.data?.data || []);
+        if (!active) return;
+        setSuggestions(items.slice(0, 10));
+        setShowSuggestions(true);
+      } catch (err) {
+        if (!active) return;
+        console.error('Autocomplete fetch error:', err);
+        setSuggestError(err.response?.data?.message || err.message);
+        setSuggestions([]);
+      } finally {
+        if (active) setSuggestLoading(false);
+      }
+    }
+
+    fetchSuggestions();
+
+    return () => {
+      active = false;
+    };
+  }, [debouncedSearch]);
+
   // Use direct fetch items as fallback if Redux fails
   const activeMenuItems = (menuItems && menuItems.length > 0) ? menuItems : directMenuItems;
   const activeLoading = menuLoading || directLoading;
@@ -160,6 +209,9 @@ export function AddOrderModal({
       items: [],
       notes: ''
     });
+    setSearchTerm('');
+    setSuggestions([]);
+    setShowSuggestions(false);
     onClose();
   };
 
@@ -261,6 +313,60 @@ export function AddOrderModal({
               />
             </div>
           )}
+
+          {/* Quick Add via Search (Autocomplete) */}
+          <div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Quick add items</h3>
+            <div className="relative">
+              <input
+                ref={inputRef}
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  if (!showSuggestions) setShowSuggestions(true);
+                }}
+                onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                placeholder="Search menu by name or description..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              />
+              {suggestLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">Loading…</div>
+              )}
+              {showSuggestions && (suggestions.length > 0 || suggestError) && (
+                <div className="absolute z-[99999] mt-1 w-full max-h-60 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg">
+                  {suggestError && (
+                    <div className="px-3 py-2 text-sm text-red-600 bg-red-50 border-b border-red-100">
+                      {suggestError}
+                    </div>
+                  )}
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => {
+                        addItemToOrder(s);
+                        setSearchTerm('');
+                        setSuggestions([]);
+                        setShowSuggestions(false);
+                        inputRef.current?.blur();
+                      }}
+                      className="w-full text-left px-3 py-2 hover:bg-orange-50 flex items-center justify-between"
+                    >
+                      <div className="min-w-0 mr-3">
+                        <div className="font-medium text-gray-900 truncate">{s.name}</div>
+                        <div className="text-xs text-gray-500 truncate">{s.description}</div>
+                      </div>
+                      <span className="text-sm font-semibold text-orange-600 whitespace-nowrap">৳{s.price}</span>
+                    </button>
+                  ))}
+                  {suggestions.length === 0 && !suggestError && (
+                    <div className="px-3 py-2 text-sm text-gray-500">No matches found</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* Menu Items Selection */}
           <div>

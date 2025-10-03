@@ -1,7 +1,7 @@
-# My_RMS Backend - Laravel API
+# Smart Dine POS Backend - Laravel API
 
 ## Overview
-This is the Laravel backend API for the Restaurant Management System (My_RMS). It provides authentication and API endpoints for the React frontend.
+This is the Laravel backend API for the Smart Dine Point of Sale System. It provides authentication and API endpoints for the React frontend.
 
 ## Features
 - **Authentication**: User registration, login, logout using Laravel Sanctum

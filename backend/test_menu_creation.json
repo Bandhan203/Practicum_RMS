@@ -1,0 +1,13 @@
+{
+  "name": "Test Pizza",
+  "description": "Delicious test pizza with cheese and tomatoes",
+  "price": 350.00,
+  "category": "Main Course",
+  "preparation_time": 25,
+  "available": "1",
+  "featured": "0",
+  "ingredients": "[\"cheese\", \"tomatoes\", \"dough\", \"sauce\"]",
+  "dietary_info": "Vegetarian",
+  "calories": 450,
+  "rating": 4.5
+}

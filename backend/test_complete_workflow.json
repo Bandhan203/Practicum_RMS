@@ -1,0 +1,15 @@
+{
+  "customer_name": "Final Test Customer",
+  "customer_email": "finaltest@example.com",
+  "customer_phone": "01987654321",
+  "order_type": "dine-in",
+  "table_number": "10",
+  "special_instructions": "Final testing workflow",
+  "items": [
+    {
+      "menu_item_id": 10,
+      "quantity": 2,
+      "special_instructions": "Extra hot"
+    }
+  ]
+}

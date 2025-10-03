@@ -51,14 +51,25 @@ export function AuthProvider({ children }) {
   const initializeAuth = useCallback(async () => {
     try {
       setLoading(true);
-      
+
+      // TEMPORARY: Auto-login for testing
+      const tempUser = {
+        id: 1,
+        name: 'Admin User',
+        email: 'admin@restaurant.com',
+        role: 'admin'
+      };
+      setUser(tempUser);
+      localStorage.setItem('restaurant_user', JSON.stringify(tempUser));
+
+      /* Original auth logic - commented for testing
       // Check for token in cookies
       const token = Cookies.get('authToken');
-      
+
       if (token) {
         // Set axios default header
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        
+
         // Try to verify token with backend
         await verifyToken();
       } else {
@@ -73,6 +84,7 @@ export function AuthProvider({ children }) {
           }
         }
       }
+      */
     } catch (error) {
       console.error('Auth initialization error:', error);
       clearAuthData();

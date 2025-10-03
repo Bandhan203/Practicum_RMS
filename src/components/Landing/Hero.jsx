@@ -15,8 +15,8 @@ const Hero = () => {
               with Smart Dine
             </h1>
             <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-              Smart Dine is a complete restaurant management system with inventory tracking, 
-              order management, waste analytics, and staff coordination. 
+              Smart Dine is a modern point of sale system with inventory tracking, 
+              order management, payment processing, and efficient operations management. 
               Boost efficiency and reduce costs by up to 40%.
             </p>
             

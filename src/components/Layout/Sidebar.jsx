@@ -76,12 +76,8 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
 
   // Menu item click handler
   const handleMenuItemClick = useCallback((itemId) => {
-    // Route to admin paths
-    if (itemId === 'dashboard') {
-      navigate('/dashboard');
-    } else {
-      navigate(`/admin/${itemId}`);
-    }
+    // Route to dashboard paths for consistent navigation
+    navigate(`/dashboard/${itemId}`);
     
     // Close sidebar on mobile after navigation
     if (isMobile) {
@@ -124,7 +120,7 @@ const Sidebar = ({ activeTab, isOpen, setIsOpen }) => {
           <div className="space-y-1 px-3 py-4">
             {menuItems.map((item) => {
               const isActive = (location.pathname === '/dashboard' && item.id === 'dashboard') ||
-                              location.pathname === `/admin/${item.id}`;
+                              location.pathname === `/dashboard/${item.id}`;
               
               return (
                 <button

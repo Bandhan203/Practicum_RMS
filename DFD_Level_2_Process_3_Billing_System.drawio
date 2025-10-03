@@ -1,0 +1,187 @@
+<mxfile host="65bd71144e">
+    <diagram id="DFD_Level_2_Process_3" name="Level 2 DFD Process 3.0 (Billing System)">
+        <mxGraphModel dx="1422" dy="794" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+
+                <!-- Title -->
+                <mxCell id="title" value="Level 2 DFD Process 3.0 (Billing System):" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="30" y="30" width="400" height="30" as="geometry"/>
+                </mxCell>
+                
+                <!-- External Entities -->
+                <mxCell id="customer" value="Customer" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="650" y="120" width="80" height="40" as="geometry"/>
+                </mxCell>
+                
+                <!-- Sub-processes -->
+                <mxCell id="process31" value="3.1&#xa;&#xa;Generate&#xa;Bill" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="100" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="process32" value="3.2&#xa;&#xa;Calculate&#xa;Taxes" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="100" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="process33" value="3.3&#xa;&#xa;Process&#xa;Payment" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="200" y="250" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="process34" value="3.4&#xa;&#xa;Print&#xa;Receipt" style="rounded=1;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=12;fontStyle=1;align=center;" vertex="1" parent="1">
+                    <mxGeometry x="400" y="250" width="100" height="80" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Stores -->
+                <mxCell id="dt1" value="DT" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="50" y="150" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="dt1_label" value="Orders" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="150" width="50" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="dt2" value="DT" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="600" y="200" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="dt2_label" value="Bills" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="630" y="200" width="40" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="dt3" value="DT" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;fontStyle=1;" vertex="1" parent="1">
+                    <mxGeometry x="50" y="300" width="30" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="dt3_label" value="Settings" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=#000000;fillColor=#ffffff;fontSize=10;" vertex="1" parent="1">
+                    <mxGeometry x="80" y="300" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Flows from Data Stores -->
+                <mxCell id="dt1_to_generate" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="dt1" target="process31">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="dt1_to_generate_label" value="Order details" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="140" y="130" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="dt3_to_calculate" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="dt3" target="process32">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="dt3_to_calculate_label" value="Tax rates" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="250" y="220" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Process to Process Flows -->
+                <mxCell id="generate_to_calculate" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="process31" target="process32">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="generate_to_calculate_label" value="Bill amount" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="120" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="calculate_to_payment" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="process32" target="process33">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="calculate_to_payment_label" value="Total amount" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="200" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="payment_to_receipt" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="process33" target="process34">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="payment_to_receipt_label" value="Payment confirmation" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="320" y="270" width="80" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Process to Data Store Flows -->
+                <mxCell id="generate_to_dt2" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="process31" target="dt2">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="generate_to_dt2_label" value="Bill data" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="160" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="payment_to_dt2" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="process33" target="dt2">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="payment_to_dt2_label" value="Payment data" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="230" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Flows from Customer -->
+                <mxCell id="customer_to_payment" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="customer" target="process33">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="customer_to_payment_label" value="Payment info" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="550" y="200" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Flows to Customer -->
+                <mxCell id="receipt_to_customer" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="process34" target="customer">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="receipt_to_customer_label" value="Receipt" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="550" y="270" width="50" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Data Store to Process Flows -->
+                <mxCell id="dt2_to_receipt" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="dt2" target="process34">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="dt2_to_receipt_label" value="Bill details" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="520" y="180" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+                <!-- Additional flows for completeness -->
+                <mxCell id="generate_to_payment" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="process31" target="process33">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="generate_to_payment_label" value="Bill reference" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="180" y="200" width="70" height="20" as="geometry"/>
+                </mxCell>
+                
+                <mxCell id="calculate_to_receipt" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="process32" target="process34">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="390" y="400" as="sourcePoint"/>
+                        <mxPoint x="440" y="350" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="calculate_to_receipt_label" value="Tax details" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=9;" vertex="1" parent="1">
+                    <mxGeometry x="420" y="200" width="60" height="20" as="geometry"/>
+                </mxCell>
+                
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

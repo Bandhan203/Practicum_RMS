@@ -1,0 +1,307 @@
+# Smart Dine POS - Activity Diagram for Admin User
+
+## 🎯 Admin Activity Diagram
+
+```mermaid
+graph TD
+    A[Start: Admin Access] --> B{Already Logged In?}
+    
+    B -->|No| C[Navigate to Login Page]
+    B -->|Yes| D[Access Dashboard]
+    
+    C --> E[Enter Email & Password]
+    E --> F{Valid Credentials?}
+    F -->|No| G[Display Error Message]
+    G --> E
+    F -->|Yes| H[Generate JWT Token]
+    H --> I[Store Token & User Data]
+    I --> D
+    
+    D[Dashboard - Main Hub] --> J{Select Operation}
+    
+    %% Menu Management Branch
+    J -->|Menu Management| K[Menu Management Module]
+    K --> K1{Menu Action?}
+    K1 -->|View Items| K2[Display Menu Items List]
+    K1 -->|Add Item| K3[Show Add Item Form]
+    K1 -->|Edit Item| K4[Show Edit Item Form]
+    K1 -->|Delete Item| K5[Confirm Delete Dialog]
+    
+    K3 --> K6[Fill Item Details]
+    K6 --> K7[Upload Image Optional]
+    K7 --> K8[Submit New Item]
+    K8 --> K9{Validation Success?}
+    K9 -->|No| K10[Show Validation Errors]
+    K10 --> K6
+    K9 -->|Yes| K11[Save to Database]
+    K11 --> K12[Update Menu Display]
+    K12 --> K2
+    
+    K4 --> K13[Load Existing Data]
+    K13 --> K14[Modify Item Details]
+    K14 --> K15[Submit Changes]
+    K15 --> K16{Update Success?}
+    K16 -->|No| K17[Show Error Message]
+    K17 --> K14
+    K16 -->|Yes| K18[Update Database]
+    K18 --> K12
+    
+    K5 --> K19{Confirm Delete?}
+    K19 -->|No| K2
+    K19 -->|Yes| K20[Delete from Database]
+    K20 --> K21[Remove from Display]
+    K21 --> K2
+    
+    K2 --> K22[Return to Dashboard]
+    K22 --> D
+    
+    %% Order Management Branch
+    J -->|Order Management| L[Order Management Module]
+    L --> L1{Order Action?}
+    L1 -->|View Orders| L2[Display Orders List]
+    L1 -->|Create Order| L3[Show New Order Form]
+    L1 -->|Update Status| L4[Change Order Status]
+    L1 -->|Modify Order| L5[Edit Order Details]
+    
+    L3 --> L6[Enter Customer Info]
+    L6 --> L7[Select Order Type]
+    L7 --> L8[Add Menu Items]
+    L8 --> L9[Set Quantities]
+    L9 --> L10[Add Special Instructions]
+    L10 --> L11[Calculate Total]
+    L11 --> L12[Submit Order]
+    L12 --> L13{Order Valid?}
+    L13 -->|No| L14[Show Validation Errors]
+    L14 --> L6
+    L13 -->|Yes| L15[Save Order]
+    L15 --> L16[Update Order Display]
+    L16 --> L2
+    
+    L4 --> L17[Select New Status]
+    L17 --> L18[Update Order Status]
+    L18 --> L19[Notify Kitchen/Customer]
+    L19 --> L2
+    
+    L5 --> L20[Load Order Details]
+    L20 --> L21[Modify Items/Quantities]
+    L21 --> L22[Recalculate Total]
+    L22 --> L23[Save Changes]
+    L23 --> L2
+    
+    L2 --> L24[Return to Dashboard]
+    L24 --> D
+    
+    %% Billing System Branch
+    J -->|Billing System| M[Billing System Module]
+    M --> M1{Billing Action?}
+    M1 -->|View Bills| M2[Display Bills List]
+    M1 -->|Generate Bill| M3[Select Completed Order]
+    M1 -->|Process Payment| M4[Payment Processing]
+    M1 -->|Print Receipt| M5[Receipt Generation]
+    
+    M3 --> M6[Load Order Details]
+    M6 --> M7[Calculate Subtotal]
+    M7 --> M8[Apply Taxes]
+    M8 --> M9[Add Service Charges]
+    M9 --> M10[Generate Final Total]
+    M10 --> M11[Create Bill Record]
+    M11 --> M12[Display Bill]
+    M12 --> M2
+    
+    M4 --> M13[Select Payment Method]
+    M13 --> M14{Payment Method?}
+    M14 -->|Cash| M15[Record Cash Payment]
+    M14 -->|Card| M16[Process Card Payment]
+    M14 -->|Digital| M17[Process Digital Payment]
+    
+    M15 --> M18[Update Payment Status]
+    M16 --> M18
+    M17 --> M18
+    M18 --> M19[Mark Bill as Paid]
+    M19 --> M2
+    
+    M5 --> M20[Generate Receipt PDF]
+    M20 --> M21[Print Receipt]
+    M21 --> M22[Mark as Printed]
+    M22 --> M2
+    
+    M2 --> M23[Return to Dashboard]
+    M23 --> D
+    
+    %% Inventory Control Branch
+    J -->|Inventory Control| N[Inventory Management Module]
+    N --> N1{Inventory Action?}
+    N1 -->|View Stock| N2[Display Inventory List]
+    N1 -->|Add Item| N3[Add New Inventory Item]
+    N1 -->|Adjust Stock| N4[Stock Adjustment]
+    N1 -->|Check Alerts| N5[View Low Stock Alerts]
+    
+    N3 --> N6[Enter Item Details]
+    N6 --> N7[Set Initial Quantity]
+    N7 --> N8[Set Minimum Stock Level]
+    N8 --> N9[Set Cost Price]
+    N9 --> N10[Submit New Item]
+    N10 --> N11{Validation Success?}
+    N11 -->|No| N12[Show Validation Errors]
+    N12 --> N6
+    N11 -->|Yes| N13[Save to Database]
+    N13 --> N14[Update Inventory Display]
+    N14 --> N2
+    
+    N4 --> N15[Select Inventory Item]
+    N15 --> N16[Enter Adjustment Reason]
+    N16 --> N17[Enter New Quantity]
+    N17 --> N18[Submit Adjustment]
+    N18 --> N19[Update Stock Level]
+    N19 --> N20[Log Adjustment History]
+    N20 --> N2
+    
+    N5 --> N21[Query Low Stock Items]
+    N21 --> N22[Display Alert List]
+    N22 --> N23[Mark Alerts as Seen]
+    N23 --> N2
+    
+    N2 --> N24[Return to Dashboard]
+    N24 --> D
+    
+    %% Analytics Reports Branch
+    J -->|Analytics Reports| O[Analytics & Reports Module]
+    O --> O1{Analytics Action?}
+    O1 -->|Dashboard Stats| O2[Display Dashboard Metrics]
+    O1 -->|Sales Report| O3[Generate Sales Report]
+    O1 -->|Popular Items| O4[Show Popular Items Analysis]
+    O1 -->|Export Data| O5[Data Export Options]
+    
+    O2 --> O6[Load Today's Metrics]
+    O6 --> O7[Calculate Revenue]
+    O7 --> O8[Count Orders]
+    O8 --> O9[Check Inventory Alerts]
+    O9 --> O10[Display Dashboard]
+    O10 --> O2
+    
+    O3 --> O11[Select Date Range]
+    O11 --> O12[Generate Report Data]
+    O12 --> O13[Create Charts/Graphs]
+    O13 --> O14[Display Report]
+    O14 --> O2
+    
+    O4 --> O15[Analyze Order History]
+    O15 --> O16[Calculate Item Popularity]
+    O16 --> O17[Rank Items by Sales]
+    O17 --> O18[Display Popular Items]
+    O18 --> O2
+    
+    O5 --> O19{Export Format?}
+    O19 -->|PDF| O20[Generate PDF Report]
+    O19 -->|CSV| O21[Generate CSV File]
+    O19 -->|Excel| O22[Generate Excel File]
+    
+    O20 --> O23[Download PDF]
+    O21 --> O23
+    O22 --> O23
+    O23 --> O2
+    
+    O2 --> O24[Return to Dashboard]
+    O24 --> D
+    
+    %% Settings Branch
+    J -->|Settings| P[Settings Management Module]
+    P --> P1{Settings Action?}
+    P1 -->|Restaurant Info| P2[Edit Restaurant Details]
+    P1 -->|Tax Configuration| P3[Configure Tax Rates]
+    P1 -->|Payment Methods| P4[Setup Payment Options]
+    P1 -->|System Preferences| P5[System Configuration]
+    
+    P2 --> P6[Update Restaurant Name]
+    P6 --> P7[Update Address & Contact]
+    P7 --> P8[Update Operating Hours]
+    P8 --> P9[Save Restaurant Info]
+    P9 --> P10[Confirm Changes]
+    P10 --> P1
+    
+    P3 --> P11[Set Tax Percentage]
+    P11 --> P12[Configure Service Charge]
+    P12 --> P13[Apply Tax Settings]
+    P13 --> P1
+    
+    P4 --> P14[Enable/Disable Cash]
+    P14 --> P15[Enable/Disable Card]
+    P15 --> P16[Enable/Disable Digital]
+    P16 --> P17[Set Minimum Amounts]
+    P17 --> P18[Save Payment Settings]
+    P18 --> P1
+    
+    P5 --> P19[Update System Theme]
+    P19 --> P20[Configure Notifications]
+    P20 --> P21[Set Backup Preferences]
+    P21 --> P22[Save System Settings]
+    P22 --> P1
+    
+    P1 --> P23[Return to Dashboard]
+    P23 --> D
+    
+    %% Logout Branch
+    D --> Q{Logout?}
+    Q -->|No| J
+    Q -->|Yes| R[Clear User Session]
+    R --> S[Clear JWT Token]
+    S --> T[Redirect to Login]
+    T --> U[End: Session Terminated]
+    
+    %% Error Handling
+    K11 --> V{Network Error?}
+    L15 --> V
+    M11 --> V
+    N13 --> V
+    O12 --> V
+    P9 --> V
+    
+    V -->|Yes| W[Display Error Message]
+    W --> X[Retry Option]
+    X --> Y{Retry?}
+    Y -->|Yes| J
+    Y -->|No| D
+    V -->|No| J
+    
+    %% Styling
+    classDef startEnd fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    classDef process fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
+    classDef decision fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    classDef module fill:#e8f5e8,stroke:#2e7d32,stroke-width:2px
+    
+    class A,U startEnd
+    class D,K,L,M,N,O,P module
+    class B,F,J,K1,K9,K16,K19,L1,L13,M1,M14,N1,N11,O1,O19,P1,Q,V,Y decision
+```
+
+## 🔄 Activity Flow Summary
+
+### **1. Authentication Phase:**
+- Login verification and token generation
+- Session management and user data storage
+- Error handling for invalid credentials
+
+### **2. Main Dashboard Hub:**
+- Central navigation point for all modules
+- Real-time metrics display
+- Quick access to all POS features
+
+### **3. Module-Specific Activities:**
+- **Menu Management**: CRUD operations for menu items
+- **Order Management**: Complete order lifecycle management
+- **Billing System**: Payment processing and receipt generation
+- **Inventory Control**: Stock management and alerts
+- **Analytics**: Reporting and data export
+- **Settings**: System configuration and preferences
+
+### **4. Error Handling:**
+- Network error management
+- Validation error display
+- Retry mechanisms for failed operations
+
+### **5. Session Management:**
+- Secure logout process
+- Token cleanup and session termination
+- Redirect handling for security
+
+This activity diagram shows the complete workflow for an admin user in your simplified POS system, covering all major operations and decision points.

@@ -1,21 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AppProvider } from './contexts/AppContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { RealTimeDataProvider } from './contexts/RealTimeDataContext';
 import { ApiAppProvider } from './contexts/ApiAppContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import { Header } from './components/Layout/Header';
 import Sidebar from './components/Layout/Sidebar';
-import { ApiMenuManagement as MenuManagement } from './components/Menu/ApiMenuManagement';
-import { OrderManagement } from './components/Orders/OrderManagement';
-import { UserManagement } from './components/Users/UserManagement';
+import { BackendMenuManagement } from './components/Menu/BackendMenuManagement';
+import { SimpleOrderManagement } from './components/Orders/SimpleOrderManagement';
 import { RealTimeBillingSystem } from './components/Billing/RealTimeBillingSystem';
+import ProfessionalBillingSystem from './components/Billing/ProfessionalBillingSystem';
 import { AdminDashboard } from './components/Dashboard/AdminDashboard';
-import { SettingsManagement } from './components/Settings/SettingsManagement';
+import ProfessionalDashboard from './components/Dashboard/ProfessionalDashboard';
+import { DynamicSettingsManagement } from './components/Settings/DynamicSettingsManagement';
 import { InventoryManagement } from './components/Inventory/InventoryManagement';
 import Analytics from './components/Analytics/Analytics';
 import RealTimeAnalyticsDashboard from './components/Analytics/RealTimeAnalyticsDashboard';
-import { CustomerMenuRedux } from './components/Menu/CustomerMenuRedux';
 import { LoginForm } from './components/Auth/LoginForm';
 import SignupPage from './pages/SignupPage';
 import { LandingPage } from './pages/LandingPage';
@@ -29,21 +31,21 @@ function MainLayout() {
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   const { user, isAuthenticated, loading } = useAuth();
 
   // Redirect if not authenticated
   useEffect(() => {
     if (loading) return; // Wait for auth to load
-    
+
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
-    
+
     // Redirect to dashboard if on root
     const path = location.pathname;
-    if (path === '/' || path === '/dashboard') {
+    if (path === '/') {
       navigate('/dashboard', { replace: true });
     }
   }, [isAuthenticated, loading, navigate, location.pathname]);
@@ -51,14 +53,13 @@ function MainLayout() {
   // Get active tab from current route
   const getActiveTab = () => {
     const path = location.pathname;
-    if (path.includes('/dashboard')) return 'dashboard';
-    if (path.includes('/admin/menu')) return 'menu';
-    if (path.includes('/admin/orders')) return 'orders';
-    if (path.includes('/admin/inventory')) return 'inventory';
-    if (path.includes('/admin/analytics')) return 'analytics';
-    if (path.includes('/admin/users')) return 'users';
-    if (path.includes('/admin/billing')) return 'billing';
-    if (path.includes('/admin/settings')) return 'settings';
+    if (path === '/dashboard' || path.includes('/dashboard')) return 'dashboard';
+    if (path.includes('/menu')) return 'menu';
+    if (path.includes('/orders')) return 'orders';
+    if (path.includes('/inventory')) return 'inventory';
+    if (path.includes('/analytics')) return 'analytics';
+    if (path.includes('/billing')) return 'billing';
+    if (path.includes('/settings')) return 'settings';
     return 'dashboard';
   };
 
@@ -69,7 +70,7 @@ function MainLayout() {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
@@ -84,7 +85,7 @@ function MainLayout() {
     if (isMobile) {
       return "flex-1 min-h-[calc(100vh-4rem)] ml-0 transition-all duration-300 ease-in-out";
     }
-    
+
     const marginLeft = 'ml-64'; // Fixed sidebar width
     return `flex-1 min-h-[calc(100vh-4rem)] ${marginLeft} transition-all duration-300 ease-in-out`;
   };
@@ -101,8 +102,8 @@ function MainLayout() {
     <div className="min-h-screen bg-gray-50 pt-16">
       <Header toggleSidebar={toggleSidebar} />
       <div className="relative">
-        <Sidebar 
-          activeTab={activeTab} 
+        <Sidebar
+          activeTab={activeTab}
           isOpen={sidebarOpen}
           setIsOpen={setSidebarOpen}
         />
@@ -110,17 +111,16 @@ function MainLayout() {
           <div className="h-full overflow-auto p-6">
             <Routes>
               {/* Admin Routes - Use relative paths since we're inside /admin/* or /dashboard/* */}
-              <Route path="dashboard" element={<AdminDashboard />} />
-              <Route path="menu" element={<MenuManagement />} />
-              <Route path="orders" element={<OrderManagement />} />
+              <Route path="dashboard" element={<ProfessionalDashboard />} />
+              <Route path="menu" element={<BackendMenuManagement />} />
+              <Route path="orders" element={<SimpleOrderManagement />} />
               <Route path="inventory" element={<InventoryManagement />} />
               <Route path="analytics" element={<Analytics />} />
               <Route path="analytics-realtime" element={<RealTimeAnalyticsDashboard />} />
-              <Route path="users" element={<UserManagement />} />
-              <Route path="billing" element={<RealTimeBillingSystem />} />
-              <Route path="settings" element={<SettingsManagement />} />
+              <Route path="billing" element={<ProfessionalBillingSystem />} />
+              <Route path="settings" element={<DynamicSettingsManagement />} />
               {/* Default route for /dashboard */}
-              <Route path="" element={<AdminDashboard />} />
+              <Route path="" element={<ProfessionalDashboard />} />
             </Routes>
           </div>
         </main>
@@ -132,21 +132,43 @@ function MainLayout() {
 
 function App() {
   return (
+    <SettingsProvider>
     <AuthProvider>
       <ApiAppProvider>
         <AppProvider>
           <RealTimeDataProvider>
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
+                },
+                success: {
+                  duration: 3000,
+                  style: {
+                    background: '#10B981',
+                  },
+                },
+                error: {
+                  duration: 4000,
+                  style: {
+                    background: '#EF4444',
+                  },
+                },
+              }}
+            />
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/public" element={<LandingPage />} />
-              <Route path="/menu" element={<CustomerMenuRedux />} />
-              
+
               {/* Auth Routes */}
               <Route path="/login" element={<LoginForm />} />
               <Route path="/signup" element={<SignupPage />} />
 
-              {/* Protected Routes */}
+              {/* Protected Routes - Simplified admin-only access */}
               <Route path="/dashboard/*" element={<MainLayout />} />
               <Route path="/admin/*" element={<MainLayout />} />
             </Routes>
@@ -154,6 +176,7 @@ function App() {
         </AppProvider>
       </ApiAppProvider>
     </AuthProvider>
+    </SettingsProvider>
   );
 }
 
